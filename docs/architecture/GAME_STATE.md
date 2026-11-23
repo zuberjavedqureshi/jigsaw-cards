@@ -35,7 +35,7 @@
 
 - On each accepted placement and on app pause/background: save session.
 - On resume: restore session if an unfinished one exists.
-- On completion: award card and coins exactly once, update progress, clear the saved session.
+- On completion: award coins, plus the guaranteed card if the puzzle is designated (CC-03), exactly once; update progress; clear the saved session.
 
 ## 4. Flame ↔ Riverpod Bridge
 

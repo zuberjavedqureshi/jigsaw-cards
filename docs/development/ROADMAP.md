@@ -1,5 +1,7 @@
 # Roadmap
 
+> **Status: Proposed.** The approved PRD v1.0 defines its own development phases, but their text has not yet been supplied to the repository (PRD §16, Q-019). This roadmap will be reconciled with them.
+>
 > Dates are not set. Phases are sequential; a phase starts only when the previous phase's exit criteria are met.
 
 ## Phase 0 — Foundation *(current)*

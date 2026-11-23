@@ -29,7 +29,7 @@
 | name | string | |
 | cardArtRef | string | Asset reference |
 | animationRef | string? | Rive asset reference (subject to validation) |
-| rarity | ? | TBC |
+| rarity | enum? | Rarity is confirmed (CC-02); tiers are TBC (Q-007) |
 
 ### PuzzleConfig
 | Field | Type | Notes |
@@ -37,8 +37,9 @@
 | id | string | |
 | imageRef | string | |
 | rows / columns | int | 4 / 4 for prototype |
+| pieceStyle | enum | `rectangular` only for the prototype; `irregular` reserved for future (PS-02) — proposed |
 | pieces | list<PieceDefinition> | Authored or generated — TBC |
-| cardId | string | Revealed on completion |
+| cardId | string? | Set only for **designated** puzzles, which guarantee this card on completion (CC-03) |
 | coinReward | int | |
 
 ### PieceDefinition
@@ -80,7 +81,7 @@
 
 ## 3. Rules
 
-- Content is configuration-driven; adding a puzzle must not require code changes.
+- Content is configuration-driven, including which puzzles are designated card puzzles (DL-01); adding a puzzle must not require code changes.
 - Domain models are immutable and free of Flutter/Flame types.
 - Persisted models carry a `schemaVersion`.
 - No personal data is collected in the prototype. Any future data collection must be reviewed against the target audience decision (OPEN_QUESTIONS Q-001).

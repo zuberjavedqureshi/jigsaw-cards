@@ -60,6 +60,7 @@ Details: [GAME_STATE.md](GAME_STATE.md).
 
 - **[Confirmed]** Independent pure-Dart module, with no dependency on Flutter or Flame.
 - **[Proposed]** Packaged as a separate Dart package inside the repository (e.g. `packages/puzzle_domain/`) so that the boundary is enforced by the dependency graph.
+- **[Confirmed]** Supports the hybrid puzzle system: rectangular pieces now, irregular jigsaw later (not yet implemented).
 - **[Proposed]** Exposes immutable state and pure operations (e.g. "attempt placement" → result + new state), which makes it deterministic and unit-testable.
 
 Details: [PUZZLE_ENGINE.md](PUZZLE_ENGINE.md).

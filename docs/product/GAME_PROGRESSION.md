@@ -2,15 +2,22 @@
 
 > Status: structure confirmed; numbers and economy TBC.
 
-## 1. Progression Structure (confirmed)
+## 1. Progression Structure
+
+**[Confirmed]** Progression is world-based. Cards have rarity and belong to themed collections. Completing collections unlocks new worlds.
 
 ```
 World
- └── Collection(s)
-      └── Puzzle → reveals Character → awards Card
+ ├── Puzzles ── completion → coins
+ │     └── designated puzzles → guaranteed Card (+ character reveal)
+ └── Themed Collection(s) ── made of Cards
+         └── completion → unlock next World
 ```
 
-- Solving a puzzle reveals a character and awards its card plus coins.
+- Every completed puzzle awards coins.
+- A designated puzzle guarantees its card on completion (CC-03).
+- Which puzzles are designated, and what non-designated puzzles award besides coins, is **[Open]** (Q-017).
+- Rarity tiers and their effect are **[Open]** (Q-007).
 - Cards belong to themed collections.
 - Completing collections unlocks the next world.
 - A recurring mascot guides the player through the journey.

@@ -4,6 +4,8 @@
 
 The puzzle engine is the pure-Dart puzzle domain. It has **no dependency on Flutter or Flame**.
 
+**[Confirmed]** Hybrid puzzle system: mixed-sized rectangular pieces for the first prototype; traditional irregular jigsaw pieces as future functionality (PRD §7.1). The engine implements only rectangular pieces now, but must not prevent the irregular extension (§11).
+
 ## 1. Responsibilities
 
 - Hold puzzle configuration and current puzzle state.
@@ -26,7 +28,7 @@ Not responsibilities: rendering, gestures, animation, audio, screen coordinates,
 | `imageRef` | Reference to the puzzle image asset |
 | `rows`, `columns` | Logical grid size — **4 × 4** for the prototype |
 | `pieces` | List of piece definitions (see §4) |
-| `characterId` / `cardId` | What is revealed/awarded on completion |
+| `cardId` (optional) | Present only on designated puzzles; the card is guaranteed on completion (CC-03). Reward logic is applied by the application layer, not the engine. |
 | `reward` | Coin reward |
 
 Whether the piece layout is **authored** in configuration or **generated** at runtime is open (see §5).

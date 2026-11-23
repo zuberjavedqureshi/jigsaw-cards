@@ -1,6 +1,8 @@
 # Gameplay
 
-This document describes player-facing gameplay. Technical behaviour is specified in [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
+**Hybrid puzzle system [Confirmed]:** mixed-sized rectangular pieces for the first prototype; traditional irregular jigsaw pieces are future functionality.
+
+This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, CC-xx) refer to the [PRD](PRD.md). Technical behaviour is specified in [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
 
 ## 1. Initial Prototype — Confirmed Behaviour
 
@@ -40,9 +42,11 @@ This document describes player-facing gameplay. Technical behaviour is specified
 - The puzzle completes when every piece is correctly placed.
 - Completion triggers, in order:
   1. Completion feedback (sound/visual).
-  2. **Character/card reveal** — the puzzle's character comes to life.
+  2. **Character/card reveal** — on a *designated* puzzle, the guaranteed card is awarded and its character comes to life (CC-03).
   3. **Coin reward animation**.
   4. Return to puzzle selection or continue (flow TBC).
+
+> The prototype includes the character/card reveal (GP-10). **[Proposed]** The prototype puzzle is therefore configured as a designated card puzzle. What non-designated puzzles award beyond coins is open (Q-017).
 
 ### Saving
 
