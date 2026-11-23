@@ -1,0 +1,116 @@
+# ---------------------------------------------------------------
+# Flutter / Dart
+# ---------------------------------------------------------------
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/generated_plugin_registrant.*
+**/doc/api/
+*.g.dart.tmp
+coverage/
+.fvm/flutter_sdk
+
+# Symbolication / obfuscation output
+app.*.symbols
+app.*.map.json
+*.symbols
+
+# ---------------------------------------------------------------
+# Android
+# ---------------------------------------------------------------
+**/android/**/gradle-wrapper.jar
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Signing (never commit)
+*.jks
+*.keystore
+**/android/key.properties
+key.properties
+
+# ---------------------------------------------------------------
+# iOS / macOS (future-proofing)
+# ---------------------------------------------------------------
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/**/DerivedData/
+**/ios/**/xcuserdata/
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.p12
+*.cer
+
+# ---------------------------------------------------------------
+# Firebase & secrets (never commit)
+# ---------------------------------------------------------------
+google-services.json
+GoogleService-Info.plist
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase/
+.runtimeconfig.json
+service-account*.json
+*-service-account.json
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+secrets.*
+
+# ---------------------------------------------------------------
+# IDEs and editors
+# ---------------------------------------------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/*
+!.vscode/settings.json.example
+*.swp
+*.swo
+*~
+.history/
+
+# ---------------------------------------------------------------
+# OS
+# ---------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------
+# Logs and temporary files
+# ---------------------------------------------------------------
+*.log
+*.tmp
+*.temp
+*.bak
+tmp/

@@ -1,0 +1,48 @@
+# Game Progression
+
+> Status: structure confirmed; numbers and economy TBC.
+
+## 1. Progression Structure (confirmed)
+
+```
+World
+ └── Collection(s)
+      └── Puzzle → reveals Character → awards Card
+```
+
+- Solving a puzzle reveals a character and awards its card plus coins.
+- Cards belong to themed collections.
+- Completing collections unlocks the next world.
+- A recurring mascot guides the player through the journey.
+
+## 2. World Order
+
+1. Enchanted Forest
+2. Ocean Kingdom
+3. Fantasy Kingdom
+4. Cosmic Adventures
+
+The order above follows the PRD listing. Whether it is the final unlock order is to be confirmed with content design.
+
+## 3. Unlock Rules (TBC)
+
+To be decided (OPEN_QUESTIONS Q-002):
+
+- Number of puzzles per collection and collections per world.
+- Whether a world unlocks after *all* or *some* of the previous world's collections.
+- Whether puzzles within a world unlock sequentially or are freely selectable.
+- Whether coins can be used to unlock content.
+
+## 4. Economy (TBC)
+
+- Coin amounts per puzzle.
+- Coin sinks (hints, preview, unlocks, cosmetics).
+- Any monetization relationship.
+
+## 5. Difficulty Curve
+
+The initial prototype uses only a 4×4 board with mixed rectangular pieces. Difficulty variation through board size, irregular pieces or rotation is a **future feature** and requires approval. Within 4×4, difficulty may be varied through piece count/size mix and image complexity (TBC).
+
+## 6. Configuration
+
+All progression (worlds, collections, puzzles, rewards, unlock rules) must be **configuration-driven**, not hardcoded. See [DATA_MODELS.md](../architecture/DATA_MODELS.md).

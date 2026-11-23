@@ -1,0 +1,47 @@
+# Roadmap
+
+> Dates are not set. Phases are sequential; a phase starts only when the previous phase's exit criteria are met.
+
+## Phase 0 — Foundation *(current)*
+
+- Repository, documentation and contribution workflow.
+- Resolve blocking open questions (target audience, placement rule, piece layout method).
+
+**Exit:** documentation reviewed; blocking questions answered or explicitly deferred.
+
+## Phase 1 — Technical Validation
+
+Time-boxed spikes (on `spike/*` branches) to validate:
+
+- Flutter + Flame + Riverpod integration in the hybrid architecture.
+- Drag-and-snap feel and performance on target Android devices.
+- Rive character animation inside the app (or decide an alternative).
+- flame_audio latency for feedback sounds.
+- Local persistence options → select one (ADR).
+- Responsive board/tray layout across screen sizes.
+
+**Exit:** ADRs for each validated decision; Flutter project structure approved.
+
+## Phase 2 — Puzzle Domain
+
+- Pure-Dart puzzle engine: configuration, grid, pieces, occupancy, placement, completion, serialisation.
+- Full unit test coverage of domain rules.
+
+**Exit:** engine passes all tests; no Flutter/Flame dependency.
+
+## Phase 3 — Playable Prototype
+
+- One 4×4 mixed-rectangle puzzle end to end: tray, drag, snap, reject, preview, completion, reveal, coin animation, sound effects, auto-save/restore.
+
+**Exit:** prototype success criteria in the PRD are met.
+
+## Phase 4 — MVP Vertical Slice
+
+- First world (Enchanted Forest) content, card collection, progression, mascot introduction, polish.
+- Scope finalised after Phase 3.
+
+## Later (requires approval)
+
+- Remaining worlds: Ocean Kingdom, Fantasy Kingdom, Cosmic Adventures.
+- Future puzzle styles: irregular pieces, rotation, grouping, zoom/pan, board sizes and difficulty levels.
+- Firebase services where justified.
