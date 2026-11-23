@@ -11,20 +11,22 @@ Jigsaw Cards is a magical storybook puzzle adventure for Android. Players solve 
 
 ## Game Vision
 
-Every puzzle is a page in a storybook. Completing a puzzle reveals a character, which is added to the player's card collection. Completing a themed collection unlocks the next fantasy world. One recurring mascot character guides the player throughout the journey.
+Every puzzle is a page in a storybook. Completing puzzles rewards coins, and completing a designated puzzle guarantees a collectible card, revealed through an animated character. Cards have rarity and belong to themed collections. Completing collections is proposed as the way to unlock new fantasy worlds (mechanism still open). One recurring mascot character guides the player throughout the journey.
 
-**Worlds**
+**Worlds** (proposed working names; world-based progression is confirmed)
 
 1. Enchanted Forest
 2. Ocean Kingdom
 3. Fantasy Kingdom
 4. Cosmic Adventures
 
+**Hybrid puzzle system:** two separate puzzle styles. Rectangular tile puzzles (mixed-sized rectangular pieces) come first; traditional irregular jigsaw puzzles are planned as future functionality. Both share session, configuration, progress and reward systems.
+
 **Initial puzzle prototype**
 
 - One 4×4 logical board with mixed-sized rectangular pieces.
 - Pieces start in a tray below the board and are dragged onto it.
-- Automatic magnetic snapping; incorrect placements return to their previous position.
+- Automatic magnetic snapping; incorrect placements return to their previous position (proposed, not yet approved).
 - No rotation in the initial prototype.
 - Optional reference-image preview.
 - Completion detection, character/card reveal, coin reward animation and sound effects.
@@ -67,6 +69,8 @@ Live status: [planning/IMPLEMENTATION_STATUS.md](planning/IMPLEMENTATION_STATUS.
 ---
 
 ## Roadmap (summary)
+
+> Proposed sequence, to be reconciled with the development phases in the approved PRD v1.0 (see [PRD §16](docs/product/PRD.md)).
 
 | Phase | Goal |
 | --- | --- |

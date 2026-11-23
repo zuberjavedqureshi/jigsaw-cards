@@ -2,20 +2,33 @@
 
 > Status: structure confirmed; numbers and economy TBC.
 
-## 1. Progression Structure (confirmed)
+## 1. Progression Structure
+
+**[Confirmed]** Progression is world-based. Cards have rarity and belong to themed collections.
+**[Proposed]** Completing collections unlocks new worlds (PRD WP-03). The exact unlocking mechanism is open (Q-002).
 
 ```
 World
- └── Collection(s)
-      └── Puzzle → reveals Character → awards Card
+ ├── Puzzles ── completion → coins
+ │     ├── designated puzzles → guaranteed Card (+ character reveal)
+ │     └── non-designated puzzles → progression rewards
+ └── Themed Collection(s) ── made of Cards
+         └── completion → unlock next World [Proposed]
 ```
 
-- Solving a puzzle reveals a character and awards its card plus coins.
+- Every completed puzzle awards coins.
+- A designated puzzle guarantees its card on completion (CC-04).
+- Non-designated puzzles award coins and progression rewards (CC-05). What progression rewards consist of is **[Open]** (Q-020).
+- A previously collected card is not awarded as new collection progress (CC-06).
+- Which puzzles are designated, for example how many per collection, is **[Open]** (Q-002).
+- Rarity tiers and their effect are **[Open]** (Q-007).
 - Cards belong to themed collections.
-- Completing collections unlocks the next world.
+- **[Proposed]** Completing collections unlocks the next world.
 - A recurring mascot guides the player through the journey.
 
-## 2. World Order
+## 2. Worlds [Proposed]
+
+The names below are working names, not confirmed (PRD WP-02, Q-021).
 
 1. Enchanted Forest
 2. Ocean Kingdom

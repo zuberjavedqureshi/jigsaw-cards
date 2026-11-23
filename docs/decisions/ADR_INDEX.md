@@ -11,7 +11,7 @@ ADRs capture significant technical decisions, their context and consequences.
 Planned ADRs (from [TECHNICAL_DECISIONS.md](../architecture/TECHNICAL_DECISIONS.md) pending list):
 
 - Local persistence selection (TD-01)
-- Mixed rectangle piece layout method (TD-02)
+- Rectangular partition generation algorithm (TD-02)
 - Flame ↔ Riverpod bridge (TD-03)
 - Repository / project layout (TD-04)
 - Rive validation outcome

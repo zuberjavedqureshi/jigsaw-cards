@@ -1,6 +1,15 @@
 # Gameplay
 
-This document describes player-facing gameplay. Technical behaviour is specified in [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
+**Hybrid puzzle system [Confirmed]:** Jigsaw Cards will support two separate puzzle styles:
+
+| Style | Status | Characteristics |
+| --- | --- | --- |
+| Rectangular tile | Initial development and first prototype | Mixed-sized rectangular pieces, logical grid occupancy, rectangular partition generation |
+| Traditional irregular jigsaw | Future expansion, not approved for implementation | Interlocking geometry, tabs and blanks, rotation, connected-piece grouping |
+
+The styles are not necessarily combined within one puzzle. Both share puzzle session management, level configuration, common interaction contracts where practical, progress and completion reporting, and reward integration (PRD PS-13 to PS-17).
+
+This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, CC-xx) refer to the [PRD](PRD.md). Technical behaviour is specified in [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
 
 ## 1. Initial Prototype — Confirmed Behaviour
 
@@ -11,7 +20,7 @@ This document describes player-facing gameplay. Technical behaviour is specified
 
 ### Pieces
 
-- The image is divided into **mixed-sized rectangular pieces**. A piece covers one or more whole grid cells (for example 1×1, 1×2, 2×1, 2×2).
+- The image is divided into **mixed-sized rectangular pieces** by **rectangular partition generation** (PS-08). A piece covers one or more whole grid cells, for example 1×1, 1×2, 2×1 or 2×2. The allowed sizes are open (Q-009).
 - Pieces together cover the whole board exactly, with no overlap.
 - **No rotation** — every piece is always shown in its correct orientation.
 
@@ -25,7 +34,7 @@ This document describes player-facing gameplay. Technical behaviour is specified
 
 1. The player drags a piece from the tray (or from the board) onto the board.
 2. When released close to a valid position, the piece **magnetically snaps** into place.
-3. If the placement is **incorrect**, the piece **returns to its previous position** (tray or previous board location).
+3. **[Proposed]** If the placement is **incorrect**, the piece **returns to its previous position** (tray or previous board location). The precise incorrect-drop behaviour is not approved (PRD GP-06, Q-010).
 4. Feedback (sound, subtle animation) accompanies snap and rejection.
 
 > Whether a correctly placed piece becomes locked, and the exact meaning of "incorrect" (only its correct cell vs. any free area), are defined in PUZZLE_ENGINE.md and partly open (OPEN_QUESTIONS Q-010).
@@ -40,9 +49,13 @@ This document describes player-facing gameplay. Technical behaviour is specified
 - The puzzle completes when every piece is correctly placed.
 - Completion triggers, in order:
   1. Completion feedback (sound/visual).
-  2. **Character/card reveal** — the puzzle's character comes to life.
+  2. **Character/card reveal**: on a *designated* puzzle, the guaranteed card is awarded and its character comes to life (CC-04). A card already collected does not count as new collection progress (CC-06).
   3. **Coin reward animation**.
   4. Return to puzzle selection or continue (flow TBC).
+
+- On a *non-designated* puzzle, step 2 is replaced by progression rewards (CC-05). The content of progression rewards, and how they are presented, is open (Q-020).
+
+> **[Confirmed]** The first prototype puzzle is a designated card puzzle (CC-07), so that the full discovery and reward experience can be validated.
 
 ### Saving
 
@@ -58,9 +71,9 @@ This document describes player-facing gameplay. Technical behaviour is specified
 
 | Feature | Notes |
 | --- | --- |
-| Traditional irregular jigsaw pieces | Tab/blank piece shapes |
-| Rotation | Pieces may need rotating before placement |
-| Connected-piece grouping | Joined pieces move together |
+| Traditional irregular jigsaw pieces | Separate puzzle style with interlocking geometry, tabs and blanks |
+| Rotation | Listed under irregular jigsaw expansion |
+| Connected-piece grouping | Listed under irregular jigsaw expansion; joined pieces move together |
 | Zoom and pan | For larger boards |
 | Board sizes and difficulty levels | Beyond 4×4 |
 

@@ -1,5 +1,7 @@
 # Roadmap
 
+> **Status: Proposed.** The approved PRD v1.0 defines its own development phases, but their text has not yet been supplied to the repository (PRD §16, Q-019). This roadmap will be reconciled with them.
+>
 > Dates are not set. Phases are sequential; a phase starts only when the previous phase's exit criteria are met.
 
 ## Phase 0 — Foundation *(current)*
@@ -37,11 +39,11 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 
 ## Phase 4 — MVP Vertical Slice
 
-- First world (Enchanted Forest) content, card collection, progression, mascot introduction, polish.
+- First world (working name: Enchanted Forest) content, card collection, progression, mascot introduction, polish.
 - Scope finalised after Phase 3.
 
 ## Later (requires approval)
 
-- Remaining worlds: Ocean Kingdom, Fantasy Kingdom, Cosmic Adventures.
+- Remaining worlds (working names: Ocean Kingdom, Fantasy Kingdom, Cosmic Adventures).
 - Future puzzle styles: irregular pieces, rotation, grouping, zoom/pan, board sizes and difficulty levels.
 - Firebase services where justified.

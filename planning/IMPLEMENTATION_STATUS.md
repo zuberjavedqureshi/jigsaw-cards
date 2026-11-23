@@ -6,7 +6,7 @@
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Repository & documentation | ✅ Complete | Initial structure created |
+| Repository & documentation | ✅ Complete | PRD reconciled (canonical edition); Q-017 and Q-018 resolved; source-text gaps tracked in Q-019 |
 | Flutter project | ⛔ Not created | Awaiting Phase 1 project layout decision |
 | Puzzle domain | ⛔ Not started | Phase 2 |
 | Flame rendering | ⛔ Not started | Phase 1 spike / Phase 3 |
