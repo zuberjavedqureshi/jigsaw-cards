@@ -36,11 +36,20 @@
 | --- | --- | --- |
 | id | string | |
 | imageRef | string | |
-| rows / columns | int | 4 / 4 for prototype |
-| pieceStyle | enum | `rectangular` only for the prototype; `irregular` reserved for future (PS-02) — proposed |
-| pieces | list<PieceDefinition> | Authored or generated — TBC |
-| cardId | string? | Set only for **designated** puzzles, which guarantee this card on completion (CC-03) |
-| coinReward | int | |
+| style | enum | `rectangularTile` (initial development) or `irregularJigsaw` (future, reserved). Confirmed concept (PS-04); field name proposed |
+| geometry | style-specific | Rectangular tile: partition generation settings and/or piece layout (see below). Irregular: future, not specified |
+| cardId | string? | Present only on **designated** puzzles, which guarantee this card on completion (CC-04). Presence marks the puzzle as designated |
+| coinReward | int | All puzzles |
+| progressionRewards | TBC | Non-designated puzzles (CC-05). Content open (Q-020) |
+
+Shared fields (id, imageRef, style, cardId, rewards) belong to the common level configuration framework (PS-14). Geometry is style-specific (PS-18).
+
+### RectangularTileGeometry (rectangular tile style)
+| Field | Type | Notes |
+| --- | --- | --- |
+| rows / columns | int | 4 / 4 for the prototype |
+| generation | object? | Partition generation parameters, e.g. seed or size constraints. Open (Q-009, TD-02) |
+| pieces | list<PieceDefinition>? | Generated layout, or authored if supported (open) |
 
 ### PieceDefinition
 | Field | Type | Notes |
@@ -62,14 +71,15 @@
 ### CardCollection
 | Field | Type | Notes |
 | --- | --- | --- |
-| ownedCardIds | set<string> | Duplicate handling TBC |
+| ownedCardIds | set<string> | A card already in this set is not awarded as new collection progress (CC-06). Any other duplicate handling is open (Q-007) |
 
 ### PuzzleSessionSnapshot
 | Field | Type | Notes |
 | --- | --- | --- |
 | schemaVersion | int | |
 | puzzleId | string | |
-| layout | list<PieceDefinition>? | Only if pieces are generated at runtime |
+| style | enum | Puzzle style of the session |
+| layout | style-specific? | Generated layout, saved if it cannot be reproduced exactly (e.g. no deterministic seed) |
 | pieceLocations | map<pieceId, Location> | `inTray(slot)` or `onBoard(origin)` |
 | updatedAt | timestamp | |
 
@@ -81,7 +91,8 @@
 
 ## 3. Rules
 
-- Content is configuration-driven, including which puzzles are designated card puzzles (DL-01); adding a puzzle must not require code changes.
+- Content is configuration-driven, including puzzle style and which puzzles are designated card puzzles (DL-01, DL-03); adding a puzzle must not require code changes.
+- The prototype puzzle's configuration is a designated card puzzle (CC-07).
 - Domain models are immutable and free of Flutter/Flame types.
 - Persisted models carry a `schemaVersion`.
 - No personal data is collected in the prototype. Any future data collection must be reviewed against the target audience decision (OPEN_QUESTIONS Q-001).

@@ -9,14 +9,17 @@
 ```
 World
  ├── Puzzles ── completion → coins
- │     └── designated puzzles → guaranteed Card (+ character reveal)
+ │     ├── designated puzzles → guaranteed Card (+ character reveal)
+ │     └── non-designated puzzles → progression rewards
  └── Themed Collection(s) ── made of Cards
          └── completion → unlock next World
 ```
 
 - Every completed puzzle awards coins.
-- A designated puzzle guarantees its card on completion (CC-03).
-- Which puzzles are designated, and what non-designated puzzles award besides coins, is **[Open]** (Q-017).
+- A designated puzzle guarantees its card on completion (CC-04).
+- Non-designated puzzles award coins and progression rewards (CC-05). What progression rewards consist of is **[Open]** (Q-020).
+- A previously collected card is not awarded as new collection progress (CC-06).
+- Which puzzles are designated, for example how many per collection, is **[Open]** (Q-002).
 - Rarity tiers and their effect are **[Open]** (Q-007).
 - Cards belong to themed collections.
 - Completing collections unlocks the next world.

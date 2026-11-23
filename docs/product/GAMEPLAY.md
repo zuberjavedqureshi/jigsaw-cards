@@ -1,6 +1,13 @@
 # Gameplay
 
-**Hybrid puzzle system [Confirmed]:** mixed-sized rectangular pieces for the first prototype; traditional irregular jigsaw pieces are future functionality.
+**Hybrid puzzle system [Confirmed]:** Jigsaw Cards will support two separate puzzle styles:
+
+| Style | Status | Characteristics |
+| --- | --- | --- |
+| Rectangular tile | Initial development and first prototype | Mixed-sized rectangular pieces, logical grid occupancy, rectangular partition generation |
+| Traditional irregular jigsaw | Future expansion, not approved for implementation | Interlocking geometry, tabs and blanks, rotation, connected-piece grouping |
+
+The styles are not necessarily combined within one puzzle. Both share puzzle session management, level configuration, common interaction contracts where practical, progress and completion reporting, and reward integration (PRD PS-13 to PS-17).
 
 This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, CC-xx) refer to the [PRD](PRD.md). Technical behaviour is specified in [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
 
@@ -13,7 +20,7 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 
 ### Pieces
 
-- The image is divided into **mixed-sized rectangular pieces**. A piece covers one or more whole grid cells (for example 1×1, 1×2, 2×1, 2×2).
+- The image is divided into **mixed-sized rectangular pieces** by **rectangular partition generation** (PS-08). A piece covers one or more whole grid cells, for example 1×1, 1×2, 2×1 or 2×2. The allowed sizes are open (Q-009).
 - Pieces together cover the whole board exactly, with no overlap.
 - **No rotation** — every piece is always shown in its correct orientation.
 
@@ -42,11 +49,12 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 - The puzzle completes when every piece is correctly placed.
 - Completion triggers, in order:
   1. Completion feedback (sound/visual).
-  2. **Character/card reveal** — on a *designated* puzzle, the guaranteed card is awarded and its character comes to life (CC-03).
+  2. **Character/card reveal**: on a *designated* puzzle, the guaranteed card is awarded and its character comes to life (CC-04). A card already collected does not count as new collection progress (CC-06).
   3. **Coin reward animation**.
+  - On a *non-designated* puzzle, completion awards coins and progression rewards (CC-05). The content of progression rewards is open (Q-020).
   4. Return to puzzle selection or continue (flow TBC).
 
-> The prototype includes the character/card reveal (GP-10). **[Proposed]** The prototype puzzle is therefore configured as a designated card puzzle. What non-designated puzzles award beyond coins is open (Q-017).
+> **[Confirmed]** The first prototype puzzle is a designated card puzzle (CC-07), so that the full discovery and reward experience can be validated.
 
 ### Saving
 
@@ -62,9 +70,9 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 
 | Feature | Notes |
 | --- | --- |
-| Traditional irregular jigsaw pieces | Tab/blank piece shapes |
-| Rotation | Pieces may need rotating before placement |
-| Connected-piece grouping | Joined pieces move together |
+| Traditional irregular jigsaw pieces | Separate puzzle style with interlocking geometry, tabs and blanks |
+| Rotation | Listed under irregular jigsaw expansion |
+| Connected-piece grouping | Listed under irregular jigsaw expansion; joined pieces move together |
 | Zoom and pan | For larger boards |
 | Board sizes and difficulty levels | Beyond 4×4 |
 

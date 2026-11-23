@@ -16,7 +16,8 @@
 ## 2. Puzzle Domain — Required Coverage
 
 - Configuration validation: tiling invariant (full coverage, no overlap, in bounds); invalid configs rejected.
-- Piece layout generation (if procedural): every output satisfies the invariant; deterministic with a seed.
+- Rectangular partition generation: every output satisfies the tiling invariant; reproducible if seeding is adopted (TD-02).
+- Reward rules (application layer): designated puzzle awards its card once; already collected card does not add collection progress (CC-04, CC-06).
 - Placement: accepted at correct origin; rejected when out of bounds, overlapping, or (strict rule) wrong origin; rejected placement leaves state unchanged.
 - Moving a piece from board to board / board to tray (if allowed).
 - Occupancy consistent with piece locations after every operation.

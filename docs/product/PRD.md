@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 1.0 (canonical repository edition, reconciliation 1) |
+| Version | 1.0 (canonical repository edition, reconciliation 2: Q-017 and Q-018 resolved) |
 | Status | Approved product decisions; pre-development technical validation |
 | Platform | Android first, portrait |
 | Tagline | **Solve. Discover. Collect.** |
@@ -98,14 +98,42 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 ### 7.1 Hybrid puzzle system
 
-**[Confirmed]** The puzzle system is hybrid:
+**[Confirmed]** The puzzle system is hybrid (Q-018, resolved):
 
 - **PS-01** Mixed-sized rectangular pieces are used for the first prototype.
 - **PS-02** Traditional irregular jigsaw pieces are future functionality.
 - **PS-03** Puzzle rules live in an independent pure-Dart puzzle engine (Section 13).
+- **PS-04** Jigsaw Cards will eventually support two **puzzle styles**: **rectangular tile puzzles** and **traditional irregular jigsaw puzzles**.
+- **PS-05** The two styles are **separate puzzle styles**. They are not necessarily combined within one puzzle.
 
-**[Proposed]** The puzzle engine and data model should be designed so that irregular pieces can be added later without a rewrite. They must not be implemented before approval.
-**[Open]** Whether "hybrid" also means that both piece styles coexist in the live game, for example by world or by difficulty (Q-018).
+**Initial development: rectangular tile style [Confirmed]**
+
+- **PS-06** Mixed-sized rectangular pieces.
+- **PS-07** Logical grid occupancy.
+- **PS-08** Rectangular partition generation.
+
+**Future expansion: irregular jigsaw style [Confirmed as future; not approved for implementation]**
+
+- **PS-09** Traditional interlocking jigsaw geometry.
+- **PS-10** Tabs and blanks.
+- **PS-11** Rotation.
+- **PS-12** Connected-piece grouping.
+
+**Shared across both styles [Confirmed]**
+
+| ID | Shared capability |
+| --- | --- |
+| PS-13 | Puzzle session management |
+| PS-14 | Level configuration framework |
+| PS-15 | Common interaction contracts, where practical |
+| PS-16 | Progress and completion reporting |
+| PS-17 | Reward integration |
+
+**Separate per style [Confirmed]**
+
+- **PS-18** Geometry generation and rendering may remain separate for each style.
+
+**[Open]** The rectangular partition generation algorithm and its constraints, such as allowed piece sizes and piece count (Q-009).
 
 ### 7.2 Prototype gameplay (confirmed)
 
@@ -129,13 +157,13 @@ Details: [GAMEPLAY.md](GAMEPLAY.md). Technical specification: [PUZZLE_ENGINE.md]
 
 ### 7.3 Future puzzle functionality (not approved for implementation)
 
-| ID | Feature |
-| --- | --- |
-| FP-01 | Traditional irregular jigsaw pieces |
-| FP-02 | Rotation |
-| FP-03 | Connected-piece grouping |
-| FP-04 | Zoom and pan |
-| FP-05 | Different board sizes and difficulty levels |
+| ID | Feature | Notes |
+| --- | --- | --- |
+| FP-01 | Traditional irregular jigsaw pieces | Irregular jigsaw style, with interlocking geometry, tabs and blanks (PS-09, PS-10) |
+| FP-02 | Rotation | Listed under irregular jigsaw expansion (PS-11) |
+| FP-03 | Connected-piece grouping | Listed under irregular jigsaw expansion (PS-12) |
+| FP-04 | Zoom and pan | Not assigned to a style |
+| FP-05 | Different board sizes and difficulty levels | Not assigned to a style |
 
 ## 8. Core Gameplay Loop
 
@@ -148,7 +176,9 @@ Select puzzle (within a world)
 Solve puzzle (drag, snap, complete)
       │
       ▼
-Reward: coins  +  guaranteed card on designated puzzles (character reveal)
+Reward: coins
+        + designated puzzle → guaranteed card (character reveal), if not already collected
+        + non-designated puzzle → progression rewards
       │
       ▼
 Grow themed collections
@@ -169,20 +199,31 @@ The mascot guides the player through the loop (MC-01).
 - **CC-02** Cards have **rarity**.
 - **CC-03** A card is **guaranteed** when a **designated** puzzle is completed. A designated puzzle always grants its card on completion, accompanied by the character reveal.
 
+**Card acquisition rules [Confirmed]** (Q-017, resolved):
+
+- **CC-04** Designated card puzzles guarantee their associated collectible card.
+- **CC-05** Non-designated puzzles award coins and progression rewards.
+- **CC-06** Previously collected cards are not awarded as new collection progress.
+- **CC-07** The first prototype puzzle must be a designated card puzzle, so that the full discovery and reward experience can be validated.
+
 **[Open]**
 
-- Which puzzles are designated, and what non-designated puzzles award (Q-017).
+- What "progression rewards" consist of for non-designated puzzles (Q-020).
+- Which puzzles are designated, for example how many per collection (content design, Q-002).
+- What, if anything, is shown or awarded when a designated puzzle's card is already collected (Q-007).
 - Rarity tiers, how rarity is expressed and whether it affects acquisition (Q-007).
-- Duplicates, the card detail view and collection size (Q-007).
+- The card detail view and collection size (Q-007).
 
-> Correction in this edition: earlier repository text said that *every* completed puzzle awards a card. The confirmed rule is a guaranteed card after completion of a *designated* puzzle (CC-03).
+> Correction in reconciliation 1: earlier repository text said that *every* completed puzzle awards a card. The confirmed rule is a guaranteed card after completion of a *designated* puzzle (CC-03).
 
 ## 10. Rewards
 
 **[Confirmed]**
 
 - **RW-01** Coins are awarded on puzzle completion, shown with a coin reward animation.
-- **RW-02** Cards are guaranteed on designated puzzle completion (CC-03).
+- **RW-02** Cards are guaranteed on designated puzzle completion (CC-03, CC-04). A card already collected does not count as new collection progress (CC-06).
+- **RW-04** Non-designated puzzles award coins and progression rewards (CC-05). The content of progression rewards is open (Q-020).
+- **RW-05** Reward integration is shared by both puzzle styles (PS-17).
 - **RW-03** World progression is driven by completing collections (WP-03).
 
 **[Open]** What coins are spent on (Q-003) and the monetization model (Q-004).
@@ -193,6 +234,7 @@ The mascot guides the player through the loop (MC-01).
 
 - **DL-01** Levels and content are data-driven (configuration-driven). Worlds, collections, puzzles, pieces, card assignments (including which puzzles are designated) and rewards are defined in data, not hardcoded.
 - **DL-02** Adding or changing a puzzle must not require changes to gameplay code.
+- **DL-03** One level configuration framework serves both puzzle styles (PS-14). Each puzzle declares its style, and style-specific geometry settings sit alongside the shared fields.
 
 **[Proposed]** Content data is validated when it is loaded, for example to check that pieces tile the board exactly (see [DATA_MODELS.md](../architecture/DATA_MODELS.md)).
 **[Open]** Data format and authoring workflow.
@@ -251,6 +293,10 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 ## 15. Prototype Scope
 
 **[Confirmed]** The first prototype delivers the complete gameplay in Section 7.2 (GP-01 to GP-13) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
+
+**[Confirmed]** The prototype puzzle is a **designated card puzzle** (CC-07), so it validates the full discovery and reward experience: completion, character reveal, guaranteed card and coins.
+
+**[Confirmed]** Initial development covers the rectangular tile style: mixed-sized rectangular pieces, logical grid occupancy and rectangular partition generation (PS-06 to PS-08).
 
 **Out of scope for the prototype [Confirmed]:** FP-01 to FP-05.
 
@@ -320,7 +366,7 @@ These must remain unchanged without explicit approval:
 | 3 | Flutter + Flame | §13 |
 | 4 | Riverpod | §13 |
 | 5 | Independent pure-Dart puzzle domain | PS-03, §13 |
-| 6 | Hybrid puzzle system | §7.1 |
+| 6 | Hybrid puzzle system: separate rectangular tile and irregular jigsaw styles with shared session, configuration, interaction contracts, progress/completion reporting and reward integration | PS-04 to PS-18 |
 | 7 | Mixed rectangular pieces for the first prototype | PS-01, GP-02 |
 | 8 | Traditional irregular jigsaw as future functionality | PS-02, FP-01 |
 | 9 | Piece tray below the board | GP-03 |
@@ -337,6 +383,10 @@ These must remain unchanged without explicit approval:
 | 20 | Data-driven level system | DL-01 |
 | 21 | Local-first persistence; Firebase only when justified | PR-01, §13 |
 | 22 | flame_audio; Rive subject to validation | §13 |
+| 23 | Designated card puzzles guarantee their card; non-designated puzzles award coins and progression rewards | CC-04, CC-05 |
+| 24 | Previously collected cards are not awarded as new collection progress | CC-06 |
+| 25 | First prototype puzzle is a designated card puzzle | CC-07 |
+| 26 | Initial development: rectangular partition generation with logical grid occupancy | PS-06 to PS-08 |
 
 ## 21. Source Gaps Summary
 

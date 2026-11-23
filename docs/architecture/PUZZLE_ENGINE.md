@@ -4,7 +4,13 @@
 
 The puzzle engine is the pure-Dart puzzle domain. It has **no dependency on Flutter or Flame**.
 
-**[Confirmed]** Hybrid puzzle system: mixed-sized rectangular pieces for the first prototype; traditional irregular jigsaw pieces as future functionality (PRD §7.1). The engine implements only rectangular pieces now, but must not prevent the irregular extension (§11).
+**[Confirmed]** Hybrid puzzle system (PRD §7.1, PS-04 to PS-18):
+
+- Two **separate puzzle styles**: **rectangular tile** (initial development) and **traditional irregular jigsaw** (future). They are not necessarily combined within one puzzle.
+- **Shared across styles:** puzzle session management, level configuration framework, common interaction contracts where practical, progress and completion reporting, and reward integration.
+- **Separate per style:** geometry generation and rendering.
+
+Sections 3 to 10 specify the **rectangular tile style**. Section 11 covers the boundary with the future irregular style.
 
 ## 1. Responsibilities
 
@@ -28,10 +34,11 @@ Not responsibilities: rendering, gestures, animation, audio, screen coordinates,
 | `imageRef` | Reference to the puzzle image asset |
 | `rows`, `columns` | Logical grid size — **4 × 4** for the prototype |
 | `pieces` | List of piece definitions (see §4) |
-| `cardId` (optional) | Present only on designated puzzles; the card is guaranteed on completion (CC-03). Reward logic is applied by the application layer, not the engine. |
+| `style` | Puzzle style: `rectangularTile` (now) or `irregularJigsaw` (future, reserved) |
+| `cardId` (optional) | Present only on designated puzzles; the card is guaranteed on completion (CC-04). Reward logic is applied by the shared reward integration, not by style-specific geometry code. |
 | `reward` | Coin reward |
 
-Whether the piece layout is **authored** in configuration or **generated** at runtime is open (see §5).
+**[Confirmed]** Initial development includes rectangular partition generation (PS-08). How generation is parameterised in configuration is open (see §5).
 
 ## 3. Logical Grid
 
@@ -56,17 +63,18 @@ Whether the piece layout is **authored** in configuration or **generated** at ru
 
 **Invariant (proposed):** the set of piece rectangles at their correct origins tiles the grid exactly — every cell covered once, no overlaps, nothing outside the grid. Configuration that violates this is rejected at load time.
 
-## 5. Mixed Rectangular Piece Generation
+## 5. Rectangular Partition Generation
 
-**[Open]** The method for producing the mixed-size layout is **not decided**. Options to evaluate:
+**[Confirmed]** Rectangular partition generation is part of initial development (PS-08). The engine partitions the logical grid into mixed-sized rectangular pieces.
 
-| Option | Description | Notes |
-| --- | --- | --- |
-| A. Authored layouts | Designers specify pieces per puzzle in config | Full control, simplest engine; more content work |
-| B. Template library | A set of validated 4×4 layouts reused across puzzles | Predictable; limited variety |
-| C. Procedural generation | Partition the grid into rectangles at runtime, possibly seeded | Variety; needs constraints (min/max piece size, piece count) and fairness tuning |
+**[Open]** The algorithm itself is **not approved**. To be decided, with an ADR (TD-02) and Q-009:
 
-Whatever is chosen, the result must satisfy the tiling invariant in §4 and be validated by unit tests. A decision should be recorded as an ADR. Constraints such as allowed piece sizes and piece count range are TBC (OPEN_QUESTIONS Q-009).
+- Allowed piece sizes and the piece-count range for 4×4.
+- Whether generation is seeded and deterministic, so the same layout can be reproduced for a level or restored from a save.
+- Whether generation runs at runtime or when content is built, and whether hand-authored layouts are also supported.
+- Fairness and variety constraints.
+
+**[Confirmed] Requirement:** whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4 and be validated by unit tests.
 
 ## 6. Grid Occupancy
 
@@ -107,16 +115,30 @@ Snapping spans two layers:
 - **[Confirmed]** Unfinished puzzles are saved automatically.
 - **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, layout (if generated), each piece's location, and a schema version. Restoring the same data yields an identical state.
 
-## 11. Future Extension: Irregular Jigsaw Pieces
+## 11. Future Puzzle Style: Traditional Irregular Jigsaw
 
-Not approved for implementation. Design considerations so the prototype does not block it:
+**[Confirmed as future; not approved for implementation]** The irregular jigsaw style is a separate puzzle style (PS-05) with:
 
-- Irregular pieces still occupy a logical grid cell (or cells); tab/blank shapes are a rendering concern, with edge definitions shared between neighbours.
-- Rotation would add an orientation field to piece location and to the correctness check.
-- Connected-piece grouping would add a group concept above pieces; placement would apply to groups.
-- Zoom/pan and larger boards are rendering/layout concerns; grid size is already configuration.
+- Traditional interlocking jigsaw geometry.
+- Tabs and blanks.
+- Rotation.
+- Connected-piece grouping.
 
-These are notes, not commitments. Each requires approval and an ADR.
+**Boundary with the rectangular tile style [Confirmed]**
+
+| Concern | Shared or separate |
+| --- | --- |
+| Puzzle session management (start, save, restore, complete) | Shared |
+| Level configuration framework | Shared (style-specific geometry settings inside it) |
+| Interaction contracts (e.g. pick up, move, drop, result) | Shared where practical |
+| Progress and completion reporting | Shared |
+| Reward integration | Shared |
+| Geometry generation | Separate |
+| Rendering | Separate |
+
+**[Proposed]** For the rectangular style, keep the shared concerns behind small, style-neutral contracts, such as a completion signal and a serialisable session snapshot, so that a second style can reuse them. Do not build the irregular style or speculative abstractions for it now (Development Rules 7 and 9).
+
+**[Open]** The irregular style's geometry model, placement and snapping rules, and whether it uses a logical grid internally. These will be specified when the style is approved.
 
 ## 12. Testing
 

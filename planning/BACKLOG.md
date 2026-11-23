@@ -22,7 +22,7 @@ Prioritised list of upcoming work. Items move to GitHub issues when scheduled. N
 - [ ] Grid and cell model
 - [ ] Piece definition and location model
 - [ ] Configuration loading and tiling validation
-- [ ] Piece layout method (per Q-009)
+- [ ] Rectangular partition generation (algorithm per Q-009 / TD-02)
 - [ ] Occupancy
 - [ ] Placement validation
 - [ ] Completion detection
