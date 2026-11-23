@@ -224,7 +224,7 @@ None are closed by this review. Each needs explicit approval.
 
 ### Q-009 Rectangular partition generation
 
-> **Resolved 2026-11-23** by the product owner: pieces 1×1, 1×2, 2×1, 2×2; target 8–12 pieces; seeded generation; layout persisted; hand-authored layouts not required for the prototype (PRD PS-19 to PS-24). By the analysis in §6.1, these constraints admit **13,932** distinct 4×4 layouts. The algorithm remains a technical decision (TD-02). The analysis below is the original pre-decision text.
+> **Resolved 2026-11-23** by the product owner: pieces 1×1, 1×2, 2×1, 2×2; every generated prototype layout must contain between 8 and 12 pieces, inclusive; seeded generation; layout persisted; hand-authored layouts not required for the prototype (PRD PS-19 to PS-24). By the analysis in §6.1, these constraints admit **13,932** distinct 4×4 layouts. The algorithm remains a technical decision (TD-02). The analysis below is the original pre-decision text.
 
 **Evidence (§6.1):**
 
@@ -482,7 +482,7 @@ A **missed frame** is one whose build or raster time exceeds the budget for the 
 
 **S-04 Partition generation**
 
-- **[Check]** Property tests: every generated layout satisfies the tiling invariant, uses only 1×1, 1×2, 2×1 and 2×2 pieces, and has 8–12 pieces (PS-20, PS-21).
+- **[Check]** Property tests: every generated layout satisfies the tiling invariant, uses only 1×1, 1×2, 2×1 and 2×2 pieces, and contains between 8 and 12 pieces, inclusive (PS-20, PS-21).
 - **[Check]** With a fixed seed and the same SDK version, output is identical across runs.
 - **[Measure & report]** Generation time in Dart (AOT, profile/release) on the low-end test device: p50, p95 and max over at least 100 generations, under the approved constraints.
 - **[Target — proposed]** Layout generation completes within 100 ms p95 on the low-end device; otherwise recommend build-time generation.

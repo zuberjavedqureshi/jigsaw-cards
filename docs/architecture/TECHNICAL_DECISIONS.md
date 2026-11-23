@@ -29,7 +29,7 @@ This is a summary register. Significant decisions are recorded in detail as ADRs
 | ID | Topic | Notes |
 | --- | --- | --- |
 | TD-01 | Local database / storage | To be evaluated in Phase 1 against: simplicity, migration support, performance, dependency weight. No candidate is pre-selected. |
-| TD-02 | Rectangular partition generation algorithm | Product constraints approved via Q-009 (PRD PS-19 to PS-24: piece sizes, 8–12 target count, seeded generation, persisted layout). Still pending: the algorithm, runtime vs build-time generation and seed source (PUZZLE_ENGINE.md §5) |
+| TD-02 | Rectangular partition generation algorithm | Product constraints approved via Q-009 (PRD PS-19 to PS-24: piece sizes, 8–12 pieces inclusive as a generation constraint, seeded generation, persisted layout). Still pending: the algorithm, runtime vs build-time generation and seed source (PUZZLE_ENGINE.md §5) |
 | TD-03 | Flame ↔ Riverpod bridge | Manual vs. integration package (GAME_STATE.md §4) |
 | TD-04 | Repository layout | Proposed `app/` + `packages/puzzle_domain/` |
 | TD-05 | Riverpod code generation | Use or avoid |

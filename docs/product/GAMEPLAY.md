@@ -21,10 +21,10 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 ### Pieces
 
 - The image is divided into **mixed-sized rectangular pieces** by **rectangular partition generation** (PS-08).
-- **[Confirmed]** Allowed piece dimensions: **1×1, 1×2, 2×1 and 2×2** (PS-20). Target piece count: **8–12** (PS-21).
+- **[Confirmed]** Allowed piece dimensions: **1×1, 1×2, 2×1 and 2×2** (PS-20). Piece-count constraint: every generated prototype layout must contain between **8 and 12** pieces, inclusive (PS-21).
 - **[Confirmed]** Layouts are produced by **seeded generation** (PS-22). The generated layout is **persisted**, so an unfinished puzzle keeps exactly the same arrangement (PS-23).
 - Hand-authored layouts are not required for the prototype; they may come in a later phase (PS-24).
-- Pieces together cover the whole board exactly, with no overlap.
+- Pieces together cover the whole board exactly, with no overlap. This is the tiling invariant that follows from rectangular partition generation (PS-08; PUZZLE_ENGINE §4).
 - **No rotation** — every piece is always shown in its correct orientation.
 
 ### Tray

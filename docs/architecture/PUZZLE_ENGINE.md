@@ -63,7 +63,9 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 - **[Proposed]** A piece's runtime location is one of: `inTray(slot)` or `onBoard(origin)`.
 - **[Proposed]** The image region of a piece is derived from `correctOrigin` and `size`, so no separate image coordinates are stored.
 
-**Invariant (proposed):** the set of piece rectangles at their correct origins tiles the grid exactly — every cell covered once, no overlaps, nothing outside the grid. Configuration that violates this is rejected at load time.
+**Tiling invariant [Confirmed, follows from PS-08]:** the set of piece rectangles at their correct origins tiles the grid exactly. Every cell is covered once, there are no overlaps, and nothing lies outside the grid. This is what makes a layout a *partition* of the 4×4 board (GP-01, PS-08), and it matches GAMEPLAY ("pieces together cover the whole board exactly, with no overlap"). It introduces no new product decision.
+
+**[Proposed]** Enforcement mechanism: a layout or configuration that violates the invariant is rejected at load time.
 
 ## 5. Rectangular Partition Generation
 
@@ -73,7 +75,7 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
 - 4×4 logical board for the initial prototype.
 - Allowed piece dimensions: 1×1, 1×2, 2×1, 2×2.
-- Target piece count: 8–12.
+- Piece-count constraint: every generated prototype layout must contain between 8 and 12 pieces, inclusive.
 - Valid layouts are generated using seeded generation.
 - The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement.
 - Hand-authored layouts are not required for the initial prototype; they may be supported in a later phase.
@@ -85,7 +87,7 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 - Where the seed comes from (e.g. per puzzle in configuration, or per play).
 - Any fairness or variety constraints beyond the approved size and count limits.
 
-**[Proposed]** Whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4. **[Confirmed]** Generation is puzzle domain logic and therefore must be unit-tested (Development Rule 5).
+**[Confirmed]** Whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4 (PS-08) and the approved size and count constraints (PS-20, PS-21). **[Confirmed]** Generation is puzzle domain logic and therefore must be unit-tested (Development Rule 5).
 
 ## 6. Grid Occupancy
 

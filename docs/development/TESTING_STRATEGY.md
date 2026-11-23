@@ -15,8 +15,8 @@
 
 ## 2. Puzzle Domain — Required Coverage
 
-- Configuration validation: tiling invariant (full coverage, no overlap, in bounds); invalid configs rejected.
-- Rectangular partition generation: every output satisfies the tiling invariant, uses only 1×1, 1×2, 2×1 and 2×2 pieces, and has 8–12 pieces (PS-20, PS-21). Output is reproducible for a given seed within one SDK version (PS-22). A persisted layout restores identically (PS-23).
+- Tiling invariant (required; follows from the confirmed partition requirement PS-08, see PUZZLE_ENGINE §4): every layout covers the board fully, with no overlap and nothing out of bounds. A layout or configuration that violates it is rejected (rejection at load time is the proposed mechanism).
+- Rectangular partition generation: every output satisfies the tiling invariant, uses only 1×1, 1×2, 2×1 and 2×2 pieces, and contains between 8 and 12 pieces, inclusive (PS-20, PS-21). Boundary cases: layouts with 7 or 13 pieces are never produced. Output is reproducible for a given seed within one SDK version (PS-22). A persisted layout restores identically (PS-23).
 - Reward rules (application layer): designated puzzle awards its card once; already collected card does not add collection progress (CC-04, CC-06).
 - Placement (strict rule, GP-14): accepted only at the correct origin; rejected when out of bounds or at any other origin; rejected placement leaves state unchanged.
 - Locking (GP-15): a correctly placed piece cannot be moved, removed or swapped; any such attempt is rejected and leaves state unchanged.

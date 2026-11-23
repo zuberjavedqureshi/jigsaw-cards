@@ -137,7 +137,7 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 | --- | --- |
 | PS-19 | The initial prototype uses a 4×4 logical board (as GP-01) |
 | PS-20 | Allowed rectangular piece dimensions are 1×1, 1×2, 2×1 and 2×2 |
-| PS-21 | Target piece count is 8–12 pieces per puzzle |
+| PS-21 | Piece-count constraint: every generated prototype layout must contain between 8 and 12 pieces, inclusive |
 | PS-22 | Valid layouts are generated using seeded generation |
 | PS-23 | The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement |
 | PS-24 | Hand-authored layouts are not required for the initial prototype; they may be supported in a later phase |
@@ -405,7 +405,7 @@ These must remain unchanged without explicit approval:
 | 24 | Previously collected cards are not awarded as new collection progress | CC-06 |
 | 25 | First prototype puzzle is a designated card puzzle | CC-07 |
 | 26 | Initial development: rectangular partition generation with logical grid occupancy | PS-06 to PS-08 |
-| 27 | Prototype piece generation: 4×4; pieces 1×1, 1×2, 2×1, 2×2; target 8–12 pieces; seeded generation; layout persisted; hand-authored layouts not required for the prototype | PS-19 to PS-24 |
+| 27 | Prototype piece generation: 4×4; pieces 1×1, 1×2, 2×1, 2×2; 8–12 pieces inclusive (generation constraint); seeded generation; layout persisted; hand-authored layouts not required for the prototype | PS-19 to PS-24 |
 | 28 | Strict placement: only the correct position accepts a piece; incorrect drops animate back to the previous position; correct pieces are permanently locked and cannot be moved or swapped | GP-06, GP-14, GP-15 |
 | 29 | Two-row, horizontally scrollable tray; comfortable touch targets; picked-up piece enlarges to board scale; layout adapts to phone screen sizes | GP-16 to GP-19 |
 

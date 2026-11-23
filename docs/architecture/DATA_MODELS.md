@@ -48,7 +48,7 @@ Shared fields (id, imageRef, style, cardId, rewards) belong to the common level 
 | Field | Type | Notes |
 | --- | --- | --- |
 | rows / columns | int | 4 / 4 for the prototype (PS-19) |
-| generation | object? | Partition generation parameters. Approved constraints: pieces 1×1, 1×2, 2×1, 2×2; target 8–12 pieces; seeded generation (PS-20 to PS-22). Exact fields and seed source are technical (TD-02) |
+| generation | object? | Partition generation parameters. Approved constraints: pieces 1×1, 1×2, 2×1, 2×2; every generated prototype layout must contain between 8 and 12 pieces, inclusive; seeded generation (PS-20 to PS-22). Exact fields and seed source are technical (TD-02) |
 | pieces | list<PieceDefinition>? | Generated layout. Hand-authored layouts are not required for the prototype and may be supported later (PS-24) |
 
 ### PieceDefinition
