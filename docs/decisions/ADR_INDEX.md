@@ -14,7 +14,13 @@ Planned ADRs (from [TECHNICAL_DECISIONS.md](../architecture/TECHNICAL_DECISIONS.
 - Rectangular partition generation algorithm (TD-02)
 - Flame ↔ Riverpod bridge (TD-03)
 - Repository / project layout (TD-04)
+- Riverpod code generation (TD-05)
+- Minimum Android version and target devices (TD-06)
+- Flutter / Flame version pinning policy (TD-07)
+- CI setup (TD-08)
 - Rive validation outcome
+
+Recommendations for each are in the [Technical Feasibility & Architecture Review](../architecture/TECHNICAL_FEASIBILITY_REVIEW.md).
 
 ## Process
 
