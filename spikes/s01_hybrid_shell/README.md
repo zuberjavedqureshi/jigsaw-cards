@@ -11,7 +11,8 @@ spikes/s01_hybrid_shell/
   pubspec.yaml              Dart pub workspace root (single pubspec.lock)
   app/                      Flutter app (Android + web), Flame scene, Riverpod state
   packages/puzzle_domain/   Pure-Dart placeholder package
-  tool/check_domain_boundary.sh
+  tool/check_domain_boundary.sh        boundary guard (--static-only [dir] for static checks only)
+  tool/test_check_domain_boundary.sh   positive and negative tests for the guard
 ```
 
 ## Run
@@ -26,6 +27,7 @@ flutter run --profile               # on an Android device; profile mode for tim
 flutter run --profile --dart-define=S01_BRIDGE=flame_riverpod   # TD-03 option 2
 cd ../packages/puzzle_domain && dart test
 cd ../.. && ./tool/check_domain_boundary.sh
+./tool/test_check_domain_boundary.sh
 ```
 
 ## Measuring frame timing (feasibility review §8.1)

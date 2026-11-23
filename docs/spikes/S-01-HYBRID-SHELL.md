@@ -72,6 +72,7 @@ spikes/s01_hybrid_shell/
     lib/perf/                   FrameTiming collection and §8.1 statistics
   packages/puzzle_domain/       Pure Dart: GridSize, GridCell (+ tests)
   tool/check_domain_boundary.sh Boundary guard
+  tool/test_check_domain_boundary.sh  Positive and negative tests for the guard
 ```
 
 - **Flutter** owns the application UI: the header, the controls and the overlay, which is a widget in a `Stack` above the `GameWidget`.
@@ -146,6 +147,7 @@ spikes/s01_hybrid_shell/
 | With the hardened `analysis_options.yaml` (`depend_on_referenced_packages: error`) | **[Measured]** `dart analyze` reports 2 **errors** and exits 3 |
 | **Negative test:** add `flutter` to `puzzle_domain`'s own `pubspec.yaml` | **[Measured]** `tool/check_domain_boundary.sh` fails (exit 1) |
 | Clean state | **[Measured]** The boundary script passes |
+| Guard self-tests (`tool/test_check_domain_boundary.sh`, added after review) | **[Measured]** **28/28 pass**: 22 prohibited cases rejected with the expected message, and 6 allowed cases accepted (see below) |
 
 **Key finding [Observed]:** in a pub workspace, every package shares one `package_config.json`. Any package can therefore *resolve* imports of packages that only a sibling depends on. **The package structure alone does not enforce the domain boundary.** Enforcement needs three things:
 1. `depend_on_referenced_packages` promoted to an error in the domain package.
@@ -153,6 +155,20 @@ spikes/s01_hybrid_shell/
 3. `dart test` on the plain VM.
 
 All three are combined in `tool/check_domain_boundary.sh`.
+
+**Guard coverage (hardened after review).** The static checks run before the analyzer. `--static-only [dir]` runs them against any package directory, which is how the self-tests exercise temporary copies.
+
+| Area | Rejected (each has a negative test) | Accepted (each has a no-false-positive test) |
+| --- | --- | --- |
+| Dart directives | `import` and `export` of `package:flutter*/`, `package:flame*/`, `package:sky_engine/`, `dart:ui` and `dart:ui_web`, with single or double quotes. Also: `as`/`show` clauses, directives split across lines, conditional URIs (`if (dart.library.ui) '...'`), and directives in `test/` | Line, doc and block comments that mention these URIs; directive-like text inside single-line or multi-line string literals; identifiers such as `importance` or `exportedCells`; look-alike names (`flutterish`, `flameproof`); `dart:math` |
+| `pubspec.yaml` | `flutter`, `flutter_*`, `flame`, `flame_*` or `sky_engine` under `dependencies`, `dev_dependencies` or `dependency_overrides` (quoted keys and inline maps included); any `sdk: flutter` dependency; a `flutter` constraint under `environment`; a top-level `flutter:` section | YAML comments mentioning Flutter/Flame; the package `description` text; a look-alike dependency name |
+
+**[Observed] Limits of the static check.** It is text-based, not a Dart parser:
+- Comments and multi-line strings are removed before scanning.
+- Dart only allows directives before any declaration, so a string containing `//` or `/*` cannot appear ahead of one.
+- Nested block comments and raw-string edge cases are not modelled.
+
+The analyzer rule (`depend_on_referenced_packages: error`) and `dart test` on the plain VM remain as independent layers behind it.
 
 ---
 
@@ -235,7 +251,7 @@ These numbers show only that the tool works end to end. They must **not** be use
 
 | # | Problem | Resolution |
 | --- | --- | --- |
-| P-01 | Flutter 3.50 templates import `package:material_ui`. `package:flutter/material.dart` is **deprecated since 3.47** | **[Observed]** Used the first-party `material_ui` package, as the template does. **[Recommendation]** Production should use `material_ui` from the start |
+| P-01 | Flutter 3.50.1 templates import `package:material_ui`, and `package:flutter/material.dart` carries a `@Deprecated` annotation | **[Observed]** Used the first-party `material_ui` package, as the template does. Timeline per the official [migration guide](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui) (§11.1). **[Recommendation]** Production should use `material_ui` from the start |
 | P-02 | `dl.google.com` (Android SDK, Google Maven artifacts) was blocked by the cloud environment's network policy | A personal `jigsaw-cards` cloud environment, approved by the owner, now allows `dl.google.com` |
 | P-03 | The first Android build failed: Maven Central returned **HTTP 429 Too Many Requests** | Transient rate limiting; the retry succeeded with no changes |
 | P-04 | CanvasKit was loaded from `www.gstatic.com`, which is not reachable from the sandbox | Built web with `--no-web-resources-cdn` (web verification only) |
@@ -244,6 +260,21 @@ These numbers show only that the tool works end to end. They must **not** be use
 | P-07 | The overlay covered the orb at 360 dp width; Material buttons overflowed a `Row` | Compact two-row `Wrap` overlay; orb placed at 32% of the game height. Layout issue only |
 | P-08 | Browser verification counted only some taps | Diagnosed with temporary logging (since removed): the scripted click coordinates missed the orb, because the header height differs between test and web. Hit-testing was correct. Fixed the coordinates; 3 of 3 taps then counted |
 | P-09 | Two profile APKs with identical uncompressed contents reported different sizes (60.4 MB vs 72.2 MB) | **[Observed]** Most likely incremental-packaging free space. Not investigated: size belongs to S-02 (release AAB) |
+
+
+### 11.1 Material migration timeline (verified)
+
+Source: Flutter's official breaking-change page, [Migrate to standalone `material_ui` and `cupertino_ui` packages](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui), listed under "Released in Flutter 3.50" in the [breaking-changes index](https://docs.flutter.dev/release/breaking-changes). Read from its source in the official [`flutter/website`](https://github.com/flutter/website/blob/main/sites/docs/src/content/release/breaking-changes/material-ui-and-cupertino-ui.md) repository on 2026-11-23, because `docs.flutter.dev` is blocked by this environment's network policy.
+
+| Milestone | Flutter version (per the official page) |
+| --- | --- |
+| Contributions to the in-framework Material and Cupertino libraries frozen | 3.44 |
+| Standalone `material_ui` and `cupertino_ui` 1.0 published on pub.dev; opt-in | 3.47 |
+| `package:flutter/material.dart` and `package:flutter/cupertino.dart` **formally deprecated** | 3.50 (stable); landed in 3.49.0-1.0.pre-295 |
+
+The official page gives `dart fix --apply --code=migrate_design_widgets` as the automated migration, and documents a `MaterialUiCompatibilityBridge` for dependencies that still use the in-framework library.
+
+**Correction:** an earlier version of this document said `package:flutter/material.dart` was "deprecated since 3.47". That conflated the package's introduction (3.47) with the formal deprecation (3.50). The figure came from the `@Deprecated` message in the SDK source, which reads "deprecated after v3.47.0-0.0.pre" and does not match the official timeline. This document follows the official page.
 
 ---
 
@@ -267,7 +298,7 @@ These numbers show only that the tool works end to end. They must **not** be use
 - **Bridge:** a manual contract, with intents out and a small view interface in. `ref.listen` in the hosting widget's `build`, plus an explicit initial sync. Flame code imports neither Riverpod nor the domain's persistence.
 - **Overlays:** Flutter widgets above the `GameWidget`, driven by Riverpod state.
 - **Lifecycle:** one `AppLifecycleListener` in the application layer. Rely on Flame's automatic engine pause, and confirm it on a device.
-- **UI library:** `material_ui`, since `package:flutter/material.dart` is deprecated.
+- **UI library:** `material_ui`, since `package:flutter/material.dart` is formally deprecated as of Flutter 3.50 (§11.1).
 - **Measurement:** keep the `FrameTiming` tool for S-03 and the later spikes.
 
 ---

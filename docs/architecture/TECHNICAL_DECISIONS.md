@@ -66,5 +66,5 @@ Evidence from the [S-01 Hybrid Shell spike](../spikes/S-01-HYBRID-SHELL.md) (202
 
 Other spike findings that affect pending decisions:
 - **TD-06 / Q-013:** the Android profile build targets SDK 36 with minSdk 24 (Flutter defaults). No Android device or emulator was available, so Android performance and lifecycle were **not measured**.
-- **TD-07:** Flutter 3.50.1 deprecates `package:flutter/material.dart` in favour of the first-party `material_ui` package.
+- **TD-07:** `package:flutter/material.dart` is formally deprecated as of Flutter 3.50, in favour of the standalone first-party `material_ui` package, which was available as an opt-in from Flutter 3.47 ([official migration guide](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui); see the spike findings §11.1).
 - **TD-08:** the spike's checks (format, analyze, `flutter test`, `dart test`, boundary script, `flutter build apk --profile`) are the candidate CI steps.
