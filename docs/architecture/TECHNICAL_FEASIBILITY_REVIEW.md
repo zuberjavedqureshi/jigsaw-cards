@@ -12,7 +12,7 @@
 - **Feasibility ratings:** **Feasible**, **Feasible with constraints** or **Needs investigation**.
 - **Recommendations** are technical proposals. They become decisions only through an approved ADR, or through product-owner approval for product questions.
 - **Evidence** is cited inline: package data from the pub.dev API, Flutter toolchain source, Android developer documentation (§6.4) and a combinatorial analysis of 4×4 tilings (§6.1). Claims not verified against an authoritative source are marked **(unverified)** and assigned to a spike.
-- **Acceptance criteria** in §8 are tagged **[Measure & report]** (record the result; no pass threshold), **[Check]** (pass/fail by inspection or test) or **[Target — proposed]** (a numeric threshold that requires approval before it can be used to pass or fail a spike). No benchmark results exist yet; every number in a target is a proposal, not a measurement.
+- **Acceptance criteria** in §8 are tagged **[Measure & report]** (record the result; no pass threshold), **[Check]** (pass/fail by inspection or test), **[Target — proposed]** (a numeric threshold that requires approval before it can be used to pass or fail a spike) or **[Observation]** (recorded for information; explicitly not a pass/fail gate). No benchmark results exist yet; every number in a target is a proposal, not a measurement.
 
 ### 0.1 Ecosystem snapshot (pub.dev, retrieved 2026-11-23)
 
@@ -159,7 +159,7 @@ All remain **Pending** until an ADR is approved.
 | `shared_preferences` | Fine for settings only; not suitable for the session snapshot |
 | `hive`, `isar` | **Excluded**: unmaintained since 2022/2023, with pre-Dart-3 SDK constraints |
 
-**Recommendation:** use a JSON document store behind a repository interface for the prototype, with a `schemaVersion` and migration hook. Validate crash safety in S-06. Re-evaluate before MVP if cloud save (Firebase) or larger data appear.
+**Recommendation:** use a JSON document store behind a repository interface for the prototype, with a `schemaVersion` and migration hook. Validate crash safety in S-06. The recovery policy for a missing or invalid save (e.g. last-known-good backup vs defined default state) is a separate choice that requires explicit approval. Re-evaluate before MVP if cloud save (Firebase) or larger data appear.
 
 ### TD-02 Rectangular partition generation algorithm
 
@@ -371,7 +371,7 @@ What the documentation states:
 | R-02 | Drag/snap feel is not satisfying on low-end devices | Medium | High: core experience | S-03 with configurable thresholds; profile-mode measurement |
 | R-03 | Tray cannot present pieces comfortably on short screens | High | Medium | Scaled tray or scroll/paging (Q-011); S-03 |
 | R-04 | SFX latency or overlap issues on Android | Medium | Medium | Pre-loaded low-latency pools; S-05 |
-| R-05 | Save corruption, lost progress or inconsistent reward state on process death | Low | High | Save per placement; atomic write-and-replace (recommended, not decided); validated recovery path; single document so progress, cards, coins and reward-granted state are written together; S-06 |
+| R-05 | Save corruption, lost progress or inconsistent reward state on process death or device interruption | Low | High | Save per placement; atomic write-and-replace (recommended, not decided); recovery policy to be approved (S-06 alternatives); single document so progress, cards, coins and reward-granted state are written together; staged-termination tests in S-06. Power loss cannot be fully reproduced in testing |
 | R-06 | Premature abstraction for the future irregular style slows the prototype | Medium | Medium | Shared contracts limited to PS-13 to PS-17; Development Rules 7 and 9 |
 | R-07 | On large screens (≥ 600 dp), API 36 targeting ignores the portrait lock unless an exemption applies (documented, §6.4); device behaviour unverified | Medium | Low–Medium | Responsive centred layout; evaluate the `appCategory="game"` exemption; verify in S-07 |
 | R-08 | Asset volume inflates install size | Medium | Medium | Texture sizing guidelines; App Bundle; Asset Delivery review before MVP |
@@ -489,20 +489,61 @@ A **missed frame** is one whose build or raster time exceeds the budget for the 
 
 **S-06 Persistence** (atomic write-and-replace remains a recommendation; TD-01 and Q-014 stay open)
 
-Each scenario is an automated test where possible, plus at least one run on a physical device.
+These are proposed acceptance criteria for a throwaway spike. None of the tests below exist yet; they are written during S-06 only if the spike is approved. Each scenario is automated where possible, with at least one run on a physical device.
 
-- **[Check] Termination during a write.** Force-stop the process (e.g. `adb shell am kill` / process kill) at multiple points during a save. On relaunch, the store loads either the previous complete state or the new complete state, never a partial one.
-- **[Check] Incomplete temporary file.** If a leftover or truncated temporary file exists at startup, it is detected, ignored for loading and cleaned up. The primary save is used.
-- **[Check] Missing or invalid primary file.** If the primary save is missing, or fails to parse or validate (schema version, checksum or structure), the app recovers without crashing, following a fallback policy that is documented for approval:
-  - It falls back to the last valid copy, if the design keeps one.
-  - Otherwise it starts from a defined default state.
-  - The recovery is logged for diagnosis.
-- **[Check] Cross-field consistency.** After any interruption, puzzle progress, collected cards, coin balance and the reward-granted marker are consistent with each other: no card or coins awarded without the matching completion record, and no completion record without its reward. Rewards are never granted twice on relaunch.
+*Process-termination scenarios.* These four test different things and are reported separately.
+
+- **[Check] Background process termination.**
+  - Put the app in the background with an unfinished puzzle and a completed save.
+  - Terminate the process as Android would when reclaiming memory. For example: `adb shell am kill <package>`, which kills a background process; or the Developer Options background-process limit; or memory pressure.
+  - Relaunch. The state matches the last completed save exactly.
+  - This confirms that save-per-placement does not depend on lifecycle callbacks that may never arrive.
+- **[Check] Force-stop and relaunch.**
+  - Force-stop the app (`adb shell am force-stop <package>`, or Settings → Force stop) at various moments, including during a burst of placements, then relaunch.
+  - The store loads a complete, valid state: either the previous one or the new one.
+  - **Limitation:** a force-stop is triggered externally and its timing cannot be aligned with an individual filesystem operation. A single save is expected to take only a few milliseconds, so this test rarely, if ever, interrupts a specific write stage. It tests whole-app interruption, not write-stage atomicity. Controlled termination (below) covers that.
+- **[Check] Controlled termination during writes.**
+  - The throwaway spike implementation includes test-only hooks. Each hook terminates the process abruptly at one save stage; for example, the process kills itself with SIGKILL rather than exiting gracefully, so no cleanup code runs.
+  - Each stage is run repeatedly (see *Repeated termination*). After relaunch, the observed outcome is recorded against the expected outcome:
+
+| Stage | Termination point | Expected outcome on relaunch |
+| --- | --- | --- |
+| 1 | Before temporary-file creation | Previous complete state; no temporary file |
+| 2 | During temporary-file writing (partial bytes written) | Previous complete state; partial temporary file detected, ignored and cleaned up |
+| 3 | After temporary-file flush/close, before replacement | Previous complete state; leftover temporary file handled per the approved recovery policy (it must never be loaded without full validation) |
+| 4 | During replacement of the primary file | Either the previous or the new complete state, never a mix. *Note:* replacement by rename is expected to be atomic at the filesystem level on the same volume. A hook can therefore only terminate immediately before or immediately after the rename call, not inside it. Whether the chosen Dart/Android file APIs give this atomicity is itself confirmed in the spike |
+| 5 | Immediately after replacement | New complete state |
+
+- **[Check] Repeated termination.** At least 100 controlled terminations per stage (automated loop), plus repeated background-kill and force-stop cycles, produce zero corrupted or inconsistent states.
+- **[Observation] Abrupt device interruption (limitation).**
+  - Emulator and process-kill tests **cannot fully reproduce sudden power loss or hardware-level storage interruption**. After a process kill, data already handed to the operating system usually still reaches storage. After power loss, data still in OS or storage caches can be lost or partially written.
+  - The spike documents which file APIs are used and whether they request durable writes to storage (e.g. a sync/flush to disk), as opposed to only handing data to the OS. It does not assume either.
+  - Where practical, add physical-device testing, such as a forced device reboot during a continuous save loop. Record the results as observations rather than proof of power-loss safety.
+
+*Recovery behaviour*
+
+- **[Check] Incomplete temporary file.** A leftover or truncated temporary file at startup is detected, never loaded without full validation, and cleaned up.
+- **[Check] Missing or invalid primary file.** If the primary save is missing, or fails to parse or validate (schema version, checksum or structure), the app recovers without crashing and logs the recovery for diagnosis. It follows **the recovery policy that is eventually approved** (see *Recovery policy*). The tests verify that approved policy, whichever it is.
+- **[Check] Cross-field consistency.** After any interruption or recovery, puzzle progress, collected cards, coin balance and the reward-granted marker are consistent with each other. No card or coins are recorded without the matching completion record, and no completion record exists without its reward.
+- **[Check] No double rewards.** Neither recovery nor relaunch ever silently awards coins or collectible cards a second time.
 - **[Check] Exact restoration.** An unfinished puzzle restores with an identical layout and identical piece locations (tray or board) to the last saved state.
-- **[Check] Repeated termination.** At least 100 forced terminations during save operations (automated loop) produce zero corrupted or inconsistent states.
+- **[Check]** The schema version is written, and a sample migration from version N to N+1 is demonstrated.
+
+*Recovery policy (alternatives; requires explicit approval)*
+
+S-06 evaluates the alternatives below and reports the trade-offs. **No policy is selected by this review.**
+
+| Option | Description | Trade-off |
+| --- | --- | --- |
+| Last-known-good backup | Keep the previous valid save as a backup; if the primary is missing or invalid, restore from it | Limits loss to the most recent changes; adds a second file and its own validation and rotation rules |
+| Defined default state | If the primary is missing or invalid, start from a defined default (new-player) state | Simplest; a corrupted save loses all progress |
+
+Other designs may be proposed by the spike. Whatever policy is approved must preserve the *No double rewards* and *Cross-field consistency* checks above.
+
+*Performance*
+
 - **[Measure & report]** Save duration per placement on the low-end device (p50, p95, max), and frame timing (§8.1) during a scripted placement sequence with saving on versus off.
 - **[Target — proposed]** Saving adds no more than 1 percentage point to the missed-frame rate of the same scenario without saving.
-- **[Check]** The schema version is written, and a sample migration from version N to N+1 is demonstrated.
 
 **S-07 Screen and orientation**
 

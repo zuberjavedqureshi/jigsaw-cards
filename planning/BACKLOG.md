@@ -15,7 +15,7 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 - [ ] S-03 Drag, snap and tray layout → GP-03 to GP-06, Q-011 and Q-010 input
 - [ ] S-04 Rectangular partition generation (pure Dart) → TD-02, Q-009 input
 - [ ] S-05 Audio latency and lifecycle (`flame_audio`)
-- [ ] S-06 Persistence: atomic write-and-replace JSON store, crash recovery and reward consistency → TD-01, Q-014
+- [ ] S-06 Persistence: atomic write-and-replace JSON store; background-kill, force-stop and staged-termination tests; recovery-policy alternatives; reward consistency → TD-01, Q-014
 - [ ] S-07 Screen sizes and API 36 large-screen orientation behaviour → Q-013 input
 - [ ] Write ADRs for TD-01 to TD-08
 - [ ] Set up CI (format, analyze, test) when code starts (TD-08)

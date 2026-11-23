@@ -17,7 +17,7 @@ Questions that must be answered before the related work can be finalised. When r
 | Q-011 | Tray behaviour when pieces don't fit (scroll, page, scale)? | Layout, Flame | Design | Open |
 | Q-012 | Background music in prototype/MVP? | Audio | Product | Open |
 | Q-013 | Minimum Android version and target devices? | Performance validation | Tech | Open — recommendation in [feasibility review §5](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#q-013-minimum-android-version-and-target-devices) |
-| Q-014 | Local persistence technology? | Save/restore (TD-01) | Tech | Open — recommendation in [feasibility review §5](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#q-014-local-persistence-technology); validate in spike S-06 |
+| Q-014 | Local persistence technology? | Save/restore (TD-01) | Tech | Open — recommendation in [feasibility review §5](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#q-014-local-persistence-technology); validate in spike S-06; recovery policy requires separate approval |
 | Q-015 | Rive fallback if validation fails? | Character reveal | Tech / Art | Open — evaluation order in [feasibility review §5](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#q-015-rive-fallback); decide after spike S-02 |
 | Q-016 | Final license / publishing entity name for copyright notice? | LICENSE | Owner | Open |
 | Q-017 | Card acquisition rules | Progression, rewards | Product | **Resolved 2026-11-23**: designated puzzles guarantee their card; non-designated award coins and progression rewards; collected cards are not new progress; prototype puzzle is designated (PRD CC-04 to CC-07). Designation counts per collection fall under Q-002 |

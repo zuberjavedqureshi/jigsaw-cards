@@ -45,7 +45,7 @@ Recommendations from the [Technical Feasibility & Architecture Review](TECHNICAL
 
 | ID | Recommendation | Validate in |
 | --- | --- | --- |
-| TD-01 | Versioned JSON document with atomic writes behind a repository interface (prototype); exclude unmaintained `hive` and `isar` | S-06 |
+| TD-01 | Versioned JSON document with atomic writes behind a repository interface (prototype); exclude unmaintained `hive` and `isar`. Recovery policy (last-known-good backup vs defined default state) requires separate approval | S-06 |
 | TD-02 | Enumerate/select (or constrained random split) with a seeded choice; always persist the resulting layout | S-04 |
 | TD-03 | Manual bridge first; adopt `flame_riverpod` only if needed | S-01 |
 | TD-04 | Dart pub workspace: `app/` + `packages/puzzle_domain/` | S-01 |
