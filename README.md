@@ -26,7 +26,9 @@ Every puzzle is a page in a storybook. Completing puzzles rewards coins, and com
 
 - One 4×4 logical board with mixed-sized rectangular pieces.
 - Pieces start in a tray below the board and are dragged onto it.
-- Automatic magnetic snapping; incorrect placements return to their previous position (proposed, not yet approved).
+- Automatic magnetic snapping at the correct position only. Placed pieces lock permanently, and incorrect drops animate back to their previous position.
+- A two-row, horizontally scrollable tray; pieces enlarge to board scale when picked up.
+- Seeded generation of layouts with between 8 and 12 pieces (inclusive) of 1×1, 1×2, 2×1 or 2×2; the layout is saved with the puzzle.
 - No rotation in the initial prototype.
 - Optional reference-image preview.
 - Completion detection, character/card reveal, coin reward animation and sound effects.

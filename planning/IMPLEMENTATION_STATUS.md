@@ -8,6 +8,7 @@
 | --- | --- | --- |
 | Repository & documentation | ✅ Complete | PRD reconciled (canonical edition); Q-017 and Q-018 resolved; source-text gaps tracked in Q-019 |
 | Technical feasibility review | 📝 Drafted, awaiting review | [TECHNICAL_FEASIBILITY_REVIEW.md](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md); no decisions approved |
+| Product decisions | ✅ Updated | Q-009 (piece generation), Q-010 (placement), Q-011 (tray) resolved 2026-11-23; see [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
 | Flutter project | ⛔ Not created | Awaiting Phase 1 project layout decision |
 | Puzzle domain | ⛔ Not started | Phase 2 |
 | Flame rendering | ⛔ Not started | Phase 1 spike / Phase 3 |

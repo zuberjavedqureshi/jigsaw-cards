@@ -7,6 +7,8 @@
 | Scope | Feasibility of confirmed requirements; Q-009, Q-010, Q-013, Q-014, Q-015; TD-01 to TD-08; risks; spikes |
 | Status | **Analysis and recommendations only.** Nothing in this document approves a decision, closes an open question or changes product scope. |
 
+> **Status update (2026-11-23, after merge):** the product owner has resolved **Q-009** (piece generation), **Q-010** (placement) and **Q-011** (tray). See PRD PS-19 to PS-24, GP-06 and GP-14 to GP-19, and [OPEN_QUESTIONS](../../planning/OPEN_QUESTIONS.md). The analysis below is kept as written, with resolution notes added where it referred to those questions. TD-01 to TD-08 remain **Pending**, and no spike has been approved.
+
 ## 0. How to Read This Review
 
 - **Feasibility ratings:** **Feasible**, **Feasible with constraints** or **Needs investigation**.
@@ -48,7 +50,7 @@ All confirmed stack choices (Flame, flame_audio, Riverpod) have current, compati
    - Rive character reveal (GP-10, VI-03): native runtime, APK size and performance.
    - Tray layout on portrait phones (GP-03): the 4×4 pieces do not fit beside the board at full scale.
    - Drag-and-snap feel (GP-04, GP-05).
-3. **Rectangular partition generation (PS-08) appears low risk.** A 4×4 board has exactly **70,878** rectangle tilings. Exhaustive enumeration took about **182 ms in an unoptimised Python script on a desktop-class container**, not on a phone. That suggests the search space is small, but **Dart performance on a low-end Android device has not been measured** and must be measured in S-04. A constrained, seeded or enumerate-and-choose approach is straightforward. The product constraints (allowed piece sizes and piece count) remain open (Q-009).
+3. **Rectangular partition generation (PS-08) appears low risk.** A 4×4 board has exactly **70,878** rectangle tilings. Exhaustive enumeration took about **182 ms in an unoptimised Python script on a desktop-class container**, not on a phone. That suggests the search space is small, but **Dart performance on a low-end Android device has not been measured** and must be measured in S-04. A constrained, seeded or enumerate-and-choose approach is straightforward. The product constraints were approved on 2026-11-23 (Q-009: pieces 1×1 to 2×2, 8–12 pieces, seeded, layout persisted).
 4. **Recommended persistence for the prototype:** a **single versioned JSON document with atomic writes**, behind a repository interface. This needs no database dependency. Revisit if requirements grow (TD-01, Q-014).
 5. **Recommended project shape:** a Dart **pub workspace** with `app/` and `packages/puzzle_domain/`. The domain package has no Flutter dependency, so the domain/rendering boundary is enforced by the dependency graph (TD-04).
 6. **Platform watch item:** Android documentation confirms that for apps targeting API 36, orientation restrictions are ignored on displays with smallest width ≥ 600 dp (tablets, unfolded foldables), with an exemption for apps declared as games via `android:appCategory` (§6.4). Phones under 600 dp are not affected. How this applies to Jigsaw Cards is unverified on devices and is assigned to S-07.
@@ -78,10 +80,10 @@ All confirmed stack choices (Flame, flame_audio, Riverpod) have current, compati
 | --- | --- | --- |
 | GP-01 4×4 logical board | Feasible | Logical grid in the domain; pixel layout computed from available size |
 | GP-02 Mixed rectangular pieces | Feasible | One puzzle texture; each piece draws a sub-rectangle (Flame `Sprite` with `srcPosition`/`srcSize`). No pre-sliced image files needed |
-| GP-03 Tray below board | **Needs investigation** | Space analysis (§2.4): the tray cannot hold all 16 cells' worth of pieces at board scale. Needs scaling, scrolling or paging. The behaviour is open (Q-011) |
+| GP-03 Tray below board | **Needs investigation** | Space analysis (§2.4): the tray cannot hold all 16 cells' worth of pieces at board scale. *Resolved by Q-011:* a two-row, horizontally scrollable tray, with pieces enlarging to board scale on pick-up (GP-16 to GP-19). Touch-target comfort and layout across phone sizes still need validation in S-03 |
 | GP-04 Drag from tray onto board | Feasible with constraints | Flame `DragCallbacks`. Handle single-pointer drag (ignore extra pointers), raise the dragged piece's priority, and make touch targets large enough (§2.4) |
 | GP-05 Automatic magnetic snapping | Feasible with constraints | Simple geometry; the risk is *feel*. Snap threshold and animation timing must be configurable and tuned on devices (S-03) |
-| GP-06 *(Proposed)* Incorrect placement returns to previous position | Feasible | Animate back with a Flame `MoveToEffect`. Product behaviour remains open (Q-010) |
+| GP-06 Incorrect drop animates back to previous position | Feasible | Animate back with a Flame `MoveToEffect`. *Confirmed by Q-010*, together with the strict rule and permanent locking (GP-14, GP-15) |
 | GP-07 No rotation | Feasible | No work required |
 | GP-08 Optional reference preview | Feasible | Flutter overlay or Flame component. Interaction is open (Q-008) |
 | GP-09 Completion detection | Feasible | Pure domain check; O(pieces) |
@@ -96,7 +98,7 @@ All confirmed stack choices (Flame, flame_audio, Riverpod) have current, compati
 | --- | --- | --- |
 | PS-04/05 Two separate puzzle styles | Feasible | Rectangular style now. The irregular style is feasible in Flame later (path clipping, Bézier tabs) but out of scope |
 | PS-06/07 Mixed pieces, grid occupancy | Feasible | Occupancy derived from piece locations (PUZZLE_ENGINE §6) |
-| PS-08 Rectangular partition generation | Feasible | §6.1. The algorithm is a technical choice (TD-02); the constraints are a product/design choice (Q-009) |
+| PS-08 Rectangular partition generation | Feasible | §6.1. The algorithm is a technical choice (TD-02). The product constraints were approved via Q-009 (PS-19 to PS-24) |
 | PS-13 to PS-17 Shared session, configuration, interaction, completion, rewards | Feasible with constraints | Keep the shared contracts minimal and derived from the rectangular implementation. Do not build abstractions for the irregular style ahead of approval (Development Rules 7 and 9) |
 | PS-18 Separate geometry and rendering | Feasible | Natural with per-style Flame components and domain geometry modules |
 | CC-01 to CC-07 Card acquisition | Feasible | Application-layer logic over the domain's completion result. Make rewards idempotent: record "reward granted" atomically with progress |
@@ -114,7 +116,7 @@ Assumptions: a typical portrait phone 360 dp wide, 16 dp side margins, so the bo
 
 - **Touch targets:** a 1×1 piece at board scale is about 82 dp, comfortably above Android's 48 dp minimum. At 0.6× tray scale it is about 49 dp, at the limit.
 - **Tray space:** the pieces' total area always equals the board area (16 cells). On a 20:9 phone (about 800 dp tall), the space below the board after status bar, HUD and margins is roughly 0.9× the board height. On a 16:9 phone (about 640 dp tall) it is roughly 0.5×. With spacing between pieces, **the full set cannot fit at board scale on either aspect ratio.**
-- **Implication:** the tray needs a smaller piece scale (e.g. 0.6 to 0.75×, enlarging on pick-up), scrolling or paging. This is a product/UX choice (Q-011) and is validated in S-03. Layout must be computed from available size (Development Rule 6).
+- **Implication:** the tray needs a smaller piece scale (e.g. 0.6 to 0.75×, enlarging on pick-up), scrolling or paging. *Resolved by Q-011:* two rows, horizontal scrolling, enlargement to board scale on pick-up. The tray piece scale itself is not specified by the decision and is set during S-03 within the "comfortable touch targets" requirement (GP-17). Layout must be computed from available size (Development Rule 6).
 
 ---
 
@@ -163,7 +165,7 @@ All remain **Pending** until an ADR is approved.
 
 ### TD-02 Rectangular partition generation algorithm
 
-**Recommendation:** use **enumerate-and-select** or **constrained random splitting with rejection**. Both appear practical for 4×4 given the size of the search space (§6.1), but runtime cost in Dart on a low-end Android device is unmeasured. If S-04 shows runtime generation is too slow, generate at content-build time instead. Pick a layout with a seeded generator, then **persist the resulting layout** in configuration (if generated at build time) or in the session snapshot (if generated at runtime). Unit-test that every output satisfies the tiling invariant and the configured constraints. Decide once Q-009's product constraints are known.
+**Recommendation:** use **enumerate-and-select** or **constrained random splitting with rejection**. Both appear practical for 4×4 given the size of the search space (§6.1), but runtime cost in Dart on a low-end Android device is unmeasured. If S-04 shows runtime generation is too slow, generate at content-build time instead. Pick a layout with a seeded generator, then **persist the resulting layout** in configuration (if generated at build time) or in the session snapshot (if generated at runtime). Unit-test that every output satisfies the tiling invariant and the configured constraints. *Update 2026-11-23:* Q-009's product constraints are now approved (PS-19 to PS-24), and seeding and layout persistence are product requirements. The algorithm choice remains pending.
 
 ### TD-03 Flame ↔ Riverpod bridge
 
@@ -222,6 +224,8 @@ None are closed by this review. Each needs explicit approval.
 
 ### Q-009 Rectangular partition generation
 
+> **Resolved 2026-11-23** by the product owner: pieces 1×1, 1×2, 2×1, 2×2; every generated prototype layout must contain between 8 and 12 pieces, inclusive; seeded generation; layout persisted; hand-authored layouts not required for the prototype (PRD PS-19 to PS-24). By the analysis in §6.1, these constraints admit **13,932** distinct 4×4 layouts. The algorithm remains a technical decision (TD-02). The analysis below is the original pre-decision text.
+
 **Evidence (§6.1):**
 
 - A 4×4 board has **70,878** rectangle tilings (matches OEIS A116694).
@@ -235,7 +239,7 @@ None are closed by this review. Each needs explicit approval.
 - Persist the chosen layout; Dart's `Random` sequence is not documented as stable across SDK versions.
 - Runtime generation appears practical, subject to S-04 measurement. Build-time generation gives designers review control and has no runtime cost. The choice could be made per puzzle in configuration.
 
-**Needs product/design input (still open):**
+**Needs product/design input** (*resolved 2026-11-23, see the note above*):
 
 - Allowed piece sizes (e.g. max 2×2? are 1×3 and 1×4 allowed?).
 - Piece-count range.
@@ -244,6 +248,8 @@ None are closed by this review. Each needs explicit approval.
 For reference, with pieces capped at 2×2, 8 to 12 pieces covers 13,932 distinct layouts, so variety is ample.
 
 ### Q-010 Placement rule
+
+> **Resolved 2026-11-23** by the product owner: strict rule (only the correct position accepts a piece), permanent locking (no moving or swapping), and incorrect drops animate back to the previous position (PRD GP-06, GP-14, GP-15). The analysis below is the original pre-decision text.
 
 **Technical analysis:**
 
@@ -369,19 +375,19 @@ What the documentation states:
 | --- | --- | --- | --- | --- |
 | R-01 | Rive runtime (0.x, native) fails performance, size or integration criteria | Medium | High: affects the core reveal | S-02 early; sprite-sheet fallback (Q-015) |
 | R-02 | Drag/snap feel is not satisfying on low-end devices | Medium | High: core experience | S-03 with configurable thresholds; profile-mode measurement |
-| R-03 | Tray cannot present pieces comfortably on short screens | High | Medium | Scaled tray or scroll/paging (Q-011); S-03 |
+| R-03 | Tray cannot present pieces comfortably on short screens | High | Medium | Two-row scrollable tray with enlargement on pick-up, approved via Q-011; validate touch targets and layout in S-03 |
 | R-04 | SFX latency or overlap issues on Android | Medium | Medium | Pre-loaded low-latency pools; S-05 |
 | R-05 | Save corruption, lost progress or inconsistent reward state on process death or device interruption | Low | High | Save per placement; atomic write-and-replace (recommended, not decided); recovery policy to be approved (S-06 alternatives); single document so progress, cards, coins and reward-granted state are written together; staged-termination tests in S-06. Power loss cannot be fully reproduced in testing |
 | R-06 | Premature abstraction for the future irregular style slows the prototype | Medium | Medium | Shared contracts limited to PS-13 to PS-17; Development Rules 7 and 9 |
 | R-07 | On large screens (≥ 600 dp), API 36 targeting ignores the portrait lock unless an exemption applies (documented, §6.4); device behaviour unverified | Medium | Low–Medium | Responsive centred layout; evaluate the `appCategory="game"` exemption; verify in S-07 |
 | R-08 | Asset volume inflates install size | Medium | Medium | Texture sizing guidelines; App Bundle; Asset Delivery review before MVP |
 | R-09 | Dependency churn (Flame requires recent Flutter; Riverpod 3 changes) | Medium | Low | TD-07 pinning; deliberate upgrade PRs |
-| R-10 | Indistinguishable pieces feel unfair under the strict rule | Medium | Low–Medium | Content guidelines or generation constraints (Q-009, Q-010) |
-| R-11 | Unresolved product decisions (Q-001, Q-002, Q-007, Q-011, Q-020) block MVP design | High | Medium | Not blocking the prototype except Q-009, Q-010 and Q-011 |
+| R-10 | Indistinguishable pieces feel unfair under the strict rule (now confirmed, GP-14) | Medium | Low–Medium | Content guidelines or generation constraints within PS-20/PS-21 |
+| R-11 | Unresolved product decisions (Q-001, Q-002, Q-007, Q-020) block MVP design | High | Medium | Q-009, Q-010 and Q-011, the prototype blockers, were resolved 2026-11-23 |
 
 **Dependencies on product decisions:**
 
-- **Prototype:** Q-009 (constraints), Q-010 (placement rule), Q-011 (tray).
+- **Prototype:** Q-009, Q-010 and Q-011 were resolved 2026-11-23.
 - **MVP:** Q-001, Q-002, Q-007, Q-020.
 
 ---
@@ -394,8 +400,8 @@ Spikes are time-boxed experiments on `spike/*` branches. Their code is throwaway
 | --- | --- | --- | --- |
 | 1 | **S-01 Hybrid shell** | Flutter screen embedding a `GameWidget`, Riverpod state, a Flutter overlay and app lifecycle hooks | TD-03, TD-04, TD-05 |
 | 2 | **S-02 Rive reveal** | Play a representative Rive character in a Flutter overlay (optionally via `flame_rive`) | Q-015, R-01, Q-013 input |
-| 3 | **S-03 Drag, snap and tray** | 4×4 board with mixed pieces from one texture; drag from tray, snap, return | GP-03 to GP-06, Q-010 and Q-011 input, R-02, R-03 |
-| 4 | **S-04 Partition generation** | Pure-Dart enumeration/selection under candidate constraints | TD-02, Q-009 input |
+| 3 | **S-03 Drag, snap and tray** | 4×4 board with mixed pieces from one texture; two-row scrollable tray, drag, snap and lock, return | GP-03 to GP-06, GP-14 to GP-19, R-02, R-03 |
+| 4 | **S-04 Partition generation** | Pure-Dart seeded generation under the approved constraints (PS-19 to PS-24) | TD-02 |
 | 5 | **S-05 Audio** | Short SFX through `flame_audio` pools | GP-12, R-04 |
 | 6 | **S-06 Persistence** | JSON document store with atomic write-and-replace behind a repository interface (compared against `sembast` if useful) | TD-01, Q-014, R-05 |
 | 7 | **S-07 Screen and orientation** | Layout and orientation on phones, a tablet and a foldable at API 36 | Q-013 input, R-07, §6.4 |
@@ -468,16 +474,20 @@ A **missed frame** is one whose build or raster time exceeds the budget for the 
 - **[Target — proposed]** Frame-time targets as in §8.1 on the mid-range and low-end devices.
 - **[Measure & report]** Touch-to-visual response: time from pointer-down to the piece visibly lifting, from a screen recording or pointer and frame timestamps.
 - **[Check]** Snap threshold, snap duration and return animation are configuration values, not hardcoded.
-- **[Check]** Tray variants (scaled, scrolling, paged) render without overlap or clipping on 16:9 and 20:9 layouts at 360 dp width. Results are presented as input to Q-011, not a decision.
+- **[Check]** The approved two-row, horizontally scrollable tray (GP-16) renders without overlap or clipping on 16:9 and 20:9 layouts at 360 dp width.
+- **[Check]** A picked-up piece enlarges to board scale (GP-18). An incorrect drop animates back to its tray position (GP-06). A correctly placed piece locks and cannot be picked up again (GP-15).
+- **[Measure & report]** Tray piece touch-target sizes at each tested screen size.
+- **[Target — proposed]** Tray touch targets ≥ 48 dp, Android's minimum touch-target guideline. GP-17 requires "comfortable touch targets" but no number has been approved.
 - **[Measure & report]** Informal usability observations from a small group of testers. These are observations, not acceptance gates.
 
 **S-04 Partition generation**
 
-- **[Check]** Property tests: every generated layout satisfies the tiling invariant and the candidate constraints.
+- **[Check]** Property tests: every generated layout satisfies the tiling invariant, uses only 1×1, 1×2, 2×1 and 2×2 pieces, and contains between 8 and 12 pieces, inclusive (PS-20, PS-21).
 - **[Check]** With a fixed seed and the same SDK version, output is identical across runs.
-- **[Measure & report]** Generation time in Dart (AOT, profile/release) on the low-end test device: p50, p95 and max over at least 100 generations, for each candidate constraint set.
+- **[Measure & report]** Generation time in Dart (AOT, profile/release) on the low-end test device: p50, p95 and max over at least 100 generations, under the approved constraints.
 - **[Target — proposed]** Layout generation completes within 100 ms p95 on the low-end device; otherwise recommend build-time generation.
-- **[Check]** A sample of candidate layouts is rendered for design review (input to Q-009).
+- **[Check]** The persisted layout restores identically (PS-23), without relying on regenerating from the seed.
+- **[Check]** A sample of generated layouts is rendered for design review.
 
 **S-05 Audio**
 
@@ -556,8 +566,8 @@ Other designs may be proposed by the spike. Whatever policy is approved must pre
 
 | # | Location | Issue | Suggested action |
 | --- | --- | --- | --- |
-| D-01 | GAMEPLAY §1 "Dragging and snapping" step 1 | Says pieces can be dragged "from the board". If correctly placed pieces lock (open in Q-010), board-to-board moves never happen | Leave until Q-010 is decided, then align |
-| D-02 | DATA_MODELS `PuzzleSessionSnapshot.layout` | "Saved if it cannot be reproduced exactly": Dart `Random` is not guaranteed stable across SDK versions, so reproduction from a seed is fragile | Recommend always persisting the layout (TD-02); update when the ADR is approved |
+| D-01 | GAMEPLAY §1 "Dragging and snapping" step 1 | Says pieces can be dragged "from the board". If correctly placed pieces lock (open in Q-010), board-to-board moves never happen | **Fixed 2026-11-23** after Q-010 resolved locking |
+| D-02 *(fixed 2026-11-23: layout always persisted, PS-23)* | DATA_MODELS `PuzzleSessionSnapshot.layout` | "Saved if it cannot be reproduced exactly": Dart `Random` is not guaranteed stable across SDK versions, so reproduction from a seed is fragile | Recommend always persisting the layout (TD-02); update when the ADR is approved |
 | D-03 | TESTING_STRATEGY §2 | Reward-rule tests (application layer) are listed under "Puzzle Domain — Required Coverage" | Move to an application-layer section when the testing strategy is next revised |
 | D-04 | ADR_INDEX "Planned ADRs" | Lists TD-01 to TD-04 and Rive only; TD-05 to TD-08 are missing | Updated in this change |
 | D-05 | IMPLEMENTATION_STATUS | Did not reflect that the feasibility review had been performed | Updated in this change |
@@ -570,6 +580,6 @@ No contradictions with confirmed product decisions were found.
 
 1. Product owner reviews this document.
 2. Decide which spikes to run and in what order; the recommended order is in §8.
-3. Product input on Q-009 constraints, Q-010 and Q-011, which are needed to finish S-03 and S-04.
+3. ~~Product input on Q-009 constraints, Q-010 and Q-011, which are needed to finish S-03 and S-04.~~ Done (2026-11-23).
 4. Write ADRs for TD-01 to TD-05 after their spikes; TD-06 to TD-08 can be decided without spikes.
 5. Only then create the Flutter project structure (TD-04) and start the puzzle domain (Roadmap Phase 2).

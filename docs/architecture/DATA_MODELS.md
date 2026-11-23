@@ -47,9 +47,9 @@ Shared fields (id, imageRef, style, cardId, rewards) belong to the common level 
 ### RectangularTileGeometry (rectangular tile style)
 | Field | Type | Notes |
 | --- | --- | --- |
-| rows / columns | int | 4 / 4 for the prototype |
-| generation | object? | Partition generation parameters, e.g. seed or size constraints. Open (Q-009, TD-02) |
-| pieces | list<PieceDefinition>? | Generated layout, or authored if supported (open) |
+| rows / columns | int | 4 / 4 for the prototype (PS-19) |
+| generation | object? | Partition generation parameters. Approved constraints: pieces 1×1, 1×2, 2×1, 2×2; every generated prototype layout must contain between 8 and 12 pieces, inclusive; seeded generation (PS-20 to PS-22). Exact fields and seed source are technical (TD-02) |
+| pieces | list<PieceDefinition>? | Generated layout. Hand-authored layouts are not required for the prototype and may be supported later (PS-24) |
 
 ### PieceDefinition
 | Field | Type | Notes |
@@ -79,8 +79,8 @@ Shared fields (id, imageRef, style, cardId, rewards) belong to the common level 
 | schemaVersion | int | |
 | puzzleId | string | |
 | style | enum | Puzzle style of the session |
-| layout | style-specific? | Generated layout, saved if it cannot be reproduced exactly (e.g. no deterministic seed) |
-| pieceLocations | style-specific | Rectangular tile: map<pieceId, Location> with `inTray(slot)` or `onBoard(origin)`. Irregular: future, not specified |
+| layout | style-specific | The selected/generated layout, always persisted so an unfinished puzzle keeps exactly the same arrangement (PS-23) |
+| pieceLocations | style-specific | Rectangular tile: map<pieceId, Location> with `inTray(slot)` or `onBoard(origin)`; `onBoard` pieces are always correct and locked (GP-14, GP-15). Irregular: future, not specified |
 | updatedAt | timestamp | |
 
 ### Settings

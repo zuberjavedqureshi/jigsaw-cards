@@ -3,7 +3,7 @@
 | ID | Milestone | Phase | Status |
 | --- | --- | --- | --- |
 | M0 | Repository and documentation foundation | 0 | ✅ Done |
-| M0.1 | Blocking open questions resolved | 0 | ⏳ Pending |
+| M0.1 | Blocking open questions resolved | 0 | ⏳ Pending (Q-009, Q-010, Q-011 resolved 2026-11-23; Q-001 open) |
 | M1.1 | Flame + Riverpod integration spike | 1 | ⏳ Not started |
 | M1.2 | Drag & snap feel spike | 1 | ⏳ Not started |
 | M1.3 | Rive validation spike | 1 | ⏳ Not started |

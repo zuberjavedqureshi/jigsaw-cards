@@ -20,24 +20,30 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 
 ### Pieces
 
-- The image is divided into **mixed-sized rectangular pieces** by **rectangular partition generation** (PS-08). A piece covers one or more whole grid cells, for example 1×1, 1×2, 2×1 or 2×2. The allowed sizes are open (Q-009).
-- Pieces together cover the whole board exactly, with no overlap.
+- The image is divided into **mixed-sized rectangular pieces** by **rectangular partition generation** (PS-08).
+- **[Confirmed]** Allowed piece dimensions: **1×1, 1×2, 2×1 and 2×2** (PS-20). Piece-count constraint: every generated prototype layout must contain between **8 and 12** pieces, inclusive (PS-21).
+- **[Confirmed]** Layouts are produced by **seeded generation** (PS-22). The generated layout is **persisted**, so an unfinished puzzle keeps exactly the same arrangement (PS-23).
+- Hand-authored layouts are not required for the prototype; they may come in a later phase (PS-24).
+- Pieces together cover the whole board exactly, with no overlap. This is the tiling invariant that follows from rectangular partition generation (PS-08; PUZZLE_ENGINE §4).
 - **No rotation** — every piece is always shown in its correct orientation.
 
 ### Tray
 
 - At puzzle start, all pieces are arranged in a **tray below the board**.
-- The tray layout must adapt to screen size (no hardcoded coordinates).
-- Tray behaviour when pieces do not fit in one view (scrolling, paging, scaling) is TBC.
+- **[Confirmed]** The tray has **two rows** and **scrolls horizontally** (GP-16).
+- **[Confirmed]** Tray pieces keep **comfortable touch targets** (GP-17).
+- **[Confirmed]** Picking up a piece **enlarges it to board scale** (GP-18).
+- **[Confirmed]** The layout adapts to different phone screen sizes (GP-19), with no hardcoded coordinates.
 
 ### Dragging and snapping
 
-1. The player drags a piece from the tray (or from the board) onto the board.
-2. When released close to a valid position, the piece **magnetically snaps** into place.
-3. **[Proposed]** If the placement is **incorrect**, the piece **returns to its previous position** (tray or previous board location). The precise incorrect-drop behaviour is not approved (PRD GP-06, Q-010).
-4. Feedback (sound, subtle animation) accompanies snap and rejection.
+1. The player drags a piece from the tray onto the board.
+2. **[Confirmed]** Only the piece's **correct position** accepts it (GP-14). When released close enough to that position, the piece **magnetically snaps** into place.
+3. **[Confirmed]** A correctly placed piece becomes **permanently locked**. Locked pieces cannot be moved or swapped (GP-15).
+4. **[Confirmed]** If the drop is **incorrect**, the piece **animates back to its previous position** (GP-06). Because placed pieces are locked, a piece can only be picked up from the tray, so its previous position is its tray position.
+5. Feedback (sound, subtle animation) accompanies snap and rejection.
 
-> Whether a correctly placed piece becomes locked, and the exact meaning of "incorrect" (only its correct cell vs. any free area), are defined in PUZZLE_ENGINE.md and partly open (OPEN_QUESTIONS Q-010).
+> Snap distance and animation timing are tuning parameters, set during technical validation (S-03) and kept in configuration.
 
 ### Reference preview
 
