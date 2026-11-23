@@ -11,12 +11,12 @@ Prioritised list of upcoming work. Items move to GitHub issues when scheduled. N
 ## Phase 1 — Technical Validation (spikes)
 Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#8-proposed-technical-spikes-prioritised); each needs approval before starting.
 - [ ] S-01 Hybrid shell: Flutter + `GameWidget` + Riverpod + overlay + lifecycle → TD-03, TD-04, TD-05
-- [ ] S-02 Rive reveal: performance, APK size, minSdk → Q-015
+- [ ] S-02 Rive reveal: frame timing, APK size, minSdk → Q-015
 - [ ] S-03 Drag, snap and tray layout → GP-03 to GP-06, Q-011 and Q-010 input
 - [ ] S-04 Rectangular partition generation (pure Dart) → TD-02, Q-009 input
 - [ ] S-05 Audio latency and lifecycle (`flame_audio`)
-- [ ] S-06 Persistence: atomic JSON store, crash safety → TD-01, Q-014
-- [ ] S-07 Screen sizes and orientation at API 36 → Q-013 input
+- [ ] S-06 Persistence: atomic write-and-replace JSON store, crash recovery and reward consistency → TD-01, Q-014
+- [ ] S-07 Screen sizes and API 36 large-screen orientation behaviour → Q-013 input
 - [ ] Write ADRs for TD-01 to TD-08
 - [ ] Set up CI (format, analyze, test) when code starts (TD-08)
 

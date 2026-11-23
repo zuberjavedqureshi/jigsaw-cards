@@ -50,6 +50,6 @@ Recommendations from the [Technical Feasibility & Architecture Review](TECHNICAL
 | TD-03 | Manual bridge first; adopt `flame_riverpod` only if needed | S-01 |
 | TD-04 | Dart pub workspace: `app/` + `packages/puzzle_domain/` | S-01 |
 | TD-05 | No Riverpod code generation initially | S-01 |
-| TD-06 | minSdk 24 (Flutter default), latest targetSdk; device matrix per review §5 | S-02, S-07 |
+| TD-06 | Start from Flutter's defaults (minSdk 24, latest targetSdk) as a baseline, not a decision; device matrix per review §5; API 36 large-screen orientation behaviour per review §6.4 | S-02, S-07 |
 | TD-07 | Pin Flutter SDK version; commit app `pubspec.lock`; deliberate upgrade PRs | No spike |
 | TD-08 | GitHub Actions on PRs: format, analyze, domain and app tests, added when code starts | No spike |
