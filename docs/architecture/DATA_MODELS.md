@@ -80,7 +80,7 @@ Shared fields (id, imageRef, style, cardId, rewards) belong to the common level 
 | puzzleId | string | |
 | style | enum | Puzzle style of the session |
 | layout | style-specific? | Generated layout, saved if it cannot be reproduced exactly (e.g. no deterministic seed) |
-| pieceLocations | map<pieceId, Location> | `inTray(slot)` or `onBoard(origin)` |
+| pieceLocations | style-specific | Rectangular tile: map<pieceId, Location> with `inTray(slot)` or `onBoard(origin)`. Irregular: future, not specified |
 | updatedAt | timestamp | |
 
 ### Settings

@@ -51,8 +51,9 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
   1. Completion feedback (sound/visual).
   2. **Character/card reveal**: on a *designated* puzzle, the guaranteed card is awarded and its character comes to life (CC-04). A card already collected does not count as new collection progress (CC-06).
   3. **Coin reward animation**.
-  - On a *non-designated* puzzle, completion awards coins and progression rewards (CC-05). The content of progression rewards is open (Q-020).
   4. Return to puzzle selection or continue (flow TBC).
+
+- On a *non-designated* puzzle, step 2 is replaced by progression rewards (CC-05). The content of progression rewards, and how they are presented, is open (Q-020).
 
 > **[Confirmed]** The first prototype puzzle is a designated card puzzle (CC-07), so that the full discovery and reward experience can be validated.
 

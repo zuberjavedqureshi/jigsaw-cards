@@ -70,7 +70,7 @@ Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md).
 **[Confirmed]**
 
 - **MC-01** One recurring mascot character serves as the player's guide throughout the game.
-- **MC-02** Completing puzzles leads to discovering characters, presented through an animated reveal.
+- **MC-02** Characters are discovered through an animated reveal that accompanies the award of their card (CC-03, CC-04).
 
 **[Open]** Mascot design, name, personality and where the mascot appears (onboarding, world transitions, hints) (Q-006).
 
@@ -222,9 +222,9 @@ The mascot guides the player through the loop (MC-01).
 
 - **RW-01** Coins are awarded on puzzle completion, shown with a coin reward animation.
 - **RW-02** Cards are guaranteed on designated puzzle completion (CC-03, CC-04). A card already collected does not count as new collection progress (CC-06).
+- **RW-03** World progression is driven by completing collections (WP-03).
 - **RW-04** Non-designated puzzles award coins and progression rewards (CC-05). The content of progression rewards is open (Q-020).
 - **RW-05** Reward integration is shared by both puzzle styles (PS-17).
-- **RW-03** World progression is driven by completing collections (WP-03).
 
 **[Open]** What coins are spent on (Q-003) and the monetization model (Q-004).
 
@@ -374,7 +374,7 @@ These must remain unchanged without explicit approval:
 | 11 | Automatic magnetic snapping | GP-05 |
 | 12 | No rotation in the prototype | GP-07 |
 | 13 | Optional reference-image preview | GP-08 |
-| 14 | Guaranteed card after designated puzzle completion | CC-03 |
+| 14 | Guaranteed card after designated puzzle completion | CC-03, CC-04 |
 | 15 | One recurring mascot serving as a guide | MC-01 |
 | 16 | Automatic saving of unfinished puzzles | GP-13, PR-02 |
 | 17 | World-based progression | WP-01 |

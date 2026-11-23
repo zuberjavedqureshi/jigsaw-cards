@@ -20,7 +20,7 @@ Every puzzle is a page in a storybook. Completing puzzles rewards coins, and com
 3. Fantasy Kingdom
 4. Cosmic Adventures
 
-**Hybrid puzzle system:** mixed-sized rectangular pieces for the first prototype; traditional irregular jigsaw pieces are planned as future functionality.
+**Hybrid puzzle system:** two separate puzzle styles. Rectangular tile puzzles (mixed-sized rectangular pieces) come first; traditional irregular jigsaw puzzles are planned as future functionality. Both share session, configuration, progress and reward systems.
 
 **Initial puzzle prototype**
 

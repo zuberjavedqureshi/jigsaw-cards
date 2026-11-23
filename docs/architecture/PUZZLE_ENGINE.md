@@ -32,11 +32,13 @@ Not responsibilities: rendering, gestures, animation, audio, screen coordinates,
 | --- | --- |
 | `id` | Stable puzzle identifier |
 | `imageRef` | Reference to the puzzle image asset |
-| `rows`, `columns` | Logical grid size — **4 × 4** for the prototype |
-| `pieces` | List of piece definitions (see §4) |
 | `style` | Puzzle style: `rectangularTile` (now) or `irregularJigsaw` (future, reserved) |
+| `geometry` | Style-specific. For rectangular tile: `rows`, `columns` (**4 × 4** for the prototype), partition generation settings and/or piece definitions (see §4, §5) |
 | `cardId` (optional) | Present only on designated puzzles; the card is guaranteed on completion (CC-04). Reward logic is applied by the shared reward integration, not by style-specific geometry code. |
-| `reward` | Coin reward |
+| `coinReward` | Coins, all puzzles |
+| `progressionRewards` | Non-designated puzzles (CC-05); content open (Q-020) |
+
+Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
 **[Confirmed]** Initial development includes rectangular partition generation (PS-08). How generation is parameterised in configuration is open (see §5).
 
@@ -74,7 +76,7 @@ Not responsibilities: rendering, gestures, animation, audio, screen coordinates,
 - Whether generation runs at runtime or when content is built, and whether hand-authored layouts are also supported.
 - Fairness and variety constraints.
 
-**[Confirmed] Requirement:** whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4 and be validated by unit tests.
+**[Proposed]** Whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4. **[Confirmed]** Generation is puzzle domain logic and therefore must be unit-tested (Development Rule 5).
 
 ## 6. Grid Occupancy
 
@@ -106,14 +108,14 @@ Snapping spans two layers:
 
 ## 9. Completion Detection
 
-- **[Confirmed]** Completion detection triggers the reveal.
+- **[Confirmed]** Completion detection (GP-09). Completion is reported through the shared completion reporting (PS-16); the application layer then applies rewards: the card reveal on designated puzzles (CC-04), progression rewards on non-designated puzzles (CC-05), and coins on both.
 - **[Proposed]** The puzzle is complete when every piece is on the board at its `correctOrigin`. Under the strict rule this is equivalent to "all pieces placed".
 - **[Proposed]** Completion is reported as part of the placement result so the app layer can react once.
 
 ## 10. Save / Restore
 
 - **[Confirmed]** Unfinished puzzles are saved automatically.
-- **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, layout (if generated), each piece's location, and a schema version. Restoring the same data yields an identical state.
+- **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, puzzle style, the generated layout if it cannot be reproduced exactly from configuration, each piece's location, and a schema version. Restoring the same data yields an identical state.
 
 ## 11. Future Puzzle Style: Traditional Irregular Jigsaw
 
@@ -128,15 +130,15 @@ Snapping spans two layers:
 
 | Concern | Shared or separate |
 | --- | --- |
-| Puzzle session management (start, save, restore, complete) | Shared |
+| Puzzle session management | Shared |
 | Level configuration framework | Shared (style-specific geometry settings inside it) |
-| Interaction contracts (e.g. pick up, move, drop, result) | Shared where practical |
+| Interaction contracts | Shared where practical |
 | Progress and completion reporting | Shared |
 | Reward integration | Shared |
 | Geometry generation | Separate |
 | Rendering | Separate |
 
-**[Proposed]** For the rectangular style, keep the shared concerns behind small, style-neutral contracts, such as a completion signal and a serialisable session snapshot, so that a second style can reuse them. Do not build the irregular style or speculative abstractions for it now (Development Rules 7 and 9).
+**[Proposed]** Examples of shared session operations: start, save, restore, complete. Examples of interaction contracts: pick up, move, drop, placement result. For the rectangular style, keep the shared concerns behind small, style-neutral contracts, such as a completion signal and a serialisable session snapshot, so that a second style can reuse them. Do not build the irregular style or speculative abstractions for it now (Development Rules 7 and 9).
 
 **[Open]** The irregular style's geometry model, placement and snapping rules, and whether it uses a logical grid internally. These will be specified when the style is approved.
 
