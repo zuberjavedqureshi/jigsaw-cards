@@ -53,3 +53,18 @@ Recommendations from the [Technical Feasibility & Architecture Review](TECHNICAL
 | TD-06 | Start from Flutter's defaults (minSdk 24, latest targetSdk) as a baseline, not a decision; device matrix per review §5; API 36 large-screen orientation behaviour per review §6.4 | S-02, S-07 |
 | TD-07 | Pin Flutter SDK version; commit app `pubspec.lock`; deliberate upgrade PRs | No spike |
 | TD-08 | GitHub Actions on PRs: format, analyze, domain and app tests, added when code starts | No spike |
+
+## 5. S-01 Hybrid Shell Spike Findings (not decisions)
+
+Evidence from the [S-01 Hybrid Shell spike](../spikes/S-01-HYBRID-SHELL.md) (2026-11-23). **TD-03, TD-04 and TD-05 remain Pending** until ADRs are approved.
+
+| ID | Spike recommendation | Key evidence |
+| --- | --- | --- |
+| TD-03 | Manual bridge (intent callbacks out, small view interface in, `ref.listen` in the host widget) | Both options pass the same 8 widget tests. The manual-bridge game runs without a `ProviderScope`. `flame_riverpod` 5.5.5 imports Riverpod's private `src/framework.dart`, needs a `GlobalKey`, and forces `GameWidget` rebuilds on component mount/remove |
+| TD-04 | Pub workspace `app/` + `packages/puzzle_domain/`, **plus** a boundary guard in CI | Workspace resolution, analysis, tests and the Android build all work. The workspace shares one `package_config.json`, so the domain package can resolve Flutter/Flame imports; with default lints, `dart analyze` only reports info and exits 0. Guard: `depend_on_referenced_packages: error`, a pubspec check and `dart test` |
+| TD-05 | No code generation | Code generation works, but adds a 42 s cold `build_runner` step, 62 generated lines and 18 locked packages, to save about 3 lines per provider |
+
+Other spike findings that affect pending decisions:
+- **TD-06 / Q-013:** the Android profile build targets SDK 36 with minSdk 24 (Flutter defaults). No Android device or emulator was available, so Android performance and lifecycle were **not measured**.
+- **TD-07:** Flutter 3.50.1 deprecates `package:flutter/material.dart` in favour of the first-party `material_ui` package.
+- **TD-08:** the spike's checks (format, analyze, `flutter test`, `dart test`, boundary script, `flutter build apk --profile`) are the candidate CI steps.
