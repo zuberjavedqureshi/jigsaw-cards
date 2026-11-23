@@ -39,11 +39,11 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 
 ## Phase 4 — MVP Vertical Slice
 
-- First world (Enchanted Forest) content, card collection, progression, mascot introduction, polish.
+- First world (working name: Enchanted Forest) content, card collection, progression, mascot introduction, polish.
 - Scope finalised after Phase 3.
 
 ## Later (requires approval)
 
-- Remaining worlds: Ocean Kingdom, Fantasy Kingdom, Cosmic Adventures.
+- Remaining worlds (working names: Ocean Kingdom, Fantasy Kingdom, Cosmic Adventures).
 - Future puzzle styles: irregular pieces, rotation, grouping, zoom/pan, board sizes and difficulty levels.
 - Firebase services where justified.

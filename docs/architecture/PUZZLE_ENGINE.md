@@ -85,13 +85,13 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
 ## 7. Placement Validation
 
-- **[Confirmed]** Incorrect placement returns the piece to its previous position.
+- **[Proposed]** Incorrect placement returns the piece to its previous position (PRD GP-06). The precise incorrect-drop behaviour is not approved (Q-010).
 - **[Open]** Definition of "correct placement" for the prototype. Two candidate rules:
 
   1. **Strict:** a placement is accepted only if the target origin equals the piece's `correctOrigin`. Pieces on the board are therefore always correct.
   2. **Free:** any in-bounds, non-overlapping placement is accepted; correctness is evaluated only at completion.
 
-  The PRD's "incorrect placement returns the piece" behaviour points toward the **strict** rule, which is the working assumption for the prototype. It must be confirmed (OPEN_QUESTIONS Q-010).
+  The proposed "incorrect placement returns the piece" behaviour (GP-06) points toward the **strict** rule, which is the working assumption for the prototype. Both must be confirmed (OPEN_QUESTIONS Q-010).
 
 - **[Proposed]** Placement checks, in order: piece exists → target in bounds → (strict rule) target equals correct origin → target cells not occupied by another piece.
 - **[Proposed]** The operation returns a result value (`accepted` / `rejected(reason)`) and the new state; it never throws for normal gameplay rejections.

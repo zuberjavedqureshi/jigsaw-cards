@@ -34,7 +34,7 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 
 1. The player drags a piece from the tray (or from the board) onto the board.
 2. When released close to a valid position, the piece **magnetically snaps** into place.
-3. If the placement is **incorrect**, the piece **returns to its previous position** (tray or previous board location).
+3. **[Proposed]** If the placement is **incorrect**, the piece **returns to its previous position** (tray or previous board location). The precise incorrect-drop behaviour is not approved (PRD GP-06, Q-010).
 4. Feedback (sound, subtle animation) accompanies snap and rejection.
 
 > Whether a correctly placed piece becomes locked, and the exact meaning of "incorrect" (only its correct cell vs. any free area), are defined in PUZZLE_ENGINE.md and partly open (OPEN_QUESTIONS Q-010).

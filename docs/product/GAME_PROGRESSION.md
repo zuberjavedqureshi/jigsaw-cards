@@ -4,7 +4,8 @@
 
 ## 1. Progression Structure
 
-**[Confirmed]** Progression is world-based. Cards have rarity and belong to themed collections. Completing collections unlocks new worlds.
+**[Confirmed]** Progression is world-based. Cards have rarity and belong to themed collections.
+**[Proposed]** Completing collections unlocks new worlds (PRD WP-03). The exact unlocking mechanism is open (Q-002).
 
 ```
 World
@@ -12,7 +13,7 @@ World
  │     ├── designated puzzles → guaranteed Card (+ character reveal)
  │     └── non-designated puzzles → progression rewards
  └── Themed Collection(s) ── made of Cards
-         └── completion → unlock next World
+         └── completion → unlock next World [Proposed]
 ```
 
 - Every completed puzzle awards coins.
@@ -22,10 +23,12 @@ World
 - Which puzzles are designated, for example how many per collection, is **[Open]** (Q-002).
 - Rarity tiers and their effect are **[Open]** (Q-007).
 - Cards belong to themed collections.
-- Completing collections unlocks the next world.
+- **[Proposed]** Completing collections unlocks the next world.
 - A recurring mascot guides the player through the journey.
 
-## 2. World Order
+## 2. Worlds [Proposed]
+
+The names below are working names, not confirmed (PRD WP-02, Q-021).
 
 1. Enchanted Forest
 2. Ocean Kingdom

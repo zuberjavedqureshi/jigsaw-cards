@@ -11,9 +11,9 @@ Jigsaw Cards is a magical storybook puzzle adventure for Android. Players solve 
 
 ## Game Vision
 
-Every puzzle is a page in a storybook. Completing puzzles rewards coins, and completing a designated puzzle guarantees a collectible card, revealed through an animated character. Cards have rarity and belong to themed collections. Completing collections unlocks new fantasy worlds. One recurring mascot character guides the player throughout the journey.
+Every puzzle is a page in a storybook. Completing puzzles rewards coins, and completing a designated puzzle guarantees a collectible card, revealed through an animated character. Cards have rarity and belong to themed collections. Completing collections is proposed as the way to unlock new fantasy worlds (mechanism still open). One recurring mascot character guides the player throughout the journey.
 
-**Worlds**
+**Worlds** (proposed working names; world-based progression is confirmed)
 
 1. Enchanted Forest
 2. Ocean Kingdom
@@ -26,7 +26,7 @@ Every puzzle is a page in a storybook. Completing puzzles rewards coins, and com
 
 - One 4×4 logical board with mixed-sized rectangular pieces.
 - Pieces start in a tray below the board and are dragged onto it.
-- Automatic magnetic snapping; incorrect placements return to their previous position.
+- Automatic magnetic snapping; incorrect placements return to their previous position (proposed, not yet approved).
 - No rotation in the initial prototype.
 - Optional reference-image preview.
 - Completion detection, character/card reveal, coin reward animation and sound effects.

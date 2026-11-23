@@ -23,6 +23,8 @@
 
 ## 4. Worlds — Visual Themes
 
+World names are working names (proposed, PRD WP-02, Q-021).
+
 | World | Direction (initial, non-binding) |
 | --- | --- |
 | Enchanted Forest | Woodland, soft light, magical creatures |

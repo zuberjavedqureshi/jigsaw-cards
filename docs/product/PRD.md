@@ -76,10 +76,8 @@ Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md).
 
 ## 6. Worlds and World-Based Progression
 
-**[Confirmed]**
-
-- **WP-01** Progression is world-based.
-- **WP-02** The worlds are:
+- **WP-01 [Confirmed]** Progression is world-based: content is organised into worlds.
+- **WP-02 [Proposed]** Working world names (exact names not confirmed, Q-021):
 
   | # | World |
   | --- | --- |
@@ -88,9 +86,9 @@ Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md).
   | 3 | Fantasy Kingdom |
   | 4 | Cosmic Adventures |
 
-- **WP-03** Completing themed collections unlocks new fantasy worlds.
+- **WP-03 [Proposed]** Completing themed collections unlocks new fantasy worlds.
 
-**[Open]** Unlock order and rules, and the number of puzzles and collections per world (Q-002).
+**[Open]** The exact world unlocking mechanism, unlock order and rules, and the number of puzzles and collections per world (Q-002).
 
 Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
@@ -135,7 +133,9 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 **[Open]** The rectangular partition generation algorithm and its constraints, such as allowed piece sizes and piece count (Q-009).
 
-### 7.2 Prototype gameplay (confirmed)
+### 7.2 Prototype gameplay
+
+All requirements below are **[Confirmed]** except GP-06, which is **[Proposed]**.
 
 | ID | Requirement |
 | --- | --- |
@@ -144,7 +144,7 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 | GP-03 | Piece tray below the board |
 | GP-04 | Pieces are dragged from the tray onto the board |
 | GP-05 | Automatic magnetic snapping |
-| GP-06 | Incorrect placement returns the piece to its previous position |
+| GP-06 | **[Proposed]** Incorrect placement returns the piece to its previous position. The precise incorrect-drop behaviour is not approved (Q-010) |
 | GP-07 | No rotation in the prototype |
 | GP-08 | Optional reference-image preview |
 | GP-09 | Completion detection |
@@ -167,7 +167,7 @@ Details: [GAMEPLAY.md](GAMEPLAY.md). Technical specification: [PUZZLE_ENGINE.md]
 
 ## 8. Core Gameplay Loop
 
-**[Confirmed — structure]**
+**[Confirmed — structure]**, except the world-unlock step, which is **[Proposed]** (WP-03, Q-002).
 
 ```
 Select puzzle (within a world)
@@ -184,7 +184,7 @@ Reward: coins
 Grow themed collections
       │
       ▼
-Complete collections → unlock next world ──► back to Select puzzle
+Complete collections → unlock next world [Proposed] ──► back to Select puzzle
 ```
 
 The mascot guides the player through the loop (MC-01).
@@ -222,9 +222,10 @@ The mascot guides the player through the loop (MC-01).
 
 - **RW-01** Coins are awarded on puzzle completion, shown with a coin reward animation.
 - **RW-02** Cards are guaranteed on designated puzzle completion (CC-03, CC-04). A card already collected does not count as new collection progress (CC-06).
-- **RW-03** World progression is driven by completing collections (WP-03).
 - **RW-04** Non-designated puzzles award coins and progression rewards (CC-05). The content of progression rewards is open (Q-020).
 - **RW-05** Reward integration is shared by both puzzle styles (PS-17).
+
+**[Proposed]** **RW-03** World progression is driven by completing collections (WP-03).
 
 **[Open]** What coins are spent on (Q-003) and the monetization model (Q-004).
 
@@ -292,7 +293,7 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 
 ## 15. Prototype Scope
 
-**[Confirmed]** The first prototype delivers the complete gameplay in Section 7.2 (GP-01 to GP-13) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
+**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-13; GP-06 remains proposed) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
 
 **[Confirmed]** The prototype puzzle is a **designated card puzzle** (CC-07), so it validates the full discovery and reward experience: completion, character reveal, guaranteed card and coins.
 
@@ -302,7 +303,7 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 
 **[Proposed]** Prototype acceptance:
 
-- A player completes one puzzle end to end: drag from tray, snap, rejection of an incorrect placement, completion, character/card reveal, coin animation and sound.
+- A player completes one puzzle end to end: drag from tray, snap, handling of an incorrect placement (GP-06, proposed), completion, character/card reveal, coin animation and sound.
 - Leaving mid-puzzle and returning restores the exact state.
 - Domain logic is unit-tested and independent of Flame.
 
