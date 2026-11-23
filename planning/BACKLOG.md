@@ -9,14 +9,16 @@ Prioritised list of upcoming work. Items move to GitHub issues when scheduled. N
 - [ ] Resolve blocking open questions: Q-001, Q-009, Q-010
 
 ## Phase 1 — Technical Validation (spikes)
-- [ ] Spike: Flutter app embedding Flame `GameWidget` with Riverpod state
-- [ ] Spike: drag-and-snap prototype on a 4×4 grid, measure feel on device
-- [ ] Spike: Rive animation playback (in Flutter overlay and/or Flame)
-- [ ] Spike: flame_audio feedback latency
-- [ ] Evaluate local persistence options → ADR
-- [ ] Decide project layout (`app/` + `packages/puzzle_domain/`) → ADR
-- [ ] Decide Flame ↔ Riverpod bridge → ADR
-- [ ] Set up CI (format, analyze, test)
+Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#8-proposed-technical-spikes-prioritised); each needs approval before starting.
+- [ ] S-01 Hybrid shell: Flutter + `GameWidget` + Riverpod + overlay + lifecycle → TD-03, TD-04, TD-05
+- [ ] S-02 Rive reveal: frame timing, APK size, minSdk → Q-015
+- [ ] S-03 Drag, snap and tray layout → GP-03 to GP-06, Q-011 and Q-010 input
+- [ ] S-04 Rectangular partition generation (pure Dart) → TD-02, Q-009 input
+- [ ] S-05 Audio latency and lifecycle (`flame_audio`)
+- [ ] S-06 Persistence: atomic write-and-replace JSON store; background-kill, force-stop and staged-termination tests; recovery-policy alternatives; reward consistency → TD-01, Q-014
+- [ ] S-07 Screen sizes and API 36 large-screen orientation behaviour → Q-013 input
+- [ ] Write ADRs for TD-01 to TD-08
+- [ ] Set up CI (format, analyze, test) when code starts (TD-08)
 
 ## Phase 2 — Puzzle Domain
 - [ ] Grid and cell model

@@ -98,6 +98,7 @@ Full detail: [ROADMAP.md](docs/development/ROADMAP.md) · [MILESTONES.md](docs/d
 - [Game State](docs/architecture/GAME_STATE.md)
 - [Data Models](docs/architecture/DATA_MODELS.md)
 - [Technical Decisions](docs/architecture/TECHNICAL_DECISIONS.md)
+- [Technical Feasibility & Architecture Review](docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md)
 
 **Development**
 - [Roadmap](docs/development/ROADMAP.md)

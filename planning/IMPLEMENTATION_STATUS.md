@@ -7,6 +7,7 @@
 | Area | Status | Notes |
 | --- | --- | --- |
 | Repository & documentation | ✅ Complete | PRD reconciled (canonical edition); Q-017 and Q-018 resolved; source-text gaps tracked in Q-019 |
+| Technical feasibility review | 📝 Drafted, awaiting review | [TECHNICAL_FEASIBILITY_REVIEW.md](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md); no decisions approved |
 | Flutter project | ⛔ Not created | Awaiting Phase 1 project layout decision |
 | Puzzle domain | ⛔ Not started | Phase 2 |
 | Flame rendering | ⛔ Not started | Phase 1 spike / Phase 3 |
