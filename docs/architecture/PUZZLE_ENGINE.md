@@ -40,7 +40,7 @@ Not responsibilities: rendering, gestures, animation, audio, screen coordinates,
 
 Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
-**[Confirmed]** Initial development includes rectangular partition generation (PS-08). How generation is parameterised in configuration is open (see §5).
+**[Confirmed]** Initial development includes rectangular partition generation (PS-08), within the approved constraints in §5 (PS-19 to PS-24). How generation is parameterised in configuration is a technical choice (TD-02).
 
 ## 3. Logical Grid
 
@@ -69,12 +69,21 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
 **[Confirmed]** Rectangular partition generation is part of initial development (PS-08). The engine partitions the logical grid into mixed-sized rectangular pieces.
 
-**[Open]** The algorithm itself is **not approved**. To be decided, with an ADR (TD-02) and Q-009:
+**[Confirmed] Product constraints** (Q-009, resolved 2026-11-23; PRD PS-19 to PS-24):
 
-- Allowed piece sizes and the piece-count range for 4×4.
-- Whether generation is seeded and deterministic, so the same layout can be reproduced for a level or restored from a save.
-- Whether generation runs at runtime or when content is built, and whether hand-authored layouts are also supported.
-- Fairness and variety constraints.
+- 4×4 logical board for the initial prototype.
+- Allowed piece dimensions: 1×1, 1×2, 2×1, 2×2.
+- Target piece count: 8–12.
+- Valid layouts are generated using seeded generation.
+- The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement.
+- Hand-authored layouts are not required for the initial prototype; they may be supported in a later phase.
+
+**[Open — technical, TD-02]** Still to be decided with an ADR:
+
+- The generation algorithm, e.g. enumerate-and-select or constrained random splitting (see the [feasibility review](TECHNICAL_FEASIBILITY_REVIEW.md)).
+- Whether generation runs at runtime or when content is built.
+- Where the seed comes from (e.g. per puzzle in configuration, or per play).
+- Any fairness or variety constraints beyond the approved size and count limits.
 
 **[Proposed]** Whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4. **[Confirmed]** Generation is puzzle domain logic and therefore must be unit-tested (Development Rule 5).
 
@@ -85,17 +94,16 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
 ## 7. Placement Validation
 
-- **[Proposed]** Incorrect placement returns the piece to its previous position (PRD GP-06). The precise incorrect-drop behaviour is not approved (Q-010).
-- **[Open]** Definition of "correct placement" for the prototype. Two candidate rules:
+**[Confirmed]** Placement rule (Q-010, resolved 2026-11-23; PRD GP-06, GP-14, GP-15):
 
-  1. **Strict:** a placement is accepted only if the target origin equals the piece's `correctOrigin`. Pieces on the board are therefore always correct.
-  2. **Free:** any in-bounds, non-overlapping placement is accepted; correctness is evaluated only at completion.
+- **Strict rule:** a placement is accepted only if the target origin equals the piece's `correctOrigin`. Pieces on the board are therefore always correct.
+- Correctly placed pieces are **permanently locked**. Locked pieces cannot be moved or swapped.
+- Incorrectly dropped pieces animate back to their previous position. Animation is a rendering concern; the domain rejects the placement and leaves state unchanged.
 
-  The proposed "incorrect placement returns the piece" behaviour (GP-06) points toward the **strict** rule, which is the working assumption for the prototype. Both must be confirmed (OPEN_QUESTIONS Q-010).
+*History:* a "free" rule (any in-bounds, non-overlapping placement accepted; correctness checked only at completion) was considered and not adopted.
 
-- **[Proposed]** Placement checks, in order: piece exists → target in bounds → (strict rule) target equals correct origin → target cells not occupied by another piece.
+- **[Proposed]** Placement checks, in order: piece exists → piece is not locked → target in bounds → target equals correct origin.
 - **[Proposed]** The operation returns a result value (`accepted` / `rejected(reason)`) and the new state; it never throws for normal gameplay rejections.
-- **[Open]** Whether correctly placed pieces become locked (cannot be moved again).
 
 ## 8. Magnetic Snapping
 
@@ -104,18 +112,20 @@ Snapping spans two layers:
 - **Rendering (Flame):** converts the drop point to the nearest candidate grid origin, using the piece's size and the current board layout. Decides whether the drop is "close enough" to snap.
 - **Domain:** validates the candidate origin (§7).
 
+- **[Confirmed]** Under the strict rule (GP-14), only the piece's correct origin can accept it.
 - **[Open]** Snap threshold (e.g. a fraction of cell size), and whether snapping considers only the nearest cell or the piece's correct cell within a radius. These are feel parameters, to be tuned during validation and kept in configuration, not hardcoded.
 
 ## 9. Completion Detection
 
 - **[Confirmed]** Completion detection (GP-09). Completion is reported through the shared completion reporting (PS-16); the application layer then applies rewards: the card reveal on designated puzzles (CC-04), progression rewards on non-designated puzzles (CC-05), and coins on both.
-- **[Proposed]** The puzzle is complete when every piece is on the board at its `correctOrigin`. Under the strict rule this is equivalent to "all pieces placed".
+- **[Proposed]** The puzzle is complete when every piece is on the board at its `correctOrigin`. Under the confirmed strict rule (GP-14) this is equivalent to "all pieces placed".
 - **[Proposed]** Completion is reported as part of the placement result so the app layer can react once.
 
 ## 10. Save / Restore
 
 - **[Confirmed]** Unfinished puzzles are saved automatically.
-- **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, puzzle style, the generated layout if it cannot be reproduced exactly from configuration, each piece's location, and a schema version. Restoring the same data yields an identical state.
+- **[Confirmed]** The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement (PS-23).
+- **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, puzzle style, the layout, each piece's location (tray or locked on the board), and a schema version. Restoring the same data yields an identical state.
 
 ## 11. Future Puzzle Style: Traditional Irregular Jigsaw
 

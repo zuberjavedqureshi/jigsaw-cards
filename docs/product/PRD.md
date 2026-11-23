@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 1.0 (canonical repository edition, reconciliation 2: Q-017 and Q-018 resolved) |
+| Version | 1.0 (canonical repository edition, reconciliation 3: Q-009, Q-010 and Q-011 resolved) |
 | Status | Approved product decisions; pre-development technical validation |
 | Platform | Android first, portrait |
 | Tagline | **Solve. Discover. Collect.** |
@@ -131,11 +131,22 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 - **PS-18** Geometry generation and rendering may remain separate for each style.
 
-**[Open]** The rectangular partition generation algorithm and its constraints, such as allowed piece sizes and piece count (Q-009).
+**Rectangular piece generation for the initial prototype [Confirmed]** (Q-009, resolved 2026-11-23):
+
+| ID | Requirement |
+| --- | --- |
+| PS-19 | The initial prototype uses a 4×4 logical board (as GP-01) |
+| PS-20 | Allowed rectangular piece dimensions are 1×1, 1×2, 2×1 and 2×2 |
+| PS-21 | Target piece count is 8–12 pieces per puzzle |
+| PS-22 | Valid layouts are generated using seeded generation |
+| PS-23 | The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement |
+| PS-24 | Hand-authored layouts are not required for the initial prototype; they may be supported in a later phase |
+
+**[Open — technical, TD-02]** The generation algorithm, and whether generation runs at runtime or when content is built. These are technical choices within the approved constraints above.
 
 ### 7.2 Prototype gameplay
 
-All requirements below are **[Confirmed]** except GP-06, which is **[Proposed]**.
+All requirements below are **[Confirmed]**. GP-06 was confirmed, and GP-14 to GP-19 added, when Q-010 and Q-011 were resolved (2026-11-23).
 
 | ID | Requirement |
 | --- | --- |
@@ -144,7 +155,7 @@ All requirements below are **[Confirmed]** except GP-06, which is **[Proposed]**
 | GP-03 | Piece tray below the board |
 | GP-04 | Pieces are dragged from the tray onto the board |
 | GP-05 | Automatic magnetic snapping |
-| GP-06 | **[Proposed]** Incorrect placement returns the piece to its previous position. The precise incorrect-drop behaviour is not approved (Q-010) |
+| GP-06 | Incorrectly dropped pieces animate back to their previous position (Q-010) |
 | GP-07 | No rotation in the prototype |
 | GP-08 | Optional reference-image preview |
 | GP-09 | Completion detection |
@@ -152,6 +163,12 @@ All requirements below are **[Confirmed]** except GP-06, which is **[Proposed]**
 | GP-11 | Coin reward animation |
 | GP-12 | Sound effects |
 | GP-13 | Automatic saving of unfinished puzzles |
+| GP-14 | Only a piece's correct position accepts it (Q-010) |
+| GP-15 | Correctly placed pieces become permanently locked; locked pieces cannot be moved or swapped (Q-010) |
+| GP-16 | The tray below the board has two rows and scrolls horizontally (Q-011) |
+| GP-17 | Tray pieces keep comfortable touch targets (Q-011) |
+| GP-18 | Picking up a piece enlarges it to board scale (Q-011) |
+| GP-19 | The board and tray layout adapts to different phone screen sizes (Q-011) |
 
 Details: [GAMEPLAY.md](GAMEPLAY.md). Technical specification: [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
 
@@ -293,17 +310,17 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 
 ## 15. Prototype Scope
 
-**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-13; GP-06 remains proposed) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
+**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-19) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
 
 **[Confirmed]** The prototype puzzle is a **designated card puzzle** (CC-07), so it validates the full discovery and reward experience: completion, character reveal, guaranteed card and coins.
 
-**[Confirmed]** Initial development covers the rectangular tile style: mixed-sized rectangular pieces, logical grid occupancy and rectangular partition generation (PS-06 to PS-08).
+**[Confirmed]** Initial development covers the rectangular tile style: mixed-sized rectangular pieces, logical grid occupancy and rectangular partition generation (PS-06 to PS-08), within the approved generation constraints (PS-19 to PS-24).
 
 **Out of scope for the prototype [Confirmed]:** FP-01 to FP-05.
 
 **[Proposed]** Prototype acceptance:
 
-- A player completes one puzzle end to end: drag from tray, snap, handling of an incorrect placement (GP-06, proposed), completion, character/card reveal, coin animation and sound.
+- A player completes one puzzle end to end: drag from the scrollable tray, snap and lock at the correct position, return of an incorrectly dropped piece, completion, character/card reveal, coin animation and sound.
 - Leaving mid-puzzle and returning restores the exact state.
 - Domain logic is unit-tested and independent of Flame.
 
@@ -388,6 +405,9 @@ These must remain unchanged without explicit approval:
 | 24 | Previously collected cards are not awarded as new collection progress | CC-06 |
 | 25 | First prototype puzzle is a designated card puzzle | CC-07 |
 | 26 | Initial development: rectangular partition generation with logical grid occupancy | PS-06 to PS-08 |
+| 27 | Prototype piece generation: 4×4; pieces 1×1, 1×2, 2×1, 2×2; target 8–12 pieces; seeded generation; layout persisted; hand-authored layouts not required for the prototype | PS-19 to PS-24 |
+| 28 | Strict placement: only the correct position accepts a piece; incorrect drops animate back to the previous position; correct pieces are permanently locked and cannot be moved or swapped | GP-06, GP-14, GP-15 |
+| 29 | Two-row, horizontally scrollable tray; comfortable touch targets; picked-up piece enlarges to board scale; layout adapts to phone screen sizes | GP-16 to GP-19 |
 
 ## 21. Source Gaps Summary
 
