@@ -9,6 +9,7 @@ import '../game/riverpod_shell_game.dart';
 import '../game/shell_game.dart';
 import '../perf/frame_stats.dart';
 import '../perf/perf_runner.dart';
+import '../perf/perf_scenarios.dart';
 import '../state/shell_state.dart';
 
 /// Which TD-03 bridge to use. Selected at build time:
@@ -138,18 +139,18 @@ class ShellScreenState extends ConsumerState<ShellScreen> {
     const duration = Duration(seconds: 10);
     final stats = switch (scenario) {
       'overlay' => await perf.run(
-        scenario: 'overlay show/hide',
+        scenario: overlayScenario,
         duration: duration,
         tickEvery: const Duration(milliseconds: 500),
         tick: controller.toggleOverlay,
       ),
       'state' => await perf.run(
-        scenario: 'Riverpod -> Flame state update',
+        scenario: stateScenario,
         duration: duration,
         tickEvery: const Duration(milliseconds: 250),
         tick: controller.cycleColor,
       ),
-      _ => await perf.run(scenario: 'idle Flame scene', duration: duration),
+      _ => await perf.run(scenario: idleScenario, duration: duration),
     };
     controller.setOverlayVisible(true);
     if (mounted) setState(() => lastStats = stats);

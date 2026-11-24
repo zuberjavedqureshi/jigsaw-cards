@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'perf_scenarios.dart';
+
 /// One `S01_PERF` result parsed from a device log (pure Dart; no Flutter).
 class PerfRun {
   PerfRun(this.json, this.mode);
@@ -29,10 +31,18 @@ String _dist(Map<String, dynamic> d) =>
     '${d['p50']} / ${d['p90']} / ${d['p99']} / ${d['max']}';
 
 /// Markdown summary: one table row per run, grouped by scenario, plus
-/// warnings. Never fills in or averages missing data.
-String summarize(List<PerfRun> runs, {int requiredRuns = 3}) {
+/// warnings for missing scenarios, scenarios with fewer than [requiredRuns]
+/// runs, and non-profile runs. Never fills in or averages missing data.
+String summarize(
+  List<PerfRun> runs, {
+  int requiredRuns = 3,
+  List<String> expected = expectedScenarios,
+}) {
   final out = StringBuffer();
-  if (runs.isEmpty) return 'No S01_PERF lines found.\n';
+  if (runs.isEmpty) {
+    return 'No S01_PERF lines found.\n'
+        '- WARNING: missing scenarios: ${expected.map((e) => '"$e"').join(', ')}.\n';
+  }
   final warnings = <String>[];
   final modes = runs.map((r) => r.mode).toSet();
   if (modes.any((m) => m != 'profile')) {
@@ -71,6 +81,17 @@ String summarize(List<PerfRun> runs, {int requiredRuns = 3}) {
         '§8.1 requires at least $requiredRuns.',
       );
     }
+  }
+  final missing = [
+    for (final e in expected)
+      if (!byScenario.containsKey(e)) e,
+  ];
+  if (missing.isNotEmpty) {
+    warnings.add(
+      'missing scenario(s), no runs captured: '
+      '${missing.map((e) => '"$e"').join(', ')}; '
+      '§8.1 requires at least $requiredRuns runs of each.',
+    );
   }
   if (warnings.isNotEmpty) {
     out.writeln();

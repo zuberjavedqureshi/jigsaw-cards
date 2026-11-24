@@ -255,7 +255,7 @@ These numbers show only that the tool works end to end. They must **not** be use
 
 **[Measured]** To make the device run straightforward and its evidence traceable, two things were added without changing the app's behaviour:
 - **Runbook:** a [physical-device validation runbook](../../spikes/s01_hybrid_shell/README.md#physical-device-validation-runbook-closes-s-01) covering device recording, the functional checklist F1–F8 (initial sync, Flutter → Flame, Flame → Flutter, overlay, background/resume, screen off/on, process kill, force-stop) and the §8.1 timing procedure.
-- **Log summariser:** `app/tool/summarize_perf_log.dart` (logic in `app/lib/perf/perf_log_summary.dart`, 5 unit tests). It turns captured `S01_PERF` log lines into per-run tables, flags non-profile runs as invalid, warns when a scenario has fewer than 3 runs, and never averages or fills in data.
+- **Log summariser:** `app/tool/summarize_perf_log.dart` (logic in `app/lib/perf/perf_log_summary.dart`, 8 unit tests). It turns captured `S01_PERF` log lines into per-run tables, flags non-profile runs as invalid, warns when a scenario has fewer than 3 runs, names any of the three expected scenarios that is missing entirely, and never averages or fills in data. The scenario names are shared with the app (`app/lib/perf/perf_scenarios.dart`).
 
 Profile APKs for both bridges were built for the product owner to install.
 

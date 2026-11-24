@@ -115,8 +115,9 @@ dart run tool/summarize_perf_log.dart path/to/s01-<device>-<bridge>.log
 
 The summary lists every run (frames; missed frames; build and raster
 p50/p90/p99/max) and the refresh rate. It flags non-profile runs as
-**INVALID** and any scenario with fewer than 3 runs. It never averages or
-fills in missing data.
+**INVALID**, warns about any scenario with fewer than 3 runs, and names any
+of the three expected scenarios (idle, overlay, state) that is missing
+entirely. It never averages or fills in missing data.
 
 Pass/fail thresholds in the feasibility review §8.1 are **proposed targets
 that require approval**:
