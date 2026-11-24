@@ -7,7 +7,7 @@
 ## Phase 0 — Foundation *(current)*
 
 - Repository, documentation and contribution workflow.
-- Resolve blocking open questions (target audience, placement rule, piece layout method). Placement rule (Q-010), piece layout (Q-009) and tray (Q-011) were resolved 2026-11-23; target audience (Q-001) remains open.
+- Resolve blocking open questions (target audience, placement rule, piece layout method). Placement rule (Q-010), piece layout (Q-009) and tray (Q-011) were resolved 2026-11-23; target audience (Q-001) was resolved 2026-11-24.
 
 **Exit:** documentation reviewed; blocking questions answered or explicitly deferred.
 

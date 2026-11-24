@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 1.0 (canonical repository edition, reconciliation 3: Q-009, Q-010 and Q-011 resolved) |
+| Version | 1.0 (canonical repository edition, reconciliation 4: Q-001 resolved) |
 | Status | Approved product decisions; pre-development technical validation |
 | Platform | Android first, portrait |
 | Tagline | **Solve. Discover. Collect.** |
@@ -50,7 +50,30 @@ A recurring mascot guide gives the game a recognisable identity.
 
 ## 3. Target Audience
 
-**[Open]** The primary audience (age range, player profile, whether children are a target audience) has not been confirmed in the repository. This decision affects art direction, monetization, data collection and store compliance (Q-001).
+**[Confirmed]** (Q-001, resolved 2026-11-24)
+
+Jigsaw Cards is a broad casual puzzle game primarily designed for teenagers and adults, with a core target audience of 16–35 years. The game should remain welcoming and enjoyable for players aged 13 and above, without specifically targeting children under 13.
+
+| ID | Dimension | Decision |
+| --- | --- | --- |
+| TA-01 | Core age group | 16–35 |
+| TA-02 | Overall intended audience | 13+ |
+| TA-03 | Primary players | Teenagers and adults |
+| TA-04 | Under-13 audience | Not an intended target audience. Children under 13 are not specifically targeted; this does not describe them as prohibited from playing |
+| TA-05 | Player interests | Puzzles, collecting, exploration and relaxing games |
+| TA-06 | Difficulty | Easy to learn, progressively challenging |
+| TA-07 | Art direction | Magical, colourful storybook aesthetic; not exclusively child-oriented |
+| TA-08 | Experience | Relaxing, satisfying, rewarding and engaging |
+
+**Product design implications [Confirmed]**
+
+- Gameplay should be easy to learn, with progressively increasing puzzle complexity.
+- Visual identity should appeal to teens and adults rather than looking exclusively designed for young children.
+- Progression should provide meaningful collection and world-unlocking rewards.
+- The mascot should be charming and memorable without making the game feel exclusively child-oriented. The mascot's design remains open (Q-006).
+- UI should remain readable, intuitive and comfortable to use.
+
+**Compliance distinction.** This is a product-positioning decision. It is **not** a Google Play age rating, content rating or target-audience declaration, and it does not by itself establish how the game is classified for regulatory or store-policy purposes. Google Play target-audience and content requirements, the Families Policy, advertising, privacy and data-collection requirements must be assessed separately before release. Monetization (Q-004) and those compliance matters are not decided here.
 
 ## 4. Visual Identity — Magical Storybook
 
@@ -408,6 +431,7 @@ These must remain unchanged without explicit approval:
 | 27 | Prototype piece generation: 4×4; pieces 1×1, 1×2, 2×1, 2×2; 8–12 pieces inclusive (generation constraint); seeded generation; layout persisted; hand-authored layouts not required for the prototype | PS-19 to PS-24 |
 | 28 | Strict placement: only the correct position accepts a piece; incorrect drops animate back to the previous position; correct pieces are permanently locked and cannot be moved or swapped | GP-06, GP-14, GP-15 |
 | 29 | Two-row, horizontally scrollable tray; comfortable touch targets; picked-up piece enlarges to board scale; layout adapts to phone screen sizes | GP-16 to GP-19 |
+| 30 | Target audience: core 16–35; overall intended audience 13+; teenagers and adults; under-13 not an intended target audience (product positioning, not a compliance determination) | TA-01 to TA-08 |
 
 ## 21. Source Gaps Summary
 
