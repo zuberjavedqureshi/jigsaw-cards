@@ -7,7 +7,9 @@
 | Scope | Feasibility of confirmed requirements; Q-009, Q-010, Q-013, Q-014, Q-015; TD-01 to TD-08; risks; spikes |
 | Status | **Analysis and recommendations only.** Nothing in this document approves a decision, closes an open question or changes product scope. |
 
-> **Status update (2026-11-23, after merge):** the product owner has resolved **Q-009** (piece generation), **Q-010** (placement) and **Q-011** (tray). See PRD PS-19 to PS-24, GP-06 and GP-14 to GP-19, and [OPEN_QUESTIONS](../../planning/OPEN_QUESTIONS.md). The analysis below is kept as written, with resolution notes added where it referred to those questions. TD-01 to TD-08 remain **Pending**, and no spike has been approved.
+> **Status update (2026-11-23, after merge):** the product owner has resolved **Q-009** (piece generation), **Q-010** (placement) and **Q-011** (tray). See PRD PS-19 to PS-24, GP-06 and GP-14 to GP-19, and [OPEN_QUESTIONS](../../planning/OPEN_QUESTIONS.md). The analysis below is kept as written, with resolution notes added where it referred to those questions. TD-01 to TD-08 remain **Pending**, and no spike has been approved. *(Status as of 2026-11-23; superseded for TD-03, TD-04, TD-05 and S-01 by the note below.)*
+>
+> **Status update (2026-11-24):** following S-01, the product owner confirmed **TD-03** (manual bridge, [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md)), **TD-04** (pub workspace with enforced boundary, [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)) and **TD-05** (no code generation, [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md)). The other decisions remain Pending. S-01's Android device validation is still outstanding.
 
 ## 0. How to Read This Review
 
@@ -148,7 +150,7 @@ packages/puzzle_domain/ (pure Dart)
 
 ## 4. Recommendations for Pending Technical Decisions (TD-01 to TD-08)
 
-All remain **Pending** until an ADR is approved.
+TD-03, TD-04 and TD-05 were confirmed on 2026-11-24 (ADR-0001 to ADR-0003; see the notes in each subsection). The others remain **Pending** until an ADR is approved. The recommendation text below is kept as originally written.
 
 ### TD-01 Local database / storage
 
@@ -169,6 +171,8 @@ All remain **Pending** until an ADR is approved.
 
 ### TD-03 Flame ↔ Riverpod bridge
 
+> **Confirmed 2026-11-24** by the product owner: [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md). The original recommendation follows.
+
 | Option | Assessment |
 | --- | --- |
 | Manual bridge: pass a small interface (intent callbacks plus a state listener) into the `FlameGame` | **Recommended default.** No dependency; the bridge surface is small (one game, a handful of signals) |
@@ -177,6 +181,8 @@ All remain **Pending** until an ADR is approved.
 **Recommendation:** start with the manual bridge in S-01, and adopt `flame_riverpod` only if the spike shows real friction (Development Rule 1).
 
 ### TD-04 Repository layout
+
+> **Confirmed 2026-11-24** by the product owner: [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md). The original recommendation follows.
 
 **Recommendation:** a Dart **pub workspace** (supported natively since Dart 3.6; no Melos required):
 
@@ -189,6 +195,8 @@ packages/puzzle_domain/ Pure Dart package (no Flutter dependency)
 This matches the proposal in ARCHITECTURE_OVERVIEW §4 and enforces QG-02 through the dependency graph.
 
 ### TD-05 Riverpod code generation
+
+> **Confirmed 2026-11-24** by the product owner: [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md). The original recommendation follows.
 
 **Recommendation:** **no code generation initially.** Write providers by hand. The provider count is small, and `riverpod_generator` adds `build_runner` to every change cycle. Revisit if the provider count or boilerplate grows. Avoid relying on Riverpod features marked experimental.
 
@@ -581,5 +589,5 @@ No contradictions with confirmed product decisions were found.
 1. Product owner reviews this document.
 2. Decide which spikes to run and in what order; the recommended order is in §8.
 3. ~~Product input on Q-009 constraints, Q-010 and Q-011, which are needed to finish S-03 and S-04.~~ Done (2026-11-23).
-4. Write ADRs for TD-01 to TD-05 after their spikes; TD-06 to TD-08 can be decided without spikes.
+4. Write ADRs for TD-01 and TD-02 after their investigations (S-06 and S-04). TD-03, TD-04 and TD-05 already have accepted ADRs ([ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md), [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md), 2026-11-24). TD-06 to TD-08 can be decided without spikes.
 5. Only then create the Flutter project structure (TD-04) and start the puzzle domain (Roadmap Phase 2).

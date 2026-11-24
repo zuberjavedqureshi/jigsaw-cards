@@ -40,7 +40,12 @@
 
 ## 4. Flame ↔ Riverpod Bridge
 
-**[Open]** The exact mechanism for Flame components to read providers and send intents (e.g. passing a `ProviderContainer`/ref into the game, or using an integration package such as `flame_riverpod`). To be evaluated in Phase 1 against Rule 1 (no unnecessary dependencies) and recorded in an ADR.
+**[Confirmed]** Manual bridge (TD-03, [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), 2026-11-24):
+
+- **Flame → application:** intents, as plain callbacks the host supplies (e.g. a notifier method).
+- **Application → Flame:** a small view interface the game implements. The hosting widget subscribes with `ref.listen` and forwards changes.
+- **Initial state** is passed explicitly when the game is created, because listeners deliver only later changes.
+- Flame game and component classes do not use Riverpod. Neither `flame_riverpod` nor passing a `ProviderContainer`/`ref` into the game is used.
 
 ## 5. Idempotency and Safety
 
