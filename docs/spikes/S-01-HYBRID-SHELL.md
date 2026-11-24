@@ -147,7 +147,7 @@ spikes/s01_hybrid_shell/
 | With the hardened `analysis_options.yaml` (`depend_on_referenced_packages: error`) | **[Measured]** `dart analyze` reports 2 **errors** and exits 3 |
 | **Negative test:** add `flutter` to `puzzle_domain`'s own `pubspec.yaml` | **[Measured]** `tool/check_domain_boundary.sh` fails (exit 1) |
 | Clean state | **[Measured]** The boundary script passes |
-| Guard self-tests (`tool/test_check_domain_boundary.sh`, added after review) | **[Measured]** **28/28 pass**: 22 prohibited cases rejected with the expected message, and 6 allowed cases accepted (see below) |
+| Guard self-tests (`tool/test_check_domain_boundary.sh`, added after review) | **[Measured]** **32/32 pass**: 26 prohibited cases rejected with the expected message, including explicit `package:sky_engine/` and `dart:ui_web` import/export cases, and 6 allowed cases accepted. **[Measured]** With `sky_engine` and `dart:ui_web` temporarily removed from the guard, exactly those 4 tests fail (see below) |
 
 **Key finding [Observed]:** in a pub workspace, every package shares one `package_config.json`. Any package can therefore *resolve* imports of packages that only a sibling depends on. **The package structure alone does not enforce the domain boundary.** Enforcement needs three things:
 1. `depend_on_referenced_packages` promoted to an error in the domain package.

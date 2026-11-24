@@ -90,6 +90,18 @@ EOF
 expect_reject "import split across lines" "import of 'package:flutter/foundation.dart'" <<'EOF'
 prepend $'import\n    \'package:flutter/foundation.dart\'\n    show kDebugMode;'
 EOF
+expect_reject "import package:sky_engine/" "import of 'package:sky_engine/ui/ui.dart'" <<'EOF'
+prepend "import 'package:sky_engine/ui/ui.dart';"
+EOF
+expect_reject "export package:sky_engine/" "export of 'package:sky_engine/ui/ui.dart'" <<'EOF'
+echo 'export "package:sky_engine/ui/ui.dart";' >> lib/puzzle_domain.dart
+EOF
+expect_reject "import dart:ui_web" "import of 'dart:ui_web'" <<'EOF'
+prepend "import 'dart:ui_web' as ui_web;"
+EOF
+expect_reject "export dart:ui_web" "export of 'dart:ui_web'" <<'EOF'
+echo 'export "dart:ui_web";' >> lib/puzzle_domain.dart
+EOF
 expect_reject "conditional import URI" "import of 'package:flutter/foundation.dart'" <<'EOF'
 prepend "import 'src/grid.dart' if (dart.library.ui) 'package:flutter/foundation.dart';"
 EOF
