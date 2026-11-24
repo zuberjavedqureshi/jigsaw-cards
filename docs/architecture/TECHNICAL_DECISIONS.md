@@ -63,7 +63,7 @@ Recommendations from the [Technical Feasibility & Architecture Review](TECHNICAL
 
 ## 5. S-01 Hybrid Shell Spike Findings (not decisions)
 
-Evidence from the [S-01 Hybrid Shell spike](../spikes/S-01-HYBRID-SHELL.md) (2026-11-23). **TD-03, TD-04 and TD-05 remain Pending** until ADRs are approved.
+Evidence from the [S-01 Hybrid Shell spike](../spikes/S-01-HYBRID-SHELL.md) (2026-11-23), kept as recorded at the time, when TD-03, TD-04 and TD-05 were still awaiting ADR approval. *Update 2026-11-24:* all three are now **confirmed** through [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md) and [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md) (§1.1). The "spike recommendation" column below is historical. S-01's Android device validation (§8.1 timings, `paused`/`resumed`) is still outstanding.
 
 | ID | Spike recommendation | Key evidence |
 | --- | --- | --- |

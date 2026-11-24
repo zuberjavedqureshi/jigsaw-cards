@@ -7,7 +7,7 @@
 | Date | 2026-11-23 |
 | Branch | `spike/s01-hybrid-shell` (throwaway; not for merge as production code) |
 | Code | [`spikes/s01_hybrid_shell/`](../../spikes/s01_hybrid_shell/) |
-| Status | **Complete, with one gap:** no Android device or emulator was available, so Android runtime behaviour and Android performance were **not measured** (§10) |
+| Status | **In progress — Android device validation outstanding.** The spike was implemented and tested, and these findings were recorded on 2026-11-23. No Android device or emulator was available, so Android runtime behaviour and Android performance were **not measured** (§10) |
 
 **How to read this document.** Every finding is labelled:
 
@@ -15,7 +15,7 @@
 | --- | --- |
 | **[Measured]** | Produced by a command or test run in this spike; the result is quoted |
 | **[Observed]** | Seen in code, logs or screenshots; not a numeric measurement |
-| **[Recommendation]** | A proposal. It approves nothing: TD-03, TD-04 and TD-05 remain **Pending** until an ADR is approved |
+| **[Recommendation]** | A proposal made during the spike (2026-11-23). It approved nothing by itself. *Update 2026-11-24:* the TD-03, TD-04 and TD-05 recommendations were subsequently **confirmed** by the product owner through [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md) and [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md) (merged via PR #5). The recommendation text in §7 to §9 and §14 is kept as originally written |
 
 ---
 
@@ -186,7 +186,7 @@ Both options were implemented for the same scene and pass the same 8 widget test
 | Maintenance | **[Observed]** Uses only public APIs | **[Observed]** Imports Riverpod's **private** `package:riverpod/src/framework.dart` (with an `ignore` comment), so Riverpod upgrades can break it. It is first-party (Flame team) and version-aligned today: 34 likes on pub.dev, about 1.9k downloads/30 days, on 2026-11-23 |
 | Extra dependency | None | 1 direct package |
 
-**[Recommendation]** Adopt the **manual bridge** for production. It's simpler, keeps Flame free of Riverpod, can be tested without a `ProviderScope` and uses only public APIs. Revisit `flame_riverpod` only if many components need to watch many providers. Needs an ADR; **TD-03 remains Pending**.
+**[Recommendation]** Adopt the **manual bridge** for production. It's simpler, keeps Flame free of Riverpod, can be tested without a `ProviderScope` and uses only public APIs. Revisit `flame_riverpod` only if many components need to watch many providers. At the time of the spike this needed an ADR. *Update 2026-11-24:* **TD-03 confirmed** through [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), which adopts this recommendation.
 
 ---
 
@@ -200,7 +200,7 @@ Both options were implemented for the same scene and pass the same 8 widget test
 | Cross-package dependency | **[Measured]** `app` depends on `puzzle_domain: ^0.0.1` and resolves to the local package; no `path:` needed |
 | Boundary enforcement | **[Observed]** Not provided by the workspace alone (§6) |
 
-**[Recommendation]** Adopt the pub workspace with `app/` and `packages/puzzle_domain/`, **together with** the boundary guard from §6 and a CI step that runs it (TD-08). Needs an ADR; **TD-04 remains Pending**.
+**[Recommendation]** Adopt the pub workspace with `app/` and `packages/puzzle_domain/`, **together with** the boundary guard from §6 and a CI step that runs it (TD-08). At the time of the spike this needed an ADR. *Update 2026-11-24:* **TD-04 confirmed** through [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md), which adopts this recommendation, including the boundary guard in CI.
 
 ---
 
@@ -216,7 +216,7 @@ Tested in a throwaway copy outside the repository. The same `ShellController` wa
 | Result | **[Measured]** 12/12 tests pass | **[Measured]** 11/11 tests pass in the copy (the copy predates the 12th test); analyzer clean |
 | Readability | **[Observed]** Explicit; the provider type is visible | **[Observed]** Slightly less boilerplate; the provider is defined in generated code |
 
-**[Recommendation]** **No code generation** at the current project size. It saves about 3 lines per provider, but costs a build step, 18 extra packages and a second source of truth. Revisit if provider families or the number of providers grow significantly. Needs an ADR; **TD-05 remains Pending**.
+**[Recommendation]** **No code generation** at the current project size. It saves about 3 lines per provider, but costs a build step, 18 extra packages and a second source of truth. Revisit if provider families or the number of providers grow significantly. At the time of the spike this needed an ADR. *Update 2026-11-24:* **TD-05 confirmed** through [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md), which adopts this recommendation.
 
 ---
 
@@ -291,6 +291,8 @@ The official page gives `dart fix --apply --code=migrate_design_widgets` as the 
 
 ## 13. Recommended Production Architecture (subject to ADRs)
 
+> *Update 2026-11-24:* the **Repository**, **State** and **Bridge** items below were confirmed through [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md), [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md) and [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md) respectively. The remaining items are still recommendations. The list is kept as originally written.
+
 **[Recommendation]**
 
 - **Repository:** a Dart pub workspace with `app/` (Flutter) and `packages/puzzle_domain/` (pure Dart). Include `tool/check_domain_boundary.sh`, or an equivalent, in CI.
@@ -313,4 +315,4 @@ The official page gives `dart fix --apply --code=migrate_design_widgets` as the 
   - Confirm `paused` and `resumed` on Android.
 
   This needs either a physical device or a host that supports an Android emulator.
-- **Decisions:** TD-03, TD-04 and TD-05 remain **Pending** until ADRs are approved.
+- **Decisions:** when this recommendation was made, TD-03, TD-04 and TD-05 were awaiting ADR approval. *Update 2026-11-24:* all three were **confirmed** through [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md) and [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md) (merged via PR #5). The **condition above is still outstanding**: S-01 is not complete until the Android device validation is done.
