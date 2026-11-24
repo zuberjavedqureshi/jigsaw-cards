@@ -6,15 +6,16 @@ ADRs capture significant technical decisions, their context and consequences.
 
 | ADR | Title | Status | Date |
 | --- | --- | --- | --- |
-| — | No ADRs recorded yet | — | — |
+| [ADR-0001](ADR-0001-flame-riverpod-manual-bridge.md) | Manual bridge between Flame and the Riverpod application layer (TD-03) | Accepted | 2026-11-24 |
+| [ADR-0002](ADR-0002-pub-workspace-and-domain-boundary.md) | Dart pub workspace and enforced pure-Dart domain boundary (TD-04) | Accepted | 2026-11-24 |
+| [ADR-0003](ADR-0003-handwritten-riverpod-providers.md) | Hand-written Riverpod providers, no code generation (TD-05) | Accepted | 2026-11-24 |
+
+An ADR status of **Accepted** corresponds to **Confirmed** in [TECHNICAL_DECISIONS.md](../architecture/TECHNICAL_DECISIONS.md).
 
 Planned ADRs (from [TECHNICAL_DECISIONS.md](../architecture/TECHNICAL_DECISIONS.md) pending list):
 
 - Local persistence selection (TD-01)
 - Rectangular partition generation algorithm (TD-02)
-- Flame ↔ Riverpod bridge (TD-03)
-- Repository / project layout (TD-04)
-- Riverpod code generation (TD-05)
 - Minimum Android version and target devices (TD-06)
 - Flutter / Flame version pinning policy (TD-07)
 - CI setup (TD-08)

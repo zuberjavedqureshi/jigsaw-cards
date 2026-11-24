@@ -4,11 +4,11 @@
 | --- | --- | --- | --- |
 | M0 | Repository and documentation foundation | 0 | ✅ Done |
 | M0.1 | Blocking open questions resolved | 0 | ⏳ Pending (Q-009, Q-010, Q-011 resolved 2026-11-23; Q-001 open) |
-| M1.1 | Flame + Riverpod integration spike | 1 | ⏳ Not started |
+| M1.1 | Flame + Riverpod integration spike | 1 | 🔄 In progress — Android device validation outstanding. **Done:** S-01 Hybrid Shell spike executed, tested and findings recorded ([PR #4](https://github.com/zuberjavedqureshi/jigsaw-cards/pull/4)); decisions recorded in ADR-0001 to ADR-0003. **Outstanding:** §8.1 frame-timing measurements and `paused`/`resumed` lifecycle checks on a physical low-end and mid-range Android device |
 | M1.2 | Drag & snap feel spike | 1 | ⏳ Not started |
 | M1.3 | Rive validation spike | 1 | ⏳ Not started |
 | M1.4 | Persistence selection (ADR) | 1 | ⏳ Not started |
-| M1.5 | Flutter project structure approved (ADR) | 1 | ⏳ Not started |
+| M1.5 | Flutter project structure approved (ADR) | 1 | ✅ Approved 2026-11-24 ([ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)); production project not yet created |
 | M2 | Puzzle domain complete with tests | 2 | ⏳ Not started |
 | M3 | Playable 4×4 prototype | 3 | ⏳ Not started |
 | M4 | MVP vertical slice | 4 | ⏳ Not started |
