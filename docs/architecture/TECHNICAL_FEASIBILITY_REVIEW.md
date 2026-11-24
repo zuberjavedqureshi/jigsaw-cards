@@ -589,5 +589,5 @@ No contradictions with confirmed product decisions were found.
 1. Product owner reviews this document.
 2. Decide which spikes to run and in what order; the recommended order is in §8.
 3. ~~Product input on Q-009 constraints, Q-010 and Q-011, which are needed to finish S-03 and S-04.~~ Done (2026-11-23).
-4. Write ADRs for TD-01 to TD-05 after their spikes; TD-06 to TD-08 can be decided without spikes.
+4. Write ADRs for TD-01 and TD-02 after their investigations (S-06 and S-04). TD-03, TD-04 and TD-05 already have accepted ADRs ([ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md), [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md), 2026-11-24). TD-06 to TD-08 can be decided without spikes.
 5. Only then create the Flutter project structure (TD-04) and start the puzzle domain (Roadmap Phase 2).

@@ -54,9 +54,9 @@ Recommendations from the [Technical Feasibility & Architecture Review](TECHNICAL
 | --- | --- | --- |
 | TD-01 | Versioned JSON document with atomic writes behind a repository interface (prototype); exclude unmaintained `hive` and `isar`. Recovery policy (last-known-good backup vs defined default state) requires separate approval | S-06 |
 | TD-02 | Enumerate/select (or constrained random split) with a seeded choice. Seeding and layout persistence are now product-approved requirements (Q-009); the algorithm remains a recommendation | S-04 |
-| TD-03 | Manual bridge first; adopt `flame_riverpod` only if needed | S-01 |
-| TD-04 | Dart pub workspace: `app/` + `packages/puzzle_domain/` | S-01 |
-| TD-05 | No Riverpod code generation initially | S-01 |
+| TD-03 | Manual bridge first; adopt `flame_riverpod` only if needed. **Confirmed 2026-11-24 via [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md)** as a manual bridge, with no `flame_riverpod` in production (§1.1) | S-01 |
+| TD-04 | Dart pub workspace: `app/` + `packages/puzzle_domain/`. **Confirmed 2026-11-24 via [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)**, with the enforced domain boundary (§1.1) | S-01 |
+| TD-05 | No Riverpod code generation initially. **Confirmed 2026-11-24 via [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md)** (§1.1) | S-01 |
 | TD-06 | Start from Flutter's defaults (minSdk 24, latest targetSdk) as a baseline, not a decision; device matrix per review §5; API 36 large-screen orientation behaviour per review §6.4 | S-02, S-07 |
 | TD-07 | Pin Flutter SDK version; commit app `pubspec.lock`; deliberate upgrade PRs | No spike |
 | TD-08 | GitHub Actions on PRs: format, analyze, domain and app tests, added when code starts | No spike |

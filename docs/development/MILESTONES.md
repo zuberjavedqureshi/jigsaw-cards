@@ -8,7 +8,7 @@
 | M1.2 | Drag & snap feel spike | 1 | ⏳ Not started |
 | M1.3 | Rive validation spike | 1 | ⏳ Not started |
 | M1.4 | Persistence selection (ADR) | 1 | ⏳ Not started |
-| M1.5 | Flutter project structure approved (ADR) | 1 | ⏳ Not started |
+| M1.5 | Flutter project structure approved (ADR) | 1 | ✅ Approved 2026-11-24 ([ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)); production project not yet created |
 | M2 | Puzzle domain complete with tests | 2 | ⏳ Not started |
 | M3 | Playable 4×4 prototype | 3 | ⏳ Not started |
 | M4 | MVP vertical slice | 4 | ⏳ Not started |
