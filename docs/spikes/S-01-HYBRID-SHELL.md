@@ -128,7 +128,7 @@ spikes/s01_hybrid_shell/
 | Pause/resume received, no duplicates | **[Measured]** Widget test, both bridges: the transitions inactive → hidden → paused produce exactly **1** pause, and the reverse produces exactly **1** resume, after 6 forced rebuilds; listener count = 1 |
 | Lifecycle shown in the app and the game | **[Measured]** The header and the Flame status both show `paused`, then `resumed` |
 | Web (browser) | **[Observed]** Hiding and showing the browser tab is reported as `resumed` (resumes 1). Flutter web did **not** report `paused` |
-| Android device | **Not verified.** There was no device or emulator (§10) |
+| Android device | **Not verified.** There was no device or emulator (§10). Still not verified at the 2026-11-24 validation attempt |
 
 **Findings:**
 - **[Observed]** `AppLifecycleListener` only reports *changes*, so the initial state must be seeded. The spike reads `WidgetsBinding.instance.lifecycleState` in `Notifier.build`.
@@ -244,6 +244,20 @@ These numbers show only that the tool works end to end. They must **not** be use
 - Run the three scenarios 3 times each.
 - Use a physical low-end device and a mid-range Android device, in profile mode.
 - Record the device model, Android version, RAM, refresh rate and conditions, per §8.1.
+
+### 10.1 Device validation attempt (2026-11-24)
+
+**[Observed]** Validation could not be run:
+- The cloud container still had no Android device (`adb devices` listed none) and no `/dev/kvm`.
+- No computer of the product owner's was connected to the session, so no USB-attached phone was reachable.
+
+**No physical-device functional, lifecycle or performance results exist.** S-01 remains **in progress**.
+
+**[Measured]** To make the device run straightforward and its evidence traceable, two things were added without changing the app's behaviour:
+- **Runbook:** a [physical-device validation runbook](../../spikes/s01_hybrid_shell/README.md#physical-device-validation-runbook-closes-s-01) covering device recording, the functional checklist F1–F8 (initial sync, Flutter → Flame, Flame → Flutter, overlay, background/resume, screen off/on, process kill, force-stop) and the §8.1 timing procedure.
+- **Log summariser:** `app/tool/summarize_perf_log.dart` (logic in `app/lib/perf/perf_log_summary.dart`, 5 unit tests). It turns captured `S01_PERF` log lines into per-run tables, flags non-profile runs as invalid, warns when a scenario has fewer than 3 runs, and never averages or fills in data.
+
+Profile APKs for both bridges were built for the product owner to install.
 
 ---
 
