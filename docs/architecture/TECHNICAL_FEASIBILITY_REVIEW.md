@@ -8,6 +8,8 @@
 | Status | **Analysis and recommendations only.** Nothing in this document approves a decision, closes an open question or changes product scope. |
 
 > **Status update (2026-11-23, after merge):** the product owner has resolved **Q-009** (piece generation), **Q-010** (placement) and **Q-011** (tray). See PRD PS-19 to PS-24, GP-06 and GP-14 to GP-19, and [OPEN_QUESTIONS](../../planning/OPEN_QUESTIONS.md). The analysis below is kept as written, with resolution notes added where it referred to those questions. TD-01 to TD-08 remain **Pending**, and no spike has been approved.
+>
+> **Status update (2026-11-24):** following S-01, the product owner confirmed **TD-03** (manual bridge, [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md)), **TD-04** (pub workspace with enforced boundary, [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)) and **TD-05** (no code generation, [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md)). The other decisions remain Pending. S-01's Android device validation is still outstanding.
 
 ## 0. How to Read This Review
 

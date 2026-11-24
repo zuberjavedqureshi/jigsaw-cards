@@ -10,15 +10,15 @@ Prioritised list of upcoming work. Items move to GitHub issues when scheduled. N
 
 ## Phase 1 — Technical Validation (spikes)
 Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#8-proposed-technical-spikes-prioritised); each needs approval before starting.
-- [ ] S-01 Hybrid shell: Flutter + `GameWidget` + Riverpod + overlay + lifecycle → TD-03, TD-04, TD-05
+- [ ] S-01 Hybrid shell: Flutter + `GameWidget` + Riverpod + overlay + lifecycle → TD-03, TD-04, TD-05 confirmed 2026-11-24 (ADR-0001 to ADR-0003); **Android device validation outstanding** (§8.1 timings, `paused`/`resumed`)
 - [ ] S-02 Rive reveal: frame timing, APK size, minSdk → Q-015
 - [ ] S-03 Drag, snap and lock; two-row scrollable tray (approved Q-010, Q-011) → GP-03 to GP-06, GP-14 to GP-19
 - [ ] S-04 Rectangular partition generation under the approved Q-009 constraints (pure Dart) → TD-02
 - [ ] S-05 Audio latency and lifecycle (`flame_audio`)
 - [ ] S-06 Persistence: atomic write-and-replace JSON store; background-kill, force-stop and staged-termination tests; recovery-policy alternatives; reward consistency → TD-01, Q-014
 - [ ] S-07 Screen sizes and API 36 large-screen orientation behaviour → Q-013 input
-- [ ] Write ADRs for TD-01 to TD-08
-- [ ] Set up CI (format, analyze, test) when code starts (TD-08)
+- [ ] Write ADRs for TD-01 to TD-08 (TD-03, TD-04, TD-05 done: ADR-0001 to ADR-0003)
+- [ ] Set up CI (format, analyze, test, domain boundary guard per ADR-0002) when code starts (TD-08)
 
 ## Phase 2 — Puzzle Domain
 - [ ] Grid and cell model

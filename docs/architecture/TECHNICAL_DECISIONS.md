@@ -18,6 +18,16 @@ This is a summary register. Significant decisions are recorded in detail as ADRs
 | Persistence approach | Local-first | |
 | Backend | Firebase, only when justified | Not needed for prototype |
 
+### 1.1 Confirmed Technical Decisions (ADRs)
+
+Approved by the product owner on 2026-11-24, following the S-01 Hybrid Shell review. S-01's Android device validation (performance and lifecycle) is **still outstanding**. These decisions do not mark it complete.
+
+| ID | Decision | ADR |
+| --- | --- | --- |
+| TD-03 | Manual Flutter ↔ Flame bridge (intent callbacks out, small view interface in); no Riverpod in Flame game or component classes; no `flame_riverpod` in production; explicit initial-state sync | [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md) |
+| TD-04 | Dart pub workspace: `app/` (Flutter) and `packages/puzzle_domain/` (pure Dart). Domain boundary enforced by `depend_on_referenced_packages: error`, a static dependency/import/export guard, and plain-Dart analysis and tests. The guard must run in CI (implementation follows under TD-08) | [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md) |
+| TD-05 | Hand-written Riverpod `Notifier` providers; no code generation or `build_runner` at the current scale; reconsider if provider complexity or boilerplate grows materially | [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md) |
+
 ## 2. Conditionally Confirmed
 
 | Area | Decision | Condition |
@@ -30,9 +40,9 @@ This is a summary register. Significant decisions are recorded in detail as ADRs
 | --- | --- | --- |
 | TD-01 | Local database / storage | To be evaluated in Phase 1 against: simplicity, migration support, performance, dependency weight. No candidate is pre-selected. |
 | TD-02 | Rectangular partition generation algorithm | Product constraints approved via Q-009 (PRD PS-19 to PS-24: piece sizes, 8–12 pieces inclusive as a generation constraint, seeded generation, persisted layout). Still pending: the algorithm, runtime vs build-time generation and seed source (PUZZLE_ENGINE.md §5) |
-| TD-03 | Flame ↔ Riverpod bridge | Manual vs. integration package (GAME_STATE.md §4) |
-| TD-04 | Repository layout | Proposed `app/` + `packages/puzzle_domain/` |
-| TD-05 | Riverpod code generation | Use or avoid |
+| TD-03 | Flame ↔ Riverpod bridge | **Confirmed 2026-11-24**: manual bridge ([ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md), §1.1) |
+| TD-04 | Repository layout | **Confirmed 2026-11-24**: pub workspace plus enforced boundary ([ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md), §1.1) |
+| TD-05 | Riverpod code generation | **Confirmed 2026-11-24**: hand-written providers, no code generation ([ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md), §1.1) |
 | TD-06 | Minimum Android version / target devices | Needed for performance validation |
 | TD-07 | Flutter / Flame version pinning policy | |
 | TD-08 | CI setup | Analyzer, formatter, tests on PRs |
@@ -41,7 +51,7 @@ Each pending decision is resolved through an ADR.
 
 ## 4. Feasibility Review Recommendations (not decisions)
 
-Recommendations from the [Technical Feasibility & Architecture Review](TECHNICAL_FEASIBILITY_REVIEW.md) (2026-11-23). All decisions above remain **Pending** until an ADR is approved.
+Recommendations from the [Technical Feasibility & Architecture Review](TECHNICAL_FEASIBILITY_REVIEW.md) (2026-11-23), kept as written. TD-03, TD-04 and TD-05 have since been confirmed (§1.1); the others remain **Pending** until an ADR is approved.
 
 | ID | Recommendation | Validate in |
 | --- | --- | --- |

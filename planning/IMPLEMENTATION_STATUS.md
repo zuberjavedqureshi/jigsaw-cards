@@ -2,7 +2,7 @@
 
 **Current phase:** Phase 0 — Foundation (pre-development technical validation)
 
-**Last updated:** 2026-11-23
+**Last updated:** 2026-11-24
 
 | Area | Status | Notes |
 | --- | --- | --- |
@@ -18,5 +18,6 @@
 | Rive animation | ⛔ Not validated | |
 | Art assets | ⛔ Not started | |
 | CI | ⛔ Not configured | |
+| Architecture decisions | ✅ TD-03, TD-04, TD-05 confirmed 2026-11-24 | [ADR-0001](../docs/decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../docs/decisions/ADR-0002-pub-workspace-and-domain-boundary.md), [ADR-0003](../docs/decisions/ADR-0003-handwritten-riverpod-providers.md). S-01 Android device validation (§8.1 timings, `paused`/`resumed`) **still outstanding**; S-01 not complete. TD-01, TD-02, TD-06 to TD-08 Pending |
 
 **No gameplay code exists in this repository.**

@@ -52,14 +52,14 @@ Every statement in this document is labelled:
 
 - **[Confirmed]** Riverpod for state management.
 - **[Proposed]** Riverpod holds application-level state (current puzzle session, player progress, coins, collection) and calls into the puzzle domain. Flame components do not own game rules.
-- **[Open]** Code generation (`riverpod_generator`) vs. hand-written providers.
+- **[Confirmed]** Hand-written Riverpod `Notifier` providers; no code generation or `build_runner` at the current scale (TD-05, [ADR-0003](../decisions/ADR-0003-handwritten-riverpod-providers.md)).
 
 Details: [GAME_STATE.md](GAME_STATE.md).
 
 ### 2.3 Puzzle domain (pure Dart)
 
 - **[Confirmed]** Independent pure-Dart module, with no dependency on Flutter or Flame.
-- **[Proposed]** Packaged as a separate Dart package inside the repository (e.g. `packages/puzzle_domain/`) so that the boundary is enforced by the dependency graph.
+- **[Confirmed]** Packaged as `packages/puzzle_domain/` in a Dart pub workspace. The package structure alone does not enforce the boundary, so it is enforced by `depend_on_referenced_packages: error`, a static dependency/import/export guard run in CI, and plain-Dart analysis and tests (TD-04, [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)).
 - **[Confirmed]** Supports the hybrid puzzle system: rectangular pieces now, irregular jigsaw later (not yet implemented).
 - **[Proposed]** Exposes immutable state and pure operations (e.g. "attempt placement" → result + new state), which makes it deterministic and unit-testable.
 
@@ -68,6 +68,7 @@ Details: [PUZZLE_ENGINE.md](PUZZLE_ENGINE.md).
 ### 2.4 Flame rendering layer
 
 - **[Confirmed]** Flame as the game engine; flame_audio for audio.
+- **[Confirmed]** Flame communicates with the application layer through a manual bridge: intent callbacks out and a small view interface in, with explicit initial-state sync. Flame game and component classes do not use Riverpod, and `flame_riverpod` is not used (TD-03, [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md)).
 - **[Proposed]** Flame components translate pointer input into domain commands, and render the domain state. All positions are derived from the board/tray layout computed from screen size — no hardcoded screen coordinates.
 - **[Confirmed, subject to validation]** Rive for character animation.
 
@@ -92,15 +93,16 @@ Details: [PUZZLE_ENGINE.md](PUZZLE_ENGINE.md).
 5. Flame animates the snap or the return to the previous position; flame_audio plays feedback.
 6. Application state triggers auto-save; on completion it triggers reveal and reward.
 
-## 4. Proposed Project Layout (not yet created)
+## 4. Project Layout (confirmed, not yet created)
 
 ```
-app/                    Flutter application (created in Phase 1)
+pubspec.yaml            Dart pub workspace root
+app/                    Flutter application
 packages/
   puzzle_domain/        Pure Dart puzzle engine
 ```
 
-This layout is a proposal and will be confirmed by an ADR before the Flutter project is created.
+**[Confirmed]** by TD-04 / [ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md) on 2026-11-24, including the boundary enforcement described in §2.3. The production project has not been created yet; the S-01 spike layout is the reference.
 
 ## 5. Non-Goals for the Prototype
 
