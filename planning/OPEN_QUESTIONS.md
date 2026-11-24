@@ -4,7 +4,7 @@ Questions that must be answered before the related work can be finalised. When r
 
 | ID | Question | Blocks | Owner | Status |
 | --- | --- | --- | --- | --- |
-| Q-001 | Who is the primary target audience (age range, player profile)? Is the game directed at children? | Art direction, monetization, data collection, store compliance, MVP | Product | Open |
+| Q-001 | Who is the primary target audience (age range, player profile)? Is the game directed at children? | Art direction, monetization, data collection, store compliance, MVP | Product | **Resolved 2026-11-24** (product owner): core target audience 16–35; overall intended audience 13+; primary players are teenagers and adults; children under 13 are not an intended target audience (not targeted, rather than prohibited from playing). A product-positioning decision only. It is not a Google Play age rating or target-audience declaration, and it does not establish Families Policy, advertising, privacy or data-collection compliance, which must be assessed separately before release. See PRD §3 (TA-01 to TA-08) |
 | Q-002 | World unlock rules: how many puzzles/collections per world, and what unlocks the next world? (Collection completion is proposed, PRD WP-03; the exact mechanism is open) | Progression, content plan | Product | Open |
 | Q-003 | What are coins used for (hints, preview, unlocks, cosmetics)? | Economy, UI | Product | Open |
 | Q-004 | Monetization model (premium, ads, IAP, none)? | Economy, Firebase need, compliance | Product | Open |

@@ -6,7 +6,7 @@ Prioritised list of upcoming work. Items move to GitHub issues when scheduled. N
 - [x] Create repository and documentation structure
 - [ ] Set repository description on GitHub (owner action)
 - [ ] Review PRD and architecture documents
-- [ ] Resolve blocking open questions: Q-001 (Q-009, Q-010 and Q-011 resolved 2026-11-23)
+- [x] Resolve blocking open questions: Q-001 resolved 2026-11-24 (Q-009, Q-010 and Q-011 resolved 2026-11-23)
 
 ## Phase 1 — Technical Validation (spikes)
 Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#8-proposed-technical-spikes-prioritised); each needs approval before starting.
