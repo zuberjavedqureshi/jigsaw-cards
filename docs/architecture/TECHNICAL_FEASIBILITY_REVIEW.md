@@ -287,7 +287,7 @@ For reference, with pieces capped at 2×2, 8 to 12 pieces covers 13,932 distinct
   - One large-screen or foldable emulator at API 36.
 - Performance is measured with the protocol in §8.1. The proposed frame-time targets there require approval.
 
-**Still open:** the audience and market decision (Q-001) may raise the device floor or change the matrix.
+**Still open:** the audience and market decision (Q-001) may raise the device floor or change the matrix. *Update 2026-11-24:* Q-001 is resolved (core audience 16–35, overall 13+). That decision sets no device or market requirements, so the device floor and matrix remain open under Q-013.
 
 ### Q-014 Local persistence technology
 
@@ -391,12 +391,12 @@ What the documentation states:
 | R-08 | Asset volume inflates install size | Medium | Medium | Texture sizing guidelines; App Bundle; Asset Delivery review before MVP |
 | R-09 | Dependency churn (Flame requires recent Flutter; Riverpod 3 changes) | Medium | Low | TD-07 pinning; deliberate upgrade PRs |
 | R-10 | Indistinguishable pieces feel unfair under the strict rule (now confirmed, GP-14) | Medium | Low–Medium | Content guidelines or generation constraints within PS-20/PS-21 |
-| R-11 | Unresolved product decisions (Q-001, Q-002, Q-007, Q-020) block MVP design | High | Medium | Q-009, Q-010 and Q-011, the prototype blockers, were resolved 2026-11-23 |
+| R-11 | Unresolved product decisions (Q-002, Q-007, Q-020) block MVP design | High | Medium | Q-009, Q-010 and Q-011, the prototype blockers, were resolved 2026-11-23; Q-001 (target audience) was resolved 2026-11-24 |
 
 **Dependencies on product decisions:**
 
 - **Prototype:** Q-009, Q-010 and Q-011 were resolved 2026-11-23.
-- **MVP:** Q-001, Q-002, Q-007, Q-020.
+- **MVP:** Q-002, Q-007, Q-020. (Q-001 was resolved 2026-11-24.)
 
 ---
 
