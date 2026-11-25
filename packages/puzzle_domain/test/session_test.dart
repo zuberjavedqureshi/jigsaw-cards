@@ -115,4 +115,17 @@ void main() {
     expect(a, b);
     expect(a.toSet(), layout.pieces.toSet());
   });
+
+  test('trayOrder keeps every id, including locked pieces', () {
+    final s0 = PuzzleSession.start(layout, trayShuffleSeed: 3);
+    final p = s0.trayPieces.first;
+    final s1 = (s0.attemptPlacement(
+      p.id,
+      p.correctOrigin,
+    ) as PlacementAccepted).session;
+    expect(s1.trayOrder, s0.trayOrder);
+    expect(s1.trayOrder.toSet(), {for (final q in layout.pieces) q.id});
+    expect(s1.trayPieces.map((q) => q.id), isNot(contains(p.id)));
+    expect(() => s1.trayOrder.add('x'), throwsUnsupportedError);
+  });
 }

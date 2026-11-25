@@ -66,6 +66,9 @@ final class PuzzleSession {
   final Set<String> lockedPieceIds;
   final List<String> _trayOrder;
 
+  /// Tray presentation order of every piece id, including locked ones.
+  List<String> get trayOrder => _trayOrder;
+
   /// Pieces still in the tray, in tray order.
   List<PuzzlePiece> get trayPieces => [
     for (final id in _trayOrder)
