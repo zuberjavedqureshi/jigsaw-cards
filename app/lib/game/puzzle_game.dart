@@ -35,6 +35,10 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
 
   late BoardLayout area;
   late final BoardFrame frame;
+
+  /// Outline of the swap target, drawn above the dragged tile so it stays
+  /// visible while the tile covers the target cell.
+  late final TargetMarker targetMarker;
   final Map<int, TileComponent> tiles = {};
 
   /// Tile animations still running (swap or cancel). Input waits for 0.
@@ -74,6 +78,8 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
       tiles[t.id] = c;
       add(c);
     }
+    targetMarker = TargetMarker()..priority = 1 << 19;
+    add(targetMarker);
     add(InputLayer()..priority = 1 << 20);
     _relayout();
   }
@@ -226,6 +232,9 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
     if (target != _hovered) {
       _hovered?.hovered = false;
       _hovered = target?..hovered = true;
+      targetMarker.rect = over == null || target == null
+          ? null
+          : area.cellRect(over);
     }
   }
 
@@ -235,6 +244,7 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
     final target = _hovered;
     _hovered?.hovered = false;
     _hovered = null;
+    targetMarker.rect = null;
     _dragPointer = null;
     final from = _dragFrom!;
     _dragFrom = null;
@@ -303,6 +313,32 @@ class InputLayer extends PositionComponent
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
     game.handleDragEnd(event.pointerId);
+  }
+}
+
+/// Bright outline around the cell a dragged tile would swap into.
+class TargetMarker extends Component {
+  Rect? rect;
+
+  @override
+  void render(Canvas canvas) {
+    final r = rect;
+    if (r == null) return;
+    canvas.drawRect(
+      r.inflate(3),
+      Paint()
+        ..color = const Color(0x66FFF1C4)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
+    canvas.drawRect(
+      r.inflate(1.5),
+      Paint()
+        ..color = const Color(0xFFFFF6DA)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
   }
 }
 

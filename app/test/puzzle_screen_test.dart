@@ -56,11 +56,15 @@ void main() {
     expect(dragged.lifted, isTrue);
     expect(h.game.hoveredTile, target);
     expect(target.hovered, isTrue);
+    // The target outline sits above the dragged tile, on the target cell.
+    expect(h.game.targetMarker.rect, h.game.area.cellRect(to));
+    expect(h.game.targetMarker.priority, greaterThan(dragged.priority));
     // The dragged tile follows the finger.
     final r = h.game.area.cellRect(to);
     expect(dragged.position.x, closeTo(r.center.dx, 1));
     await g.up();
     await h.settle();
+    expect(h.game.targetMarker.rect, isNull);
   });
 
   testWidgets('dropping a tile on another exchanges them, animated', (
