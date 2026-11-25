@@ -9,8 +9,8 @@
 | M1.3 | Rive validation spike | 1 | ⏳ Not started |
 | M1.4 | Persistence selection (ADR) | 1 | ⏳ Not started |
 | M1.5 | Flutter project structure approved (ADR) | 1 | ✅ Approved 2026-11-24 ([ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)); production workspace created 2026-11-25 on branch `feature/m1-1-core-puzzle-gameplay` (not merged) |
-| M2 | Puzzle domain complete with tests | 2 | 🔄 In progress — grid, pieces, layout validation, provisional seeded generation, provisional seeded scatter, reveal phases, free placement, snap tolerance, locking, stacking/hit testing and completion, with tests. **Outstanding:** TD-02 algorithm decision, serialisation/restore (PS-23) |
-| M3 | Playable 4×4 prototype | 3 | 🔄 In progress — free-placement memory gameplay (scattered face-down start, 4 s preview, tap to reveal, free drag with overlap, snap-and-lock, completion) with widget tests and a web-preview check, on branch `feature/gameplay-free-placement-reveal` (not merged). The earlier tray-based build is superseded. **Outstanding:** physical Android device validation of this build, reference preview, card reveal, coin reward, sound, auto-save/restore (including PS-23), final artwork |
+| M2 | Puzzle domain complete with tests | 2 | 🔄 In progress — picture-swap model (equal tiles, seeded shuffle, swap, occupancy validation, correctness and completion) with tests; the partition generator is kept but not used (Q-022). **Outstanding:** Q-022/Q-023 decisions, TD-02, serialisation/restore (PS-23) |
+| M3 | Playable 4×4 prototype | 3 | 🔄 In progress — picture-swap gameplay (shuffled 4×4 grid, drag-and-swap, correct-tile feedback, completion) with widget tests and a web-preview recording, on branch `feature/gameplay-picture-swap` (not merged). The tray build and the memory/free-placement build are superseded. **Outstanding:** physical Android device validation, reference preview, card reveal, coin reward, sound, auto-save/restore (including PS-23), final artwork; hints are planned for v1 |
 | M4 | MVP vertical slice | 4 | ⏳ Not started |
 
 ## Milestone Definitions

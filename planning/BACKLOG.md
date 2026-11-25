@@ -12,7 +12,7 @@ Prioritised list of upcoming work. Items move to GitHub issues when scheduled. N
 Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md#8-proposed-technical-spikes-prioritised); each needs approval before starting.
 - [ ] S-01 Hybrid shell: Flutter + `GameWidget` + Riverpod + overlay + lifecycle → TD-03, TD-04, TD-05 confirmed 2026-11-24 (ADR-0001 to ADR-0003); **Android device validation outstanding** (§8.1 timings, `paused`/`resumed`)
 - [ ] S-02 Rive reveal: frame timing, APK size, minSdk → Q-015
-- [ ] S-03 Drag, snap and lock feel; snapping tolerance and animation tuning on devices (Q-010 and Q-011 revised 2026-11-25) → GP-05, GP-15, GP-20 to GP-28
+- [ ] S-03 Drag-and-swap feel and animation tuning on devices (Q-010 and Q-011 revised again 2026-11-25) → GP-29 to GP-35
 - [ ] S-04 Rectangular partition generation under the approved Q-009 constraints (pure Dart) → TD-02
 - [ ] S-05 Audio latency and lifecycle (`flame_audio`)
 - [ ] S-06 Persistence: atomic write-and-replace JSON store; background-kill, force-stop and staged-termination tests; recovery-policy alternatives; reward consistency → TD-01, Q-014
@@ -31,14 +31,18 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 - [ ] Serialisation / restore
 
 ## Phase 3 — Prototype
-- [x] Board workspace layout adapting to phone aspect ratios (GP-27, GP-28): first implementation on a feature branch, not device-validated
-- [x] Scattered face-down start, 4-second preview, tap to reveal (GP-20 to GP-23): first implementation on a feature branch
-- [x] Free placement, flip, selection, snap and lock animations (GP-24 to GP-26): first implementation on a feature branch
-- [ ] Physical-device validation of the free-placement gameplay
+- [x] Picture-swap board: shuffled 4 × 4 grid of equal tiles that keeps the artwork's aspect ratio (GP-29 to GP-31, GP-35). First implementation on a feature branch, not device-validated
+- [x] Drag-and-swap with press, target and exchange animations, cancel on release outside, correct-tile feedback and completion state (GP-32 to GP-34). First implementation on a feature branch
+- [ ] Physical-device validation of the picture-swap gameplay
+- [ ] Decide Q-022 (equal tiles vs mixed-size partition) and Q-023 (lock correct tiles?)
+- *(Superseded 2026-11-25: scattered face-down start, 4-second preview, tap to reveal, free placement)*
 - [ ] Reference preview
 - [ ] Completion → reveal → coin reward
 - [ ] Sound effects
 - [ ] Auto-save and restore, including the persisted layout (PS-23, Q-009): outstanding
+
+## v1 (planned, not in the initial prototype)
+- [ ] Hints (GP-36): design not yet specified
 
 ## Icebox (future — requires approval)
 - Irregular jigsaw pieces

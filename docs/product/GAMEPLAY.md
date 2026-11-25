@@ -13,49 +13,47 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 
 ## 1. Initial Prototype — Confirmed Behaviour
 
-### Board
+### Picture-swap puzzle (approved 2026-11-25; PRD GP-29 to GP-36)
 
-- A single **4×4 logical board** (16 cells).
-- The board shows where the image will be assembled. Whether empty cells show a faint outline or ghost image is a presentation detail (TBC).
+The product owner chose this gameplay from a reference gameplay recording. It replaces the earlier tray and memory/free-placement designs (history below).
 
-### Pieces
+### Board (GP-01, GP-29, GP-35)
 
-- The image is divided into **mixed-sized rectangular pieces** by **rectangular partition generation** (PS-08).
-- **[Confirmed]** Allowed piece dimensions: **1×1, 1×2, 2×1 and 2×2** (PS-20). Piece-count constraint: every generated prototype layout must contain between **8 and 12** pieces, inclusive (PS-21).
-- **[Confirmed]** Layouts are produced by **seeded generation** (PS-22). The generated layout is **persisted**, so an unfinished puzzle keeps exactly the same arrangement (PS-23).
-- Hand-authored layouts are not required for the prototype; they may come in a later phase (PS-24).
-- Pieces together cover the whole board exactly, with no overlap. This is the tiling invariant that follows from rectangular partition generation (PS-08; PUZZLE_ENGINE §4).
-- **No rotation** — every piece is always shown in its correct orientation.
+- A fixed **rectangular grid**: **4 × 4** for the prototype.
+- Every cell always holds exactly **one tile**. There are no empty cells, no overlapping and no free-floating pieces, and tiles never leave the board.
+- The board keeps the illustration's aspect ratio and fits phone screens within the safe area, with comfortable touch targets.
 
-### Start: scattered face-down pieces (GP-20, GP-27)
+### Tiles (GP-30)
 
-- **[Confirmed 2026-11-25]** The board is the primary gameplay workspace. At puzzle start every piece lies **face-down** (decorative back) at its own **scattered position on the board**. There is no tray in the primary interaction.
-- Starting positions are seeded and randomised, independent of the correct positions, visibly distributed and individually selectable. No piece starts at its correct position, and the arrangement does not expose the solution.
+- The illustration is cut into **equal-size tiles** on the grid, without stretching. Each tile always shows its own fragment, wherever it currently is.
+- Every tile is **face-up from the start**. There is no face-down state, preview or reveal.
+- No rotation.
+- *Open (Q-022):* how this relates to the confirmed mixed-size partition (PS-08, PS-19 to PS-21). The prototype uses equal tiles.
 
-### Memory preview (GP-21, GP-22)
+### Start (GP-31)
 
-1. A short introduction is shown while the pieces are face-down. The player cannot move pieces yet.
-2. **[Confirmed]** Every piece flips face-up and stays visible for **exactly 4 seconds**. No interaction during the preview.
-3. **[Confirmed]** Every piece flips face-down again and memory mode begins.
+- The tiles begin **shuffled** (seeded and deterministic). The arrangement is never already solved, and every arrangement can be solved by swapping.
 
-### Reveal, arrange and lock (GP-23 to GP-26, GP-15)
+### Drag-and-swap (GP-32, GP-33)
 
-1. **[Confirmed]** **Tap to reveal:** tapping a face-down piece reveals only that piece. A revealed piece stays face-up, including while it is moved.
-2. **[Confirmed]** **Free placement:** a revealed piece can be dragged anywhere on the board. Pieces may overlap temporarily; the piece being moved is drawn above the others. When pieces overlap, a touch selects the topmost selectable piece.
-3. **[Confirmed]** An **incorrect** drop is accepted: the piece stays where it was dropped and is never sent back automatically. It can be picked up and repositioned as often as the player likes.
-4. **[Confirmed]** When a piece is aligned with its correct position within the **snapping tolerance**, it **magnetically snaps** exactly into place and becomes **permanently locked** (GP-05, GP-15). Locked pieces cannot be moved or swapped.
-5. Feedback (subtle animation now; sound later) accompanies reveal, pick-up and snap.
+1. The player presses a tile, which shows clear selection feedback.
+2. The player drags it over another tile, which is clearly highlighted as the target.
+3. On release, the **two tiles exchange cells** with a smooth animation.
+4. Incorrect swaps are allowed and never rejected. Swaps are unlimited, with no penalty.
+5. Releasing outside another tile (or back on its own cell) **cancels**: the tile returns to its own cell.
+6. The interaction is direct drag-and-drop; there is no tap-then-tap selection.
 
-> The snapping tolerance, the introduction length and animation timings are tuning parameters kept in configuration (S-03). The 4-second preview length is a product decision, not a tuning parameter.
+> Whether a tile locks once it is in its correct cell is open (Q-023). The prototype keeps every tile swappable.
 
-### Layout (GP-28)
+### Hints (GP-36)
 
-- The board and its pieces fit different phone aspect ratios within the system safe area, with no hardcoded coordinates. Pieces always stay fully on the board area and remain individually selectable.
+- **Intentionally excluded from the initial prototype; planned for v1.** The hint design is not specified yet.
 
 ### Superseded (history)
 
-- **Q-011, 2026-11-23 → revised 2026-11-25:** pieces previously started in a two-row, horizontally scrolling tray below the board, with comfortable touch targets, and enlarged to board scale when picked up (GP-03, GP-04, GP-16 to GP-19).
-- **Q-010, 2026-11-23 → revised 2026-11-25:** previously only the correct position accepted a piece (GP-14), and incorrect drops animated back to their previous (tray) position (GP-06). Locking of correctly placed pieces (GP-15) is unchanged.
+- **Q-011, 2026-11-23:** pieces started in a two-row, horizontally scrolling tray below the board (GP-03, GP-04, GP-16 to GP-19). **Revised 2026-11-25:** pieces started face-down and scattered across the board (GP-20, GP-27, GP-28). **Revised again 2026-11-25:** fixed, fully filled grid (above).
+- **Q-010, 2026-11-23:** strict placement. Only the correct position accepted a piece, incorrect drops animated back (GP-06, GP-14), and correct pieces locked (GP-15). **Revised 2026-11-25:** free placement, with a 4-second memory preview and tap to reveal (GP-21 to GP-26). **Revised again 2026-11-25:** drag-and-swap (above).
+- Magnetic snapping (GP-05) and permanent locking (GP-15) belonged to those placement rules and do not apply to the picture-swap puzzle.
 
 ### Reference preview
 
@@ -64,7 +62,8 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 
 ### Completion
 
-- The puzzle completes when every piece is correctly placed.
+- The puzzle completes when **every tile is in its correct cell** (GP-34). A tile that lands in its correct cell gets brief visual feedback.
+- The completion state shows the finished illustration with a New puzzle (later: Continue) action.
 - Completion triggers, in order:
   1. Completion feedback (sound/visual).
   2. **Character/card reveal**: on a *designated* puzzle, the guaranteed card is awarded and its character comes to life (CC-04). A card already collected does not count as new collection progress (CC-06).
@@ -78,11 +77,11 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 ### Saving
 
 - Unfinished puzzles are **saved automatically** (e.g. on each placement and when the app is backgrounded).
-- Returning to a puzzle restores all piece positions, reveal states and locks. **Not yet implemented**; the persisted-layout requirement PS-23 is also outstanding.
+- Returning to a puzzle restores the tile arrangement. **Not yet implemented**; the persisted-layout requirement PS-23 is also outstanding.
 
 ### Audio
 
-- Sound effects for reveal, pick-up, snap, completion, card reveal and coins (exact list TBC).
+- Sound effects for pick-up, swap, correct tile, completion, card reveal and coins (exact list TBC).
 - Background music is not specified for the prototype (TBC).
 
 ## 2. Future Puzzle Styles (not approved for implementation)

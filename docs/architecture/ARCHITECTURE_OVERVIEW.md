@@ -84,16 +84,15 @@ Details: [PUZZLE_ENGINE.md](PUZZLE_ENGINE.md).
 - **[Confirmed]** Firebase is used *when justified* (e.g. cloud save, remote config, analytics, crash reporting). No backend is required for the prototype.
 - **[Proposed]** Backend services plug in behind the same repository/service interfaces as local persistence.
 
-## 3. Data Flow — Moving a Piece (implemented on a feature branch, free placement)
+## 3. Data Flow — Swapping Two Tiles (implemented on a feature branch)
 
-1. The player drags a revealed piece. Flame handles the gesture and visual drag, hit testing against the domain's stack order.
-2. On release, Flame converts the piece's top-left into a board position (cell units) using the current layout.
-3. The position is sent to the puzzle domain through the application state (bridge intent).
-4. The domain accepts the move. It either keeps the piece where it was dropped, or snaps and locks it if it is within the snapping tolerance of the correct position, and returns the new state.
-5. The application layer syncs the new state to Flame, which animates the snap (or nothing, for a wrong drop); flame_audio feedback comes later.
-6. Application state will trigger auto-save (not implemented); on completion it triggers reveal and reward.
+1. The player presses a tile and drags it. Flame handles the gesture, the selection feedback and the target highlight, finding the cell under the finger from the board grid.
+2. On release over another tile, Flame sends the two cells to the application state (bridge intent). A release anywhere else is cancelled in Flame, and the tile glides back.
+3. The puzzle domain exchanges the two tiles and returns the new immutable puzzle. Incorrect swaps are accepted.
+4. The application layer syncs the new puzzle to Flame, which animates both tiles into their new cells, highlights tiles that are now correct, and blocks input until the board has settled.
+5. Application state will trigger auto-save (not implemented); on completion it triggers the completion state, and later reveal and reward.
 
-*History:* before 2026-11-25 the flow ended in accepted/rejected, with a rejected piece animating back to the tray.
+*History:* earlier versions of this flow covered tray placement with rejection, then free placement with snapping (both superseded 2026-11-25).
 
 ## 4. Project Layout (confirmed, not yet created)
 

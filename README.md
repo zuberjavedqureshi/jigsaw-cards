@@ -5,7 +5,7 @@
 Jigsaw Cards is a magical storybook puzzle adventure for Android. Players solve beautifully illustrated image puzzles to discover animated characters, collect cards, complete themed collections and unlock new fantasy worlds.
 
 > **Project status: Early prototype — technical validation.**
-> A playable 4×4 rectangular puzzle exists on feature branches (`app/`, `packages/puzzle_domain/`). The current version (`feature/gameplay-free-placement-reveal`) is a free-placement memory puzzle: pieces start scattered face-down, show their picture for 4 seconds, then the player taps to reveal pieces and drags them freely until each snaps and locks into place. It uses provisional generation and scatter, code-drawn placeholder artwork, and has not been validated on a physical Android device. Cards, coins, rewards, audio, persistence and the reference preview are not implemented. See [Implementation Status](planning/IMPLEMENTATION_STATUS.md).
+> The current playable build (`feature/gameplay-picture-swap`) is a rectangular picture-swap puzzle: a shuffled 4×4 grid of picture tiles, where the player drags one tile onto another to swap them until the picture is whole. It uses code-drawn placeholder artwork and has not been validated on a physical Android device. Cards, coins, rewards, hints (planned for v1), audio, persistence and the reference preview are not implemented. Earlier tray and memory/free-placement builds are superseded. See [Implementation Status](planning/IMPLEMENTATION_STATUS.md).
 
 ---
 
@@ -25,9 +25,9 @@ Every puzzle is a page in a storybook. Completing puzzles rewards coins, and com
 **Initial puzzle prototype**
 
 - One 4×4 logical board with mixed-sized rectangular pieces.
-- Pieces start face-down, scattered across the board, which is the main workspace (no tray).
-- Every piece is shown face-up for exactly 4 seconds, then flips back: the player taps to reveal pieces one at a time.
-- Free placement: revealed pieces can be dragged anywhere and may overlap; wrong positions are kept and can be changed. A piece aligned with its correct position snaps into place and locks permanently.
+- A fixed 4×4 grid filled with face-up picture tiles in a shuffled order (no tray, no empty cells).
+- Drag one tile onto another and release: the two tiles swap places. Wrong swaps are allowed; a release outside another tile cancels.
+- Correctly placed tiles merge into the picture; the puzzle completes when every tile is in place. Hints are planned for v1.
 - Seeded generation of layouts with between 8 and 12 pieces (inclusive) of 1×1, 1×2, 2×1 or 2×2; the layout is saved with the puzzle.
 - No rotation in the initial prototype.
 - Optional reference-image preview.

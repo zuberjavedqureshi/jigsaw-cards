@@ -18,12 +18,10 @@
 - Tiling invariant (required; follows from the confirmed partition requirement PS-08, see PUZZLE_ENGINE §4): every layout covers the board fully, with no overlap and nothing out of bounds. A layout or configuration that violates it is rejected (rejection at load time is the proposed mechanism).
 - Rectangular partition generation: every output satisfies the tiling invariant, uses only 1×1, 1×2, 2×1 and 2×2 pieces, and contains between 8 and 12 pieces, inclusive (PS-20, PS-21). Boundary cases: layouts with 7 or 13 pieces are never produced. Output is reproducible for a given seed within one SDK version (PS-22). A persisted layout restores identically (PS-23).
 - Reward rules (application layer): designated puzzle awards its card once; already collected card does not add collection progress (CC-04, CC-06).
-- Reveal sequence (GP-20 to GP-23): pieces start face-down; the preview shows all pieces and lasts exactly 4 seconds; afterwards all are face-down; a tap reveals only one piece, which stays revealed; no interaction outside memory mode.
-- Free placement (GP-24 to GP-26): correct and incorrect positions are both accepted; incorrect pieces stay where dropped and can move again; overlap allowed; positions clamped to the workspace; current position stays separate from the target; within the snapping tolerance the piece snaps exactly and locks.
-- Locking (GP-15): a locked piece cannot be moved, revealed again or selected; any such attempt is rejected and leaves state unchanged.
-- Starting scatter (GP-20): deterministic per seed; in bounds; no piece at or next to its target; every piece substantially visible.
-- Hit testing: the topmost selectable piece wins; locked pieces are passed through.
-- *(Superseded 2026-11-25: strict placement, GP-14.)*
+- Picture-swap board (GP-29 to GP-31): the solved grid is correct; tiles are equal, non-overlapping slices of the source; the shuffle is deterministic per seed, never solved and always solvable by swaps; there are no empty cells or duplicate occupancy; tile identity and target cells never change.
+- Swaps (GP-32): exactly two cells change; incorrect swaps are accepted; invalid indices, the same cell, or swapping after completion are rejected without changing the board; repeated swaps keep every invariant.
+- Correctness and completion (GP-34): correct-tile detection and counts; complete exactly when every tile is correct.
+- *(Superseded 2026-11-25: strict placement, then the reveal sequence, free placement, scatter and hit-testing coverage.)*
 - Occupancy consistent with piece locations after every operation.
 - Completion: detected exactly when all pieces are correct; not before.
 - Serialisation round-trip: save → restore yields identical state; schema version present.

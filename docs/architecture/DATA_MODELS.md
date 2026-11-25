@@ -80,7 +80,7 @@ Shared fields (id, imageRef, style, cardId, rewards) belong to the common level 
 | puzzleId | string | |
 | style | enum | Puzzle style of the session |
 | layout | style-specific | The selected/generated layout, always persisted so an unfinished puzzle keeps exactly the same arrangement (PS-23) |
-| pieceStates | style-specific | Rectangular tile: map<pieceId, {position (free, cell units), revealed, locked}> plus stack order and phase (GP-20 to GP-26). Locked pieces are always at their correct position (GP-15). Superseded 2026-11-25: `inTray(slot)` / `onBoard(origin)`. Irregular: future, not specified |
+| arrangement | style-specific | Rectangular tile (picture-swap): grid size, source size, shuffle seed and `arrangement[cell] = tileId` (a permutation) (GP-29 to GP-31). Superseded 2026-11-25: free-placement piece states, and before that `inTray(slot)` / `onBoard(origin)`. Irregular: future, not specified |
 | updatedAt | timestamp | |
 
 ### Settings

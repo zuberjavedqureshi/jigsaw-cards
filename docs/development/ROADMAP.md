@@ -33,7 +33,7 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 
 ## Phase 3 — Playable Prototype
 
-- One 4×4 mixed-rectangle puzzle end to end: scattered face-down start, 4-second preview, tap to reveal, free placement, snap and lock, completion, character/card reveal, coin animation, sound effects, auto-save/restore.
+- One 4×4 picture-swap puzzle end to end: shuffled grid, drag-and-swap, correct-tile feedback, completion, character/card reveal, coin animation, sound effects, auto-save/restore. Hints follow in v1.
 
 **Exit:** prototype success criteria in the PRD are met.
 
