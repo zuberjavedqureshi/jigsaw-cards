@@ -1,0 +1,10 @@
+# Dart pub workspace root (ADR-0002 / TD-04).
+name: jigsaw_cards_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.14.0
+
+workspace:
+  - app
+  - packages/puzzle_domain

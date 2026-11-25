@@ -1,0 +1,14 @@
+name: puzzle_domain
+description: Pure-Dart puzzle domain for Jigsaw Cards. Must not depend on Flutter or Flame (ADR-0002).
+publish_to: none
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.14.0
+
+# Intentionally no runtime dependencies: no Flutter SDK, no Flame.
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

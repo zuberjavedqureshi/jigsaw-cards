@@ -1,0 +1,8 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Boundary guard (ADR-0002): in a pub workspace all packages share one
+    # package_config.json, so Flutter/Flame imports would otherwise resolve
+    # here. Make importing an undeclared package a hard error.
+    depend_on_referenced_packages: error
