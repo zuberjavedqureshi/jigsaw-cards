@@ -15,8 +15,8 @@ Sections 3 to 10 specify the **rectangular tile style**. Section 11 covers the b
 ## 1. Responsibilities
 
 - Hold puzzle configuration and current puzzle state.
-- Validate piece placements.
-- Track grid occupancy.
+- Apply and validate tile swaps.
+- Track grid occupancy (the tile arrangement).
 - Detect completion.
 - Produce serialisable state for auto-save and restore.
 
@@ -33,14 +33,14 @@ Not responsibilities: rendering, gestures, animation, audio, screen coordinates,
 | `id` | Stable puzzle identifier |
 | `imageRef` | Reference to the puzzle image asset |
 | `style` | Puzzle style: `rectangularTile` (now) or `irregularJigsaw` (future, reserved) |
-| `geometry` | Style-specific. For rectangular tile: `rows`, `columns` (**4 × 4** for the prototype), partition generation settings and/or piece definitions (see §4, §5) |
+| `geometry` | Style-specific. For rectangular tile (picture-swap): `rows`, `columns` (**4 × 4** for the prototype) and the shuffle seed; tiles are equal-sized, so no piece definitions or partition settings are needed (Q-022; see §4, §5) |
 | `cardId` (optional) | Present only on designated puzzles; the card is guaranteed on completion (CC-04). Reward logic is applied by the shared reward integration, not by style-specific geometry code. |
 | `coinReward` | Coins, all puzzles |
 | `progressionRewards` | Non-designated puzzles (CC-05); content open (Q-020) |
 
 Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
-**[Confirmed]** Initial development includes rectangular partition generation (PS-08), within the approved constraints in §5 (PS-19 to PS-24). How generation is parameterised in configuration is a technical choice (TD-02).
+**[Confirmed, revised 2026-11-25 by Q-022]** The picture-swap gameplay divides the illustration into a uniform grid of equal-sized tiles; rectangular partition generation (PS-08) is superseded for this gameplay. How the shuffle seed is supplied is a technical choice (TD-02).
 
 ## 3. Logical Grid
 
@@ -49,65 +49,55 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 - **[Proposed]** The grid is purely logical; mapping cells to pixels is the rendering layer's job.
 - Grid size is a configuration value, not a constant, so that future board sizes do not require a rewrite — but only 4×4 is supported and tested for now.
 
-## 4. Piece Model
+## 4. Tile Model
 
-- **[Confirmed]** Rectangular pieces of mixed sizes; no rotation.
-- **[Proposed]** A piece definition:
+- **[Confirmed]** Equal-sized rectangular tiles on a uniform grid (Q-022, resolved 2026-11-25): a 4×4 grid of 16 tiles with identical dimensions, one tile per cell; the source illustration is divided into equal rectangular fragments. No rotation.
+- **[Implemented]** The model is `PicturePuzzle` in `packages/puzzle_domain`:
 
-| Field | Description |
-| --- | --- |
-| `id` | Stable piece identifier |
-| `correctOrigin` | Top-left cell `(row, column)` of the piece's correct position |
-| `size` | `(rowSpan, columnSpan)` in cells, e.g. `(1,1)`, `(1,2)`, `(2,2)` |
+| Concept | Mutability | In the model |
+| --- | --- | --- |
+| Tile identity | **Immutable** | `PictureTile.id`: the row-major index of the tile's target cell |
+| Target cell | **Immutable** | `PictureTile.target`: the cell where the tile belongs |
+| Image fragment | **Immutable** | `sourceRectOf(tile)`: the equal-sized slice of the source at the tile's *target* cell, so content always follows identity |
+| Current cell | Mutable (by swapping) | `cellOf(tile)` |
+| Board arrangement | Mutable (by swapping) | `arrangement[cell] = tileId`: always a permutation; every cell holds exactly one tile and every tile is in exactly one cell |
+| Correct position | Derived | `isTileCorrect(tile)`: true when the current cell equals the target cell; `correctCount` counts them |
+| Completion | Derived | `isComplete`: every tile is in its target cell |
 
-- **[Implemented, picture-swap, 2026-11-25]** The active model is `PicturePuzzle`: a grid of `rows × columns` **equal tiles** cut from a source illustration (`SourceSize`). Each `PictureTile` has a fixed identity and a fixed **target cell**. The current arrangement is a permutation (`arrangement[cell] = tileId`): every cell holds exactly one tile and every tile is in exactly one cell. A tile's image region (`sourceRectOf`) comes from its target cell, so its content always follows its identity. *(History: the tray proposal `inTray(slot)`/`onBoard(origin)` and the free-placement model with continuous positions, reveal flags and a workspace were superseded on 2026-11-25. The free-placement code remains in Git history.)*
-- **[Proposed]** The image region of a piece is derived from `correctOrigin` and `size`, so no separate image coordinates are stored.
+- Puzzles are immutable values: a swap returns a new puzzle.
+- **Correct-position status never restricts future swaps (Q-023).** Correct tiles are not locked; it is derived information, used only for feedback and completion.
 
-**Tiling invariant [Confirmed, follows from PS-08]:** the set of piece rectangles at their correct origins tiles the grid exactly. Every cell is covered once, there are no overlaps, and nothing lies outside the grid. This is what makes a layout a *partition* of the 4×4 board (GP-01, PS-08), and it matches GAMEPLAY ("pieces together cover the whole board exactly, with no overlap"). It introduces no new product decision.
+**Coverage invariant [Confirmed]:** the tiles at their target cells cover the illustration exactly. Every cell is covered once, with no overlap and nothing outside the grid, and every arrangement keeps exactly one tile per cell. **[Implemented]** `validateArrangement` enforces this in every constructor.
 
-**[Proposed]** Enforcement mechanism: a layout or configuration that violates the invariant is rejected at load time.
+*History (superseded 2026-11-25, Q-022):* the earlier model was mixed-size pieces (`id`, `correctOrigin`, `size` of 1×1, 1×2, 2×1 or 2×2) whose rectangles had to tile the 4×4 grid (the partition tiling invariant from PS-08). Its runtime location was proposed as `inTray(slot)`/`onBoard(origin)`, then implemented as free continuous positions with reveal and lock flags. All of this is superseded. The free-placement code remains in Git history.
 
-## 5. Rectangular Partition Generation
+## 5. Starting Arrangement
 
-**[Confirmed]** Rectangular partition generation is part of initial development (PS-08). The engine partitions the logical grid into mixed-sized rectangular pieces.
+**Superseded for the picture-swap gameplay (Q-022, 2026-11-25): rectangular partition generation.** The original confirmed constraints (Q-009, 2026-11-23: pieces 1×1, 1×2, 2×1, 2×2; 8–12 pieces per layout; seeded layout generation; persisted layout; no hand-authored layouts) and the open TD-02 question of which partition algorithm to use no longer apply to the current gameplay. Q-009 and PRD PS-19 to PS-24 keep the original wording as history, with dated revisions. The domain package still contains the provisional partition generator (`LayoutGenerator`, `ProvisionalRandomFillGenerator`) with its tests, but **no active gameplay path uses it** and it is not a requirement.
 
-**[Confirmed] Product constraints** (Q-009, resolved 2026-11-23; PRD PS-19 to PS-24):
+**Still valid:** the 4×4 board (PS-19), exact coverage (§4), seeded generation, now of the starting arrangement (PS-22 revised), and persistence of the arrangement (PS-23 revised; not implemented).
 
-- 4×4 logical board for the initial prototype.
-- Allowed piece dimensions: 1×1, 1×2, 2×1, 2×2.
-- Piece-count constraint: every generated prototype layout must contain between 8 and 12 pieces, inclusive.
-- Valid layouts are generated using seeded generation.
-- The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement.
-- Hand-authored layouts are not required for the initial prototype; they may be supported in a later phase.
-
-**[Open — technical, TD-02]** Still to be decided with an ADR:
-
-- The generation algorithm, e.g. enumerate-and-select or constrained random splitting (see the [feasibility review](TECHNICAL_FEASIBILITY_REVIEW.md)).
-- Whether generation runs at runtime or when content is built.
-- Where the seed comes from (e.g. per puzzle in configuration, or per play).
-- Any fairness or variety constraints beyond the approved size and count limits.
-
-**[Provisional implementation — not a TD-02 decision; not used by the picture-swap prototype, Q-022]** `packages/puzzle_domain` generates layouts through a replaceable `LayoutGenerator` interface. The only implementation, `ProvisionalRandomFillGenerator`, fills cells in row-major order, picks a fitting allowed size uniformly with a seeded `Random`, and retries until the layout passes validation (tiling, sizes, 8–12 pieces). It is deterministic per seed and tested over 500 seeds, but it is a placeholder for the first playable prototype; its distribution and variety are not evaluated. The app seeds it with `--dart-define=PUZZLE_SEED=<n>` or, if unset, the launch time. Layouts are **not yet persisted** (PS-23 outstanding). TD-02 remains Pending.
+**[Open — technical, TD-02]** Where the shuffle seed comes from, and whether arrangements are generated at runtime or with content.
 
 **[Implemented, provisional]** Picture-swap start (GP-31): `PicturePuzzle.shuffled` uses a seeded Fisher–Yates shuffle and repeats it until the board is not solved and at least 75% of the tiles are misplaced. The 75% threshold is provisional. Any permutation can be solved by swaps; `minimumSwapsToSolve` is `n − cycles`. Tests cover 1,000 seeds for validity and solve 300 of them in the minimum number of swaps. *(The earlier seeded scatter for free placement is superseded.)*
 
-**[Confirmed]** Whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4 (PS-08) and the approved size and count constraints (PS-20, PS-21). **[Confirmed]** Generation is puzzle domain logic and therefore must be unit-tested (Development Rule 5).
+**[Confirmed]** Every starting arrangement must satisfy the coverage invariant in §4 and must not already be solved (GP-31). **[Confirmed]** Shuffling is puzzle domain logic and therefore must be unit-tested (Development Rule 5).
 
 ## 6. Grid Occupancy
 
-- **[Proposed]** The engine maintains an occupancy map: `cell → pieceId | empty`, derived from pieces currently on the board.
-- **[Proposed]** Occupancy is derived from piece locations (single source of truth) rather than stored separately, to avoid inconsistency.
+- **[Implemented]** Occupancy *is* the arrangement (`cell → tileId`), the single source of truth. There are never empty cells (GP-29). `tileAt(cell)` and `cellOf(tile)` are derived from it.
 
 ## 7. Swap Rules
 
 **[Confirmed]** Drag-and-swap (Q-010 revised again 2026-11-25; PRD GP-32, GP-33):
 
-- The only move is a **swap** of two cells: their tiles exchange positions. Exactly two cells change.
-- Incorrect swaps are accepted. There is no rejection for being wrong, no limit and no penalty.
+- The only move is a **swap** of two cells: their tiles exchange positions. Exactly two cells change; every tile stays in exactly one cell and no cell is ever empty.
+- Incorrect swaps are accepted. There is no rejection for being wrong, no limit and no penalty, and tiles can be moved repeatedly.
+- **[Confirmed, Q-023]** Correctly positioned tiles are **not locked**. Any two tiles can be swapped at any time, whether or not either is already correct. Correct-position status is never checked when a swap is validated.
 - **[Implemented]** `swap(from, to)` returns `TilesSwapped(puzzle, movedTile, displacedTile, nowCorrect, completedPuzzle)` or `SwapRejected(reason)`. It is rejected, with the board unchanged and nothing thrown, when a cell is outside the grid (`outOfBounds`), both cells are the same (`sameCell`), or the puzzle is already complete (`complete`). Puzzles are immutable.
 - **[Implemented]** `validateArrangement` checks occupancy: every cell is filled and no tile appears twice. Every constructor enforces it.
 - A drag released outside another tile is a rendering-level cancel; the domain is not called.
-- **[Open, Q-023]** Whether a correctly placed tile locks. The prototype keeps all tiles swappable.
+- No rotation.
 
 *History:* the strict rule (2026-11-23) was superseded by free placement with snapping and locking (2026-11-25), which was itself superseded by drag-and-swap (2026-11-25).
 
@@ -118,14 +108,14 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 ## 9. Completion Detection
 
 - **[Confirmed]** Completion detection (GP-09, GP-34). Completion is reported through the shared completion reporting (PS-16); the application layer then applies rewards: the card reveal on designated puzzles (CC-04), progression rewards on non-designated puzzles (CC-05), and coins on both.
-- **[Implemented]** The puzzle is complete exactly when every tile is in its target cell (`correctCount == tileCount`). The swap that completes it reports `completedPuzzle`. `isTileCorrect` and `correctCount` drive the correct-tile feedback.
+- **[Implemented]** The puzzle is complete exactly when every tile is in its target cell (`correctCount == tileCount`; 16 of 16 in the prototype), judged on the whole board matching the target arrangement. The swap that completes it reports `completedPuzzle`. `isTileCorrect` and `correctCount` drive the correct-tile feedback, which is visual only (Q-023). Once complete, further swaps are rejected (`complete`) because the puzzle has ended; this is not tile locking.
 
 ## 10. Save / Restore
 
 - **[Confirmed]** Unfinished puzzles are saved automatically.
-- **[Confirmed]** The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement (PS-23).
+- **[Confirmed]** The tile arrangement is persisted, so an unfinished puzzle retains exactly the same arrangement (PS-23, revised 2026-11-25 by Q-022).
 - **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, puzzle style, grid size, source size, shuffle seed, the current arrangement, and a schema version. Restoring the same data yields an identical state (`PicturePuzzle.fromArrangement` already validates a restored arrangement).
-- **[Not implemented]** Serialisation and restore are not implemented yet, so PS-23 (persisted layout) and GP-13 (auto-save) remain outstanding.
+- **[Not implemented]** Serialisation and restore are not implemented yet, so PS-23 (persisted arrangement) and GP-13 (auto-save) remain outstanding.
 
 ## 11. Future Puzzle Style: Traditional Irregular Jigsaw
 

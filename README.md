@@ -20,15 +20,14 @@ Every puzzle is a page in a storybook. Completing puzzles rewards coins, and com
 3. Fantasy Kingdom
 4. Cosmic Adventures
 
-**Hybrid puzzle system:** two separate puzzle styles. Rectangular tile puzzles (mixed-sized rectangular pieces) come first; traditional irregular jigsaw puzzles are planned as future functionality. Both share session, configuration, progress and reward systems.
+**Hybrid puzzle system:** two separate puzzle styles. Rectangular tile puzzles (a picture-swap grid of equal-sized tiles) come first; traditional irregular jigsaw puzzles are planned as future functionality. Both share session, configuration, progress and reward systems.
 
 **Initial puzzle prototype**
 
-- One 4×4 logical board with mixed-sized rectangular pieces.
-- A fixed 4×4 grid filled with face-up picture tiles in a shuffled order (no tray, no empty cells).
+- A fixed, uniform 4×4 grid of 16 equal-sized picture tiles, all face-up, in a seeded shuffled order (no tray, no empty cells).
 - Drag one tile onto another and release: the two tiles swap places. Wrong swaps are allowed; a release outside another tile cancels.
-- Correctly placed tiles merge into the picture; the puzzle completes when every tile is in place. Hints are planned for v1.
-- Seeded generation of layouts with between 8 and 12 pieces (inclusive) of 1×1, 1×2, 2×1 or 2×2; the layout is saved with the puzzle.
+- Correctly placed tiles merge into the picture but stay movable (nothing locks); the puzzle completes when every tile is in place. Hints are planned for v1.
+- The arrangement is saved with the puzzle (not yet implemented).
 - No rotation in the initial prototype.
 - Optional reference-image preview.
 - Completion detection, character/card reveal, coin reward animation and sound effects.

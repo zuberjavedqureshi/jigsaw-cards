@@ -4,7 +4,7 @@
 
 | Style | Status | Characteristics |
 | --- | --- | --- |
-| Rectangular tile | Initial development and first prototype | Mixed-sized rectangular pieces, logical grid occupancy, rectangular partition generation |
+| Rectangular tile | Initial development and first prototype | Picture-swap puzzle: equal-sized rectangular tiles on a uniform grid, logical grid occupancy (Q-022; originally mixed-sized pieces from rectangular partition generation, superseded 2026-11-25) |
 | Traditional irregular jigsaw | Future expansion, not approved for implementation | Interlocking geometry, tabs and blanks, rotation, connected-piece grouping |
 
 The styles are not necessarily combined within one puzzle. Both share puzzle session management, level configuration, common interaction contracts where practical, progress and completion reporting, and reward integration (PRD PS-13 to PS-17).
@@ -19,16 +19,16 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 
 ### Board (GP-01, GP-29, GP-35)
 
-- A fixed **rectangular grid**: **4 × 4** for the prototype.
-- Every cell always holds exactly **one tile**. There are no empty cells, no overlapping and no free-floating pieces, and tiles never leave the board.
+- A fixed, uniform **rectangular grid**: **4 × 4** for the prototype (Q-022).
+- Every cell always holds exactly **one tile**. There are no empty cells, no overlapping, no free placement and no free-floating pieces, and tiles never leave the board.
 - The board keeps the illustration's aspect ratio and fits phone screens within the safe area, with comfortable touch targets.
 
 ### Tiles (GP-30)
 
-- The illustration is cut into **equal-size tiles** on the grid, without stretching. Each tile always shows its own fragment, wherever it currently is.
+- **[Confirmed, Q-022]** The illustration is cut into **16 equal-sized rectangular tiles** with identical dimensions, without stretching. Each tile always shows its own fragment, wherever it currently is.
 - Every tile is **face-up from the start**. There is no face-down state, preview or reveal.
 - No rotation.
-- *Open (Q-022):* how this relates to the confirmed mixed-size partition (PS-08, PS-19 to PS-21). The prototype uses equal tiles.
+- Mixed-size pieces (1×1, 1×2, 2×1, 2×2; 8–12 pieces) are **superseded** for this gameplay (Q-022, Q-009 revised 2026-11-25).
 
 ### Start (GP-31)
 
@@ -39,11 +39,15 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 1. The player presses a tile, which shows clear selection feedback.
 2. The player drags it over another tile, which is clearly highlighted as the target.
 3. On release, the **two tiles exchange cells** with a smooth animation.
-4. Incorrect swaps are allowed and never rejected. Swaps are unlimited, with no penalty.
+4. Incorrect swaps are allowed and never rejected. Tiles can be moved repeatedly; swaps are unlimited, with no penalty.
 5. Releasing outside another tile (or back on its own cell) **cancels**: the tile returns to its own cell.
 6. The interaction is direct drag-and-drop; there is no tap-then-tap selection.
 
-> Whether a tile locks once it is in its correct cell is open (Q-023). The prototype keeps every tile swappable.
+### Correctly positioned tiles (Q-023, GP-32, GP-34)
+
+- **[Confirmed]** Correctly positioned tiles **remain movable**. No tile locks when it reaches its correct cell.
+- Any two tiles can be swapped at any time, including tiles that are already correct. Every swap is valid whether or not either tile was correct.
+- Correct-position feedback (a brief glow, and correct tiles joining seamlessly into the picture) is **visual only** and never restricts movement.
 
 ### Hints (GP-36)
 
@@ -53,7 +57,8 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 
 - **Q-011, 2026-11-23:** pieces started in a two-row, horizontally scrolling tray below the board (GP-03, GP-04, GP-16 to GP-19). **Revised 2026-11-25:** pieces started face-down and scattered across the board (GP-20, GP-27, GP-28). **Revised again 2026-11-25:** fixed, fully filled grid (above).
 - **Q-010, 2026-11-23:** strict placement. Only the correct position accepted a piece, incorrect drops animated back (GP-06, GP-14), and correct pieces locked (GP-15). **Revised 2026-11-25:** free placement, with a 4-second memory preview and tap to reveal (GP-21 to GP-26). **Revised again 2026-11-25:** drag-and-swap (above).
-- Magnetic snapping (GP-05) and permanent locking (GP-15) belonged to those placement rules and do not apply to the picture-swap puzzle.
+- Magnetic snapping (GP-05) and permanent locking (GP-15) belonged to those placement rules and do not apply to the picture-swap puzzle (Q-023: no locking).
+- **Q-009, 2026-11-23:** mixed-size pieces (1×1, 1×2, 2×1, 2×2) and 8–12 pieces per layout. **Revised 2026-11-25 (Q-022):** a uniform 4×4 grid of equal-sized tiles.
 
 ### Reference preview
 
@@ -62,7 +67,7 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 
 ### Completion
 
-- The puzzle completes when **every tile is in its correct cell** (GP-34). A tile that lands in its correct cell gets brief visual feedback.
+- The puzzle completes only when **every tile (all 16) is in its correct cell**, judged on the whole board matching the target arrangement (GP-34). A tile that lands in its correct cell gets brief visual feedback, which does not lock it (Q-023).
 - The completion state shows the finished illustration with a New puzzle (later: Continue) action.
 - Completion triggers, in order:
   1. Completion feedback (sound/visual).
@@ -76,8 +81,8 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 
 ### Saving
 
-- Unfinished puzzles are **saved automatically** (e.g. on each placement and when the app is backgrounded).
-- Returning to a puzzle restores the tile arrangement. **Not yet implemented**; the persisted-layout requirement PS-23 is also outstanding.
+- Unfinished puzzles are **saved automatically** (e.g. after each swap and when the app is backgrounded).
+- Returning to a puzzle restores the exact tile arrangement (PS-23 as revised). **Not yet implemented.**
 
 ### Audio
 

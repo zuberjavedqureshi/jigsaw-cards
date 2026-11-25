@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 1.0 (canonical repository edition, reconciliation 4: Q-001 resolved) |
+| Version | 1.0 (canonical repository edition, reconciliation 5: picture-swap gameplay; Q-022 and Q-023 resolved) |
 | Status | Approved product decisions; pre-development technical validation |
 | Platform | Android first, portrait |
 | Tagline | **Solve. Discover. Collect.** |
@@ -20,7 +20,14 @@ This is the canonical product specification for the repository. Every requiremen
 
 **Provenance.** The approved PRD v1.0 was produced in an earlier planning discussion that is not stored in this repository. This edition consolidates the decisions confirmed in the repository setup brief and the reconciliation brief. Sections marked **[Source text needed]** must be completed from the approved PRD text (OPEN_QUESTIONS Q-019).
 
-Requirement IDs (e.g. `GP-03`) are stable and may be referenced from issues, ADRs and tests.
+Requirement IDs (e.g. `GP-03`) are stable and may be referenced from issues, ADRs and tests. Superseded requirements keep their IDs, are struck through and must not be implemented.
+
+**Revision notes**
+
+| Reconciliation | Date | Change |
+| --- | --- | --- |
+| 4 | 2026-11-24 | Q-001 target audience resolved |
+| 5 | 2026-11-25 | Gameplay revised twice: free placement with memory reveal (GP-20 to GP-28, then superseded), then the **rectangular picture-swap puzzle** (GP-29 to GP-36). Q-010 and Q-011 revised. **Q-022** resolved (equal-sized tiles; mixed-size partition superseded for this gameplay; PS-01, PS-06, PS-08, PS-19 to PS-24, GP-02 revised) and **Q-023** resolved (correct tiles remain movable; GP-32, GP-34). Hints excluded from the prototype, planned for v1 (GP-36) |
 
 ---
 
@@ -121,7 +128,7 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 **[Confirmed]** The puzzle system is hybrid (Q-018, resolved):
 
-- **PS-01** Mixed-sized rectangular pieces are used for the first prototype.
+- **PS-01** ~~Mixed-sized rectangular pieces are used for the first prototype.~~ **Superseded 2026-11-25 (Q-022):** the first prototype uses **equal-sized rectangular tiles** on a uniform grid (GP-29, GP-30).
 - **PS-02** Traditional irregular jigsaw pieces are future functionality.
 - **PS-03** Puzzle rules live in an independent pure-Dart puzzle engine (Section 13).
 - **PS-04** Jigsaw Cards will eventually support two **puzzle styles**: **rectangular tile puzzles** and **traditional irregular jigsaw puzzles**.
@@ -129,9 +136,9 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 **Initial development: rectangular tile style [Confirmed]**
 
-- **PS-06** Mixed-sized rectangular pieces.
+- **PS-06** ~~Mixed-sized rectangular pieces.~~ **Revised 2026-11-25 (Q-022):** equal-sized rectangular tiles, one per grid cell.
 - **PS-07** Logical grid occupancy.
-- **PS-08** Rectangular partition generation.
+- **PS-08** ~~Rectangular partition generation.~~ **Superseded 2026-11-25 for the picture-swap gameplay (Q-022):** the illustration is divided into a uniform grid of equal tiles, so no partition generation is required.
 
 **Future expansion: irregular jigsaw style [Confirmed as future; not approved for implementation]**
 
@@ -154,27 +161,27 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 - **PS-18** Geometry generation and rendering may remain separate for each style.
 
-**Rectangular piece generation for the initial prototype [Confirmed]** (Q-009, resolved 2026-11-23):
+**Rectangular board for the initial prototype [Confirmed]** (Q-009, resolved 2026-11-23; **revised 2026-11-25 by Q-022** for the picture-swap gameplay; original wording kept and struck through where superseded):
 
 | ID | Requirement |
 | --- | --- |
-| PS-19 | The initial prototype uses a 4×4 logical board (as GP-01) |
-| PS-20 | Allowed rectangular piece dimensions are 1×1, 1×2, 2×1 and 2×2 |
-| PS-21 | Piece-count constraint: every generated prototype layout must contain between 8 and 12 pieces, inclusive |
-| PS-22 | Valid layouts are generated using seeded generation |
-| PS-23 | The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement |
-| PS-24 | Hand-authored layouts are not required for the initial prototype; they may be supported in a later phase |
+| PS-19 | The initial prototype uses a 4×4 logical board (as GP-01): a uniform grid of 16 equal-sized tiles (Q-022) |
+| PS-20 | ~~Allowed rectangular piece dimensions are 1×1, 1×2, 2×1 and 2×2~~ **Superseded 2026-11-25 (Q-022):** every tile has identical dimensions (one grid cell) |
+| PS-21 | ~~Piece-count constraint: every generated prototype layout must contain between 8 and 12 pieces, inclusive~~ **Superseded 2026-11-25 (Q-022):** the prototype has exactly 16 tiles |
+| PS-22 | ~~Valid layouts are generated using seeded generation~~ **Revised 2026-11-25 (Q-022):** the starting arrangement is generated with a seeded, deterministic shuffle (GP-31) |
+| PS-23 | ~~The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement~~ **Revised 2026-11-25 (Q-022):** the puzzle's tile arrangement is persisted, so an unfinished puzzle retains exactly the same arrangement (not yet implemented) |
+| PS-24 | ~~Hand-authored layouts are not required for the initial prototype; they may be supported in a later phase~~ **Superseded 2026-11-25 (Q-022):** the uniform grid has no layout to author |
 
-**[Open — technical, TD-02]** The generation algorithm, and whether generation runs at runtime or when content is built. These are technical choices within the approved constraints above.
+**[Open — technical, TD-02]** The original question was the partition-generation algorithm and whether generation runs at runtime or when content is built. Since Q-022, no partition algorithm is needed for the picture-swap gameplay; the seed source and runtime-versus-content shuffling remain technical choices under TD-02.
 
 ### 7.2 Prototype gameplay
 
-All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 was confirmed, and GP-14 to GP-19 added, when Q-010 and Q-011 were resolved (2026-11-23). On 2026-11-25 the product owner revised Q-010 and Q-011 after Android device testing and approved the free-placement memory gameplay (GP-20 to GP-28): tap to reveal, free placement and an exactly 4-second preview. Superseded requirements keep their IDs as history and must not be implemented. On 2026-11-25 the product owner then **rejected** the memory and free-placement gameplay and approved the **rectangular picture-swap puzzle** from a reference gameplay recording (GP-29 to GP-36). GP-20 to GP-28 are superseded.
+All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 was confirmed, and GP-14 to GP-19 added, when Q-010 and Q-011 were resolved (2026-11-23). On 2026-11-25 the product owner revised Q-010 and Q-011 after Android device testing and approved the free-placement memory gameplay (GP-20 to GP-28): tap to reveal, free placement and an exactly 4-second preview. Superseded requirements keep their IDs as history and must not be implemented. On 2026-11-25 the product owner then **rejected** the memory and free-placement gameplay and approved the **rectangular picture-swap puzzle** from a reference gameplay recording (GP-29 to GP-36). GP-20 to GP-28 are superseded. Q-022 (equal-sized tiles) and Q-023 (correct tiles remain movable) were resolved the same day and are reflected in GP-02, GP-15, GP-29, GP-30, GP-32 and GP-34.
 
 | ID | Requirement |
 | --- | --- |
 | GP-01 | One 4×4 logical board |
-| GP-02 | Mixed-sized rectangular pieces. **Under review (Q-022):** the picture-swap prototype uses equal-size tiles (GP-30) |
+| GP-02 | ~~Mixed-sized rectangular pieces~~ **Superseded 2026-11-25 (Q-022)** by GP-30: equal-sized rectangular tiles |
 | GP-03 | ~~Piece tray below the board~~ **Superseded 2026-11-25** by GP-20 and GP-27 (Q-011 revised) |
 | GP-04 | ~~Pieces are dragged from the tray onto the board~~ **Superseded 2026-11-25** by GP-24 (pieces are dragged freely on the board) |
 | GP-05 | ~~Automatic magnetic snapping (at the correct position, within the snapping tolerance; GP-26)~~ **Superseded 2026-11-25** by GP-32 (tiles always settle exactly into grid cells by swapping) |
@@ -187,7 +194,7 @@ All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 w
 | GP-12 | Sound effects |
 | GP-13 | Automatic saving of unfinished puzzles |
 | GP-14 | ~~Only a piece's correct position accepts it (Q-010)~~ **Superseded 2026-11-25** by GP-24 and GP-25 (free placement) |
-| GP-15 | ~~Correctly placed pieces become permanently locked; locked pieces cannot be moved or swapped (Q-010; still applies under free placement)~~ **Superseded 2026-11-25** by GP-32; whether correct tiles lock in the picture-swap puzzle is open (Q-023) |
+| GP-15 | ~~Correctly placed pieces become permanently locked; locked pieces cannot be moved or swapped (Q-010; still applies under free placement)~~ **Superseded 2026-11-25** by GP-32: in the picture-swap puzzle correctly positioned tiles remain movable and nothing locks (Q-023) |
 | GP-16 | ~~The tray below the board has two rows and scrolls horizontally (Q-011)~~ **Superseded 2026-11-25** (no tray in the primary interaction) |
 | GP-17 | ~~Tray pieces keep comfortable touch targets (Q-011)~~ **Superseded 2026-11-25**; touch-target intent continues in GP-28 |
 | GP-18 | ~~Picking up a piece enlarges it to board scale (Q-011)~~ **Superseded 2026-11-25** (pieces are always at board scale on the board) |
@@ -201,12 +208,12 @@ All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 w
 | GP-26 | ~~When a piece is aligned with its correct position within the snapping tolerance, it animates exactly into place and locks (GP-05, GP-15); the tolerance is configurable~~ **Superseded 2026-11-25** by GP-32 |
 | GP-27 | ~~The board is the primary gameplay workspace; the two-row tray is not part of the primary puzzle interaction (Q-011 revised)~~ **Superseded 2026-11-25** by GP-29 |
 | GP-28 | ~~The board and its pieces fit different phone aspect ratios within the safe area; pieces stay fully accessible and never leave the board area; overlapping pieces remain individually selectable (the topmost selectable piece is chosen)~~ **Superseded 2026-11-25** by GP-35 |
-| GP-29 | **Board:** a fixed rectangular grid (4 × 4 for the prototype, GP-01). Every cell holds exactly one tile: no empty cells, no overlap, no free-floating pieces; tiles never leave the board |
-| GP-30 | **Tiles:** equal-size fragments of one illustration, cut on the grid without stretching; every tile is face-up from the start and always shows its own fragment. A tile's identity and correct cell are separate from its current cell |
+| GP-29 | **Board:** a fixed, uniform rectangular grid: 4 × 4 for the prototype (GP-01, Q-022). Every cell holds exactly one tile: no empty cells, no overlap, no free placement and no free-floating pieces; tiles never leave the board |
+| GP-30 | **Tiles:** 16 equal-sized rectangular fragments of one illustration with identical dimensions, cut on the grid without stretching (Q-022); every tile is visible face-up from the start and always shows its own fragment. A tile's identity and correct cell are fixed and separate from its current cell |
 | GP-31 | **Start:** the tiles begin in a seeded, deterministic shuffled arrangement that is never already solved; every arrangement is solvable by swaps |
-| GP-32 | **Drag-and-swap:** the player presses a tile (clear selection feedback), drags it over another tile (clear target feedback) and releases; the two tiles exchange cells with a smooth animation. Incorrect swaps are allowed and never rejected; swaps are unlimited with no penalty. Direct drag-and-drop is the interaction (no tap-then-tap). No rotation |
+| GP-32 | **Drag-and-swap:** the player presses a tile (clear selection feedback), drags it over another tile (clear target feedback) and releases; the two tiles exchange cells with a smooth animation. Incorrect swaps are allowed and never rejected; tiles can be moved repeatedly, with unlimited swaps and no penalty. **Correctly positioned tiles remain movable:** no tile locks, any two tiles can be swapped at any time, and every swap is valid whether or not either tile was correct (Q-023). Direct drag-and-drop is the interaction (no tap-then-tap). No rotation |
 | GP-33 | A drag released outside another tile is cancelled: the tile returns to its own cell |
-| GP-34 | **Completion:** detected only when every tile is in its correct cell; tiles landing in their correct cell get visible feedback; completion shows the finished illustration and a New puzzle or Continue action, ready for future rewards and progression |
+| GP-34 | **Completion:** detected only when every tile (all 16 in the prototype) is in its correct cell, based solely on the whole board matching the target arrangement; tiles landing in their correct cell get visible feedback, which is visual only and never restricts movement (Q-023); completion shows the finished illustration and a New puzzle or Continue action, ready for future rewards and progression |
 | GP-35 | **Layout:** the board keeps the illustration's aspect ratio, fits different phone screens within the safe area, is never clipped and keeps comfortable touch targets |
 | GP-36 | **Hints** are intentionally excluded from the initial prototype and are planned for v1 (design not yet specified) |
 
@@ -350,11 +357,11 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 
 ## 15. Prototype Scope
 
-**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-36, excluding requirements marked Superseded) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
+**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-36, excluding requirements marked Superseded) for a single 4×4 picture-swap puzzle of equal-sized rectangular tiles (Q-022), on Android, in portrait.
 
 **[Confirmed]** The prototype puzzle is a **designated card puzzle** (CC-07), so it validates the full discovery and reward experience: completion, character reveal, guaranteed card and coins.
 
-**[Confirmed]** Initial development covers the rectangular tile style: mixed-sized rectangular pieces, logical grid occupancy and rectangular partition generation (PS-06 to PS-08), within the approved generation constraints (PS-19 to PS-24).
+**[Confirmed]** Initial development covers the rectangular tile style: equal-sized rectangular tiles on a uniform grid with logical grid occupancy (PS-06, PS-07, PS-19, PS-22, PS-23 as revised 2026-11-25 by Q-022). *(Originally: mixed-sized pieces and rectangular partition generation within PS-19 to PS-24; superseded for the picture-swap gameplay.)*
 
 **Out of scope for the prototype [Confirmed]:** FP-01 to FP-05.
 
@@ -425,7 +432,7 @@ These must remain unchanged without explicit approval:
 | 4 | Riverpod | §13 |
 | 5 | Independent pure-Dart puzzle domain | PS-03, §13 |
 | 6 | Hybrid puzzle system: separate rectangular tile and irregular jigsaw styles with shared session, configuration, interaction contracts, progress/completion reporting and reward integration | PS-04 to PS-18 |
-| 7 | Mixed rectangular pieces for the first prototype (picture-swap prototype uses equal tiles; under review, Q-022) | PS-01, GP-02 |
+| 7 | ~~Mixed rectangular pieces for the first prototype~~ Superseded 2026-11-25 by #36 (Q-022) | PS-01, GP-02 |
 | 8 | Traditional irregular jigsaw as future functionality | PS-02, FP-01 |
 | 9 | ~~Piece tray below the board~~ Superseded 2026-11-25 by #31 | GP-03 |
 | 10 | ~~Drag pieces from tray onto board~~ Superseded 2026-11-25 by #32 | GP-04 |
@@ -444,8 +451,8 @@ These must remain unchanged without explicit approval:
 | 23 | Designated card puzzles guarantee their card; non-designated puzzles award coins and progression rewards | CC-04, CC-05 |
 | 24 | Previously collected cards are not awarded as new collection progress | CC-06 |
 | 25 | First prototype puzzle is a designated card puzzle | CC-07 |
-| 26 | Initial development: rectangular partition generation with logical grid occupancy | PS-06 to PS-08 |
-| 27 | Prototype piece generation: 4×4; pieces 1×1, 1×2, 2×1, 2×2; 8–12 pieces inclusive (generation constraint); seeded generation; layout persisted; hand-authored layouts not required for the prototype | PS-19 to PS-24 |
+| 26 | Initial development: logical grid occupancy (~~rectangular partition generation~~ superseded 2026-11-25 by #36, Q-022) | PS-06 to PS-08 |
+| 27 | ~~Prototype piece generation: 4×4; pieces 1×1, 1×2, 2×1, 2×2; 8–12 pieces inclusive (generation constraint); seeded generation; layout persisted; hand-authored layouts not required for the prototype~~ Superseded 2026-11-25 by #36 (Q-022); the 4×4 board, seeded generation and persistence carry over as revised PS-19, PS-22, PS-23 | PS-19 to PS-24 |
 | 28 | ~~Strict placement: only the correct position accepts a piece; incorrect drops animate back to the previous position; correct pieces are permanently locked and cannot be moved or swapped~~ Superseded 2026-11-25 by #32 (locking retained) | GP-06, GP-14, GP-15 |
 | 29 | ~~Two-row, horizontally scrollable tray; comfortable touch targets; picked-up piece enlarges to board scale; layout adapts to phone screen sizes~~ Superseded 2026-11-25 by #31 | GP-16 to GP-19 |
 | 30 | Target audience: core 16–35; overall intended audience 13+; teenagers and adults; under-13 not an intended target audience (product positioning, not a compliance determination) | TA-01 to TA-08 |
@@ -454,6 +461,8 @@ These must remain unchanged without explicit approval:
 | 33 | ~~Memory reveal: all pieces face-up for exactly 4 seconds after a short introduction, then face-down; tap to reveal one piece at a time; revealed pieces stay face-up (2026-11-25)~~ Superseded 2026-11-25 by #34 | GP-21 to GP-23 |
 | 34 | Rectangular picture-swap puzzle: fixed grid fully filled with face-up tiles in a shuffled arrangement; drag one tile onto another to exchange them; incorrect swaps allowed, unlimited, no penalty; release outside another tile cancels; completion when every tile is correct (Q-010 and Q-011 revised again 2026-11-25) | GP-29 to GP-35 |
 | 35 | Hints excluded from the initial prototype; planned for v1 (2026-11-25) | GP-36 |
+| 36 | Equal-sized rectangular tiles: uniform 4×4 grid, 16 tiles of identical dimensions, one per cell, cut as equal fragments of the illustration; mixed-size pieces superseded for the picture-swap gameplay (Q-022, resolved 2026-11-25) | PS-01, PS-06, PS-08, PS-19 to PS-24, GP-02, GP-29, GP-30 |
+| 37 | Correctly positioned tiles remain movable: no locking; any two tiles can be swapped at any time; correct-position feedback is visual only; completion only when every tile is in its correct cell (Q-023, resolved 2026-11-25) | GP-15, GP-32, GP-34 |
 
 ## 21. Source Gaps Summary
 

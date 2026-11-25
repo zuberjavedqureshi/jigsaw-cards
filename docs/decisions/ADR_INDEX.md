@@ -15,7 +15,7 @@ An ADR status of **Accepted** corresponds to **Confirmed** in [TECHNICAL_DECISIO
 Planned ADRs (from [TECHNICAL_DECISIONS.md](../architecture/TECHNICAL_DECISIONS.md) pending list):
 
 - Local persistence selection (TD-01)
-- Rectangular partition generation algorithm (TD-02)
+- Rectangular generation (TD-02): the partition algorithm is no longer needed for the picture-swap gameplay (Q-022, 2026-11-25); the shuffle seed source and runtime-versus-content generation remain open
 - Minimum Android version and target devices (TD-06)
 - Flutter / Flame version pinning policy (TD-07)
 - CI setup (TD-08)

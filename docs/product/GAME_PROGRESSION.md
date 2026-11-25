@@ -54,7 +54,7 @@ To be decided (OPEN_QUESTIONS Q-002):
 
 ## 5. Difficulty Curve
 
-The initial prototype uses only a 4×4 board with mixed rectangular pieces. Difficulty variation through board size, irregular pieces or rotation is a **future feature** and requires approval. Within 4×4, difficulty may be varied through piece count/size mix and image complexity (TBC).
+The initial prototype uses only a uniform 4×4 board of 16 equal-sized tiles (picture-swap, Q-022). Difficulty variation through board size, irregular pieces or rotation is a **future feature** and requires approval. Within 4×4, difficulty may be varied through image complexity (TBC). *(Varying the piece count or size mix applied to the mixed-size model, superseded 2026-11-25.)*
 
 ## 6. Configuration
 

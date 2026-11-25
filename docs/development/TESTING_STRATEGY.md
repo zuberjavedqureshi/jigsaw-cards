@@ -15,11 +15,11 @@
 
 ## 2. Puzzle Domain — Required Coverage
 
-- Tiling invariant (required; follows from the confirmed partition requirement PS-08, see PUZZLE_ENGINE §4): every layout covers the board fully, with no overlap and nothing out of bounds. A layout or configuration that violates it is rejected (rejection at load time is the proposed mechanism).
-- Rectangular partition generation: every output satisfies the tiling invariant, uses only 1×1, 1×2, 2×1 and 2×2 pieces, and contains between 8 and 12 pieces, inclusive (PS-20, PS-21). Boundary cases: layouts with 7 or 13 pieces are never produced. Output is reproducible for a given seed within one SDK version (PS-22). A persisted layout restores identically (PS-23).
+- Coverage invariant (required, PUZZLE_ENGINE §4): every arrangement fills every cell with exactly one tile, with no overlap or duplicates; an invalid arrangement is rejected.
+- *(Superseded 2026-11-25 by Q-022 as a requirement: rectangular partition generation with 1×1 to 2×2 pieces and 8–12 pieces, PS-20, PS-21. The dormant generator in the domain package keeps its own tests.)* Seeded starting arrangements are reproducible for a given seed within one SDK version (PS-22 revised). A persisted arrangement restores identically (PS-23 revised; not implemented).
 - Reward rules (application layer): designated puzzle awards its card once; already collected card does not add collection progress (CC-04, CC-06).
 - Picture-swap board (GP-29 to GP-31): the solved grid is correct; tiles are equal, non-overlapping slices of the source; the shuffle is deterministic per seed, never solved and always solvable by swaps; there are no empty cells or duplicate occupancy; tile identity and target cells never change.
-- Swaps (GP-32): exactly two cells change; incorrect swaps are accepted; invalid indices, the same cell, or swapping after completion are rejected without changing the board; repeated swaps keep every invariant.
+- Swaps (GP-32): exactly two cells change; incorrect swaps are accepted; correctly positioned tiles can still be swapped, including with each other (Q-023); invalid indices, the same cell, or swapping after completion are rejected without changing the board; repeated swaps keep every invariant.
 - Correctness and completion (GP-34): correct-tile detection and counts; complete exactly when every tile is correct.
 - *(Superseded 2026-11-25: strict placement, then the reveal sequence, free placement, scatter and hit-testing coverage.)*
 - Occupancy consistent with piece locations after every operation.

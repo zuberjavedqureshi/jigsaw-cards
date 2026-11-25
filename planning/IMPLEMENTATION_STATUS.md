@@ -8,9 +8,9 @@
 | --- | --- | --- |
 | Repository & documentation | ✅ Complete | PRD reconciled (canonical edition); Q-017 and Q-018 resolved; source-text gaps tracked in Q-019 |
 | Technical feasibility review | 📝 Drafted, awaiting review | [TECHNICAL_FEASIBILITY_REVIEW.md](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md). Its TD-03, TD-04 and TD-05 recommendations were approved on 2026-11-24 through [ADR-0001](../docs/decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../docs/decisions/ADR-0002-pub-workspace-and-domain-boundary.md) and [ADR-0003](../docs/decisions/ADR-0003-handwritten-riverpod-providers.md); its other recommendations are not approved. S-01 Android device validation is still outstanding |
-| Product decisions | ✅ Updated | Q-009 (piece generation), Q-010 (placement), Q-011 (tray) resolved 2026-11-23; Q-001 (target audience: core 16–35, overall 13+) resolved 2026-11-24; Q-010 and Q-011 revised twice on 2026-11-25, first to free placement and memory reveal, then to the **rectangular picture-swap puzzle** (PRD GP-29 to GP-36; hints planned for v1). New open questions Q-022 (equal tiles vs mixed-size partition) and Q-023 (lock correct tiles?); see [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
+| Product decisions | ✅ Updated | Q-009 (piece generation), Q-010 (placement), Q-011 (tray) resolved 2026-11-23; Q-001 (target audience: core 16–35, overall 13+) resolved 2026-11-24; Q-010 and Q-011 revised twice on 2026-11-25, first to free placement and memory reveal, then to the **rectangular picture-swap puzzle** (PRD GP-29 to GP-36; hints planned for v1). **Q-022 resolved 2026-11-25** (equal-sized tiles on a uniform 4×4 grid; mixed-size partition superseded for this gameplay; Q-009 revised) and **Q-023 resolved 2026-11-25** (correct tiles remain movable; no locking); see [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
 | Flutter project | 🔄 Created (feature branches) | Pub workspace per ADR-0002: `app/` (Flutter, Android) and `packages/puzzle_domain/` (pure Dart). Current gameplay on `feature/gameplay-picture-swap`; earlier builds on `feature/m1-1-core-puzzle-gameplay` and `feature/gameplay-free-placement-reveal` (superseded); none merged. Application ID `com.example.jigsaw_cards` is a temporary placeholder (owner decision) |
-| Puzzle domain | 🔄 In progress | Picture-swap model: equal tiles cut from a source size, seeded Fisher–Yates shuffle (never solved, ≥75% misplaced; provisional), swap, occupancy validation, correctness counts, completion, minimum swaps. The partition generator (TD-02 Pending) is kept but not used (Q-022). 35 unit tests. Serialisation/restore not started |
+| Puzzle domain | 🔄 In progress | Picture-swap model: equal tiles cut from a source size, seeded Fisher–Yates shuffle (never solved, ≥75% misplaced; provisional), swap, occupancy validation, correctness counts, completion, minimum swaps. Matches Q-022 and Q-023. The partition generator, superseded for this gameplay by Q-022, is kept but not used. 35 unit tests. Serialisation/restore not started |
 | Flame rendering | 🔄 Playable | Framed board keeping the artwork aspect; tiles drawn from cached slices; press, lift and target feedback; eased exchange and cancel animations; correct-tile glow, with correct tiles drawn edge to edge; completion shine; input blocked while settling; manual bridge per ADR-0001 (`syncPuzzle` in, intents out) |
 | Riverpod state | 🔄 Playable | Hand-written `PuzzleController` Notifier (ADR-0003): shuffled puzzle, swaps, completion state ready for future rewards; a single `artworkProvider` feeds both domain slicing and rendering |
 | Persistence | ⛔ Not started | Technology not selected |
@@ -47,11 +47,11 @@ Supersedes the memory/free-placement build and the tray build below (Q-010 and Q
 - shuffle at least 75% misplaced; seed from `--dart-define=PUZZLE_SEED` or launch time;
 - swap 0.22 s, cancel 0.18 s, glow 0.6 s, completion shine 0.9 s;
 - the target is the cell under the finger;
-- correct tiles stay swappable (Q-023);
-- equal tiles instead of mixed-size pieces (Q-022);
 - square placeholder artwork; temporary application ID.
 
-**Not implemented:** hints (planned for v1); persistence and auto-save, including the **persisted layout (PS-23, Q-009), which remains outstanding**; reference preview (GP-08, Q-008); card reveal; coins; sound; Rive; world map and progression. S-01 Android device validation remains outstanding and M1.1 is not complete.
+**Product decisions reflected (resolved 2026-11-25):** equal-sized tiles on a uniform 4×4 grid (Q-022); correctly positioned tiles remain movable, with correct-position feedback visual only (Q-023). The code already matched both; no application change was needed.
+
+**Not implemented:** hints (planned for v1); persistence and auto-save, including the **persisted arrangement (PS-23 as revised by Q-022), which remains outstanding**; reference preview (GP-08, Q-008); card reveal; coins; sound; Rive; world map and progression. S-01 Android device validation remains outstanding and M1.1 is not complete.
 
 ## Free-placement memory gameplay — superseded (2026-11-25, branch `feature/gameplay-free-placement-reveal`, not merged)
 

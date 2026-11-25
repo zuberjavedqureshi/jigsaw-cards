@@ -37,7 +37,7 @@
 | id | string | |
 | imageRef | string | |
 | style | enum | `rectangularTile` (initial development) or `irregularJigsaw` (future, reserved). Confirmed concept (PS-04); field name proposed |
-| geometry | style-specific | Rectangular tile: partition generation settings and/or piece layout (see below). Irregular: future, not specified |
+| geometry | style-specific | Rectangular tile: picture-swap grid (see below). Irregular: future, not specified |
 | cardId | string? | Present only on **designated** puzzles, which guarantee this card on completion (CC-04). Presence marks the puzzle as designated |
 | coinReward | int | All puzzles |
 | progressionRewards | TBC | Non-designated puzzles (CC-05). Content open (Q-020) |
@@ -47,11 +47,15 @@ Shared fields (id, imageRef, style, cardId, rewards) belong to the common level 
 ### RectangularTileGeometry (rectangular tile style)
 | Field | Type | Notes |
 | --- | --- | --- |
-| rows / columns | int | 4 / 4 for the prototype (PS-19) |
-| generation | object? | Partition generation parameters. Approved constraints: pieces 1×1, 1×2, 2×1, 2×2; every generated prototype layout must contain between 8 and 12 pieces, inclusive; seeded generation (PS-20 to PS-22). Exact fields and seed source are technical (TD-02) |
-| pieces | list<PieceDefinition>? | Generated layout. Hand-authored layouts are not required for the prototype and may be supported later (PS-24) |
+| rows / columns | int | 4 / 4 for the prototype: a uniform grid of 16 equal-sized tiles (PS-19, Q-022) |
+| shuffleSeed | int? | Seed of the starting arrangement (PS-22 revised, GP-31). Seed source is technical (TD-02) |
+| ~~generation~~ | — | **Superseded 2026-11-25 (Q-022):** partition generation parameters (pieces 1×1, 1×2, 2×1, 2×2; 8–12 pieces; PS-20, PS-21) do not apply to the picture-swap gameplay |
+| ~~pieces~~ | — | **Superseded 2026-11-25 (Q-022):** tiles are derived from the grid; there is no generated or hand-authored piece layout (PS-24) |
 
-### PieceDefinition
+### PieceDefinition — superseded 2026-11-25 (Q-022)
+
+Kept as history of the mixed-size model. Picture-swap tiles have an `id` and a target cell only; their size is always one cell.
+
 | Field | Type | Notes |
 | --- | --- | --- |
 | id | string | |

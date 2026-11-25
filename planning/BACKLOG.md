@@ -13,7 +13,7 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 - [ ] S-01 Hybrid shell: Flutter + `GameWidget` + Riverpod + overlay + lifecycle → TD-03, TD-04, TD-05 confirmed 2026-11-24 (ADR-0001 to ADR-0003); **Android device validation outstanding** (§8.1 timings, `paused`/`resumed`)
 - [ ] S-02 Rive reveal: frame timing, APK size, minSdk → Q-015
 - [ ] S-03 Drag-and-swap feel and animation tuning on devices (Q-010 and Q-011 revised again 2026-11-25) → GP-29 to GP-35
-- [ ] S-04 Rectangular partition generation under the approved Q-009 constraints (pure Dart) → TD-02
+- [ ] ~~S-04 Rectangular partition generation under the approved Q-009 constraints (pure Dart) → TD-02~~ Superseded 2026-11-25 for the picture-swap gameplay (Q-022); a provisional generator already exists but is unused
 - [ ] S-05 Audio latency and lifecycle (`flame_audio`)
 - [ ] S-06 Persistence: atomic write-and-replace JSON store; background-kill, force-stop and staged-termination tests; recovery-policy alternatives; reward consistency → TD-01, Q-014
 - [ ] S-07 Screen sizes and API 36 large-screen orientation behaviour → Q-013 input
@@ -24,7 +24,7 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 - [ ] Grid and cell model
 - [ ] Piece definition and location model
 - [ ] Configuration loading and tiling validation
-- [ ] Rectangular partition generation: constraints per PRD PS-19 to PS-24 (Q-009); algorithm per TD-02
+- [ ] ~~Rectangular partition generation: constraints per PRD PS-19 to PS-24 (Q-009); algorithm per TD-02~~ Superseded 2026-11-25 (Q-022): uniform 4×4 grid of equal tiles with a seeded shuffle, implemented on a feature branch
 - [ ] Occupancy
 - [ ] Placement validation
 - [ ] Completion detection
@@ -34,7 +34,7 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 - [x] Picture-swap board: shuffled 4 × 4 grid of equal tiles that keeps the artwork's aspect ratio (GP-29 to GP-31, GP-35). First implementation on a feature branch, not device-validated
 - [x] Drag-and-swap with press, target and exchange animations, cancel on release outside, correct-tile feedback and completion state (GP-32 to GP-34). First implementation on a feature branch
 - [ ] Physical-device validation of the picture-swap gameplay
-- [ ] Decide Q-022 (equal tiles vs mixed-size partition) and Q-023 (lock correct tiles?)
+- [x] Q-022 resolved 2026-11-25: equal-sized tiles on a uniform 4×4 grid. Q-023 resolved 2026-11-25: correct tiles remain movable. The implementation already matches both
 - *(Superseded 2026-11-25: scattered face-down start, 4-second preview, tap to reveal, free placement)*
 - [ ] Reference preview
 - [ ] Completion → reveal → coin reward
