@@ -4,8 +4,8 @@
 
 Jigsaw Cards is a magical storybook puzzle adventure for Android. Players solve beautifully illustrated image puzzles to discover animated characters, collect cards, complete themed collections and unlock new fantasy worlds.
 
-> **Project status: Pre-development — technical validation.**
-> No gameplay has been implemented. This repository currently contains product requirements, architecture proposals, development rules and planning documents only.
+> **Project status: Early prototype — technical validation.**
+> A first playable 4×4 rectangular puzzle exists on a feature branch (`app/`, `packages/puzzle_domain/`): drag, strict snap-and-lock, return on wrong drop and completion. It uses a provisional generator and code-drawn placeholder artwork, and has not been validated on a physical Android device. Cards, coins, rewards, audio, persistence and reference preview are not implemented. See [Implementation Status](planning/IMPLEMENTATION_STATUS.md).
 
 ---
 
