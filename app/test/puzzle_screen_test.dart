@@ -1,278 +1,255 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jigsaw_cards/state/puzzle_controller.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:puzzle_domain/puzzle_domain.dart';
 
 import 'puzzle_test_harness.dart';
 
 void main() {
-  group('reveal sequence', () {
-    testWidgets('starts face-down with an intro and no interaction', (
-      tester,
-    ) async {
-      final h = await pumpPuzzle(tester);
-      expect(h.state.phase, PuzzlePhase.intro);
-      expect(h.state.totalCount, inInclusiveRange(8, 12));
-      expect(find.byKey(const Key('intro')), findsOneWidget);
-      expect(find.text('0 / ${h.state.totalCount}'), findsOneWidget);
-      expect(h.game.pieces.values.every((p) => !p.showsFront), isTrue);
-      expect(h.game.inputEnabled, isFalse);
-      // Only the intro is scheduled so far.
-      expect(h.clock.pending.map((c) => c.delay), [introDuration]);
-      // Tapping does nothing.
-      final id = h.session.stackOrder.last;
-      await h.tapPiece(id);
-      expect(h.session.isFaceUp(id), isFalse);
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('preview flips every piece up and holds exactly 4 s', (
-      tester,
-    ) async {
-      final h = await pumpPuzzle(tester);
-      expect(h.clock.fireNext(), introDuration);
-      await tester.pump(const Duration(milliseconds: 16));
-      expect(h.state.phase, PuzzlePhase.preview);
-      // The 4 s hold starts only once the flip-up has finished.
-      expect(h.clock.pending, isEmpty);
-      expect(h.game.isAnimating, isTrue);
-      await h.settle();
-      expect(h.game.pieces.values.every((p) => p.showsFront), isTrue);
-      expect(h.clock.pending.single.delay, const Duration(seconds: 4));
-      expect(h.state.previewDuration, const Duration(seconds: 4));
-      expect(find.text('Memorise the pieces!'), findsOneWidget);
-      // No interaction during the preview.
-      expect(h.game.inputEnabled, isFalse);
-      final id = h.session.stackOrder.last;
-      final before = h.session.piece(id)!.position;
-      await h.dragBoard(
-        h.visiblePointOf(id),
-        h.visiblePointOf(id) + const BoardPoint(1, 1),
-      );
-      expect(h.session.piece(id)!.position, before);
-    });
-
-    testWidgets('after the preview every piece flips face-down and play '
-        'starts', (tester) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      expect(h.state.phase, PuzzlePhase.playing);
-      expect(h.game.pieces.values.every((p) => !p.showsFront), isTrue);
-      expect(find.byKey(const Key('intro')), findsNothing);
-      expect(
-        find.text('Tap a card to reveal it · drag to place it'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('tapping reveals only that piece; it stays revealed', (
-      tester,
-    ) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final ids = h.session.stackOrder.toList();
-      final a = ids[ids.length - 1];
-      await h.tapPiece(a);
-      expect(h.game.pieces[a]!.showsFront, isTrue);
-      for (final id in ids.where((id) => id != a)) {
-        expect(h.game.pieces[id]!.showsFront, isFalse, reason: id);
-        expect(h.session.isFaceUp(id), isFalse);
-      }
-      // Revealing a second piece leaves the first face-up.
-      final b = ids.first;
-      await h.tapPiece(b);
-      expect(h.game.pieces[a]!.showsFront, isTrue);
-      expect(h.game.pieces[b]!.showsFront, isTrue);
-      // A revealed piece is raised to the top.
-      expect(h.session.stackOrder.last, b);
-    });
-
-    testWidgets('flip animation: back, edge-on, then front', (tester) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final id = h.session.stackOrder.last;
-      final c = h.game.pieces[id]!;
-      await tester.tapAt(h.global(h.visiblePointOf(id)));
-      await tester.pump(const Duration(milliseconds: 16));
-      expect(c.isFlipping, isTrue);
-      expect(c.showsFront, isFalse);
-      await tester.pump(const Duration(milliseconds: 250));
-      expect(c.showsFront, isTrue);
-      await h.settle();
-      expect(c.isFlipping, isFalse);
-      expect(c.showsFront, isTrue);
-    });
+  testWidgets('renders the shuffled board: one tile per cell, face-up', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    expect(h.puzzle.isComplete, isFalse);
+    expect(h.game.tiles, hasLength(16));
+    expect(find.text('${h.puzzle.correctCount} / 16'), findsOneWidget);
+    expect(find.text('Drag a tile onto another to swap them'), findsOneWidget);
+    expect(find.byKey(const Key('completion')), findsNothing);
+    // Each tile component sits exactly on the cell the domain says.
+    for (final cell in h.puzzle.grid.cells) {
+      final c = h.componentAt(cell);
+      final r = h.game.area.cellRect(cell);
+      expect(c.position.x, closeTo(r.center.dx, 0.01));
+      expect(c.position.y, closeTo(r.center.dy, 0.01));
+      expect(c.size.x, closeTo(r.width, 0.01));
+      expect(c.size.y, closeTo(r.height, 0.01));
+    }
+    // Square source → square, equal tiles: no stretching.
+    expect(h.game.area.cellWidth, closeTo(h.game.area.cellHeight, 0.01));
+    expect(tester.takeException(), isNull);
   });
 
-  group('free placement', () {
-    testWidgets('face-down pieces cannot be dragged', (tester) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final id = h.session.stackOrder.last;
-      final before = h.session.piece(id)!.position;
-      await h.dragBoard(
-        h.visiblePointOf(id),
-        h.visiblePointOf(id) + const BoardPoint(-1.5, -1.5),
-      );
-      expect(h.session.piece(id)!.position, before);
-      expect(h.session.isFaceUp(id), isFalse);
-    });
+  testWidgets('pressing a tile gives immediate selection feedback', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final cell = GridCell(1, 1);
+    final g = await tester.startGesture(h.globalOf(cell));
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(h.componentAt(cell).pressed, isTrue);
+    await g.up();
+    await h.settle(frames: 2);
+    expect(h.componentAt(cell).pressed, isFalse);
+    // A tap alone never swaps anything.
+    expect(h.state.swaps, 0);
+  });
 
-    testWidgets('wrong drops stay where dropped and can be moved again', (
-      tester,
-    ) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final id = h.session.stackOrder.last;
-      await h.reveal(id);
-      final p = h.session.piece(id)!;
-      final wrong = h.session.bounds.clampOrigin(
-        BoardPoint(p.target.x >= 2 ? 0.1 : 2.4, 5.5),
-        p.piece.size,
-      );
-      await h.dragPieceTo(id, wrong);
-      final s1 = h.session.piece(id)!;
-      expect(s1.locked, isFalse);
-      expect(s1.position.chebyshevTo(wrong), lessThan(0.05));
-      expect(s1.isAtTarget, isFalse);
-      expect(h.session.isFaceUp(id), isTrue, reason: 'stays face-up');
-      // Component rests at the dropped position.
-      final r = h.game.area.pieceRect(s1.position, s1.piece.size);
-      expect(h.game.pieces[id]!.position.x, closeTo(r.center.dx, 0.5));
-      // Move it again.
-      final again = h.session.bounds.clampOrigin(
-        const BoardPoint(1.0, 6.0),
-        p.piece.size,
-      );
-      await h.dragPieceTo(id, again);
-      expect(h.session.piece(id)!.position.chebyshevTo(again), lessThan(0.05));
-      expect(h.state.placedCount, 0);
-    });
+  testWidgets('dragging lifts the tile and highlights the target tile', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final from = GridCell(0, 0);
+    final to = GridCell(2, 3);
+    final dragged = h.componentAt(from);
+    final target = h.componentAt(to);
+    final g = await h.dragTo(from, h.globalOf(to), release: false);
+    expect(h.game.draggedTile, dragged);
+    expect(dragged.lifted, isTrue);
+    expect(h.game.hoveredTile, target);
+    expect(target.hovered, isTrue);
+    // The dragged tile follows the finger.
+    final r = h.game.area.cellRect(to);
+    expect(dragged.position.x, closeTo(r.center.dx, 1));
+    await g.up();
+    await h.settle();
+  });
 
-    testWidgets('overlap is allowed and the topmost piece is selected', (
-      tester,
-    ) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final ids = h.session.stackOrder.toList();
-      final a = ids[ids.length - 1];
-      final b = ids[ids.length - 2];
-      await h.reveal(a);
-      await h.reveal(b);
-      // Put both at the same free spot (away from both targets).
-      const spot = BoardPoint(1.3, 5.6);
-      await h.dragPieceTo(
-        a,
-        h.session.bounds.clampOrigin(spot, h.session.piece(a)!.piece.size),
+  testWidgets('dropping a tile on another exchanges them, animated', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final from = GridCell(0, 0);
+    final to = GridCell(3, 2);
+    final a = h.puzzle.tileAt(from);
+    final b = h.puzzle.tileAt(to);
+    final g = await h.dragTo(from, h.globalOf(to), release: false);
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 16));
+    // Logical state changes at once; tiles are still travelling.
+    expect(h.puzzle.tileAt(to), a);
+    expect(h.puzzle.tileAt(from), b);
+    expect(h.game.isAnimating, isTrue);
+    expect(h.game.inputEnabled, isFalse);
+    await h.settle();
+    expect(h.game.isAnimating, isFalse);
+    expect(h.game.inputEnabled, isTrue);
+    // Rendered positions match the logical board.
+    final ra = h.game.area.cellRect(to).center;
+    final rb = h.game.area.cellRect(from).center;
+    expect(h.game.tiles[a.id]!.position.x, closeTo(ra.dx, 0.01));
+    expect(h.game.tiles[a.id]!.position.y, closeTo(ra.dy, 0.01));
+    expect(h.game.tiles[b.id]!.position.x, closeTo(rb.dx, 0.01));
+    expect(h.game.tiles[b.id]!.position.y, closeTo(rb.dy, 0.01));
+    expect(h.game.tiles[a.id]!.lifted, isFalse);
+    expect(h.state.swaps, 1);
+  });
+
+  testWidgets('no second swap can start while tiles are animating', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final g = await h.dragTo(
+      GridCell(0, 0),
+      h.globalOf(GridCell(0, 1)),
+      release: false,
+    );
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 16));
+    final before = [...h.puzzle.arrangement];
+    // Immediately try another drag while the exchange is running.
+    final g2 = await tester.startGesture(h.globalOf(GridCell(2, 2)));
+    for (var i = 1; i <= 6; i++) {
+      await g2.moveTo(
+        Offset.lerp(
+          h.globalOf(GridCell(2, 2)),
+          h.globalOf(GridCell(3, 3)),
+          i / 6,
+        )!,
       );
-      await h.dragPieceTo(
-        b,
-        h.session.bounds.clampOrigin(spot, h.session.piece(b)!.piece.size),
-      );
-      expect(h.session.stackOrder.last, b);
-      final overlapPoint =
-          h.session.piece(b)!.position + const BoardPoint(0.3, 0.3);
-      expect(h.session.piece(a)!.contains(overlapPoint), isTrue);
-      // A drag at the overlap moves the topmost piece (b), not a.
-      final aBefore = h.session.piece(a)!.position;
-      await h.dragBoard(overlapPoint, overlapPoint + const BoardPoint(0, -1.2));
-      expect(h.session.piece(a)!.position, aBefore);
-      expect(h.session.piece(b)!.position.y, lessThan(aBefore.y));
-      // Tapping a's visible part selects it and raises it.
-      await h.tapPiece(a);
-      expect(h.session.stackOrder.last, a);
-    });
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await g2.up();
+    await h.settle();
+    expect(h.puzzle.arrangement, before);
+    expect(h.state.swaps, 1);
+  });
 
-    testWidgets('correct alignment snaps, locks and cannot move again', (
-      tester,
-    ) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final id = h.session.stackOrder.last;
-      await h.reveal(id);
-      final p = h.session.piece(id)!;
-      // Drop slightly off target, within tolerance.
-      await h.dragPieceTo(id, p.target + const BoardPoint(0.2, -0.15));
-      final s = h.session.piece(id)!;
-      expect(s.locked, isTrue);
-      expect(s.position, s.target);
-      expect(find.text('1 / ${h.state.totalCount}'), findsOneWidget);
-      final c = h.game.pieces[id]!;
-      final r = h.game.area.pieceRect(s.target, s.piece.size);
-      expect(c.position.x, closeTo(r.center.dx, 0.5));
-      expect(c.position.y, closeTo(r.center.dy, 0.5));
-      expect(c.locked, isTrue);
-      // Dragging on it does not move it.
-      final centre =
-          s.target +
-          BoardPoint(s.piece.size.columnSpan / 2, s.piece.size.rowSpan / 2);
-      // Hit testing never selects the locked piece.
-      expect(h.session.topmostSelectableAt(centre)?.id, isNot(id));
-      await h.dragBoard(centre, centre + const BoardPoint(0, 2));
-      expect(h.session.piece(id)!.position, s.target);
-      expect(h.session.piece(id)!.locked, isTrue);
-      expect(c.position.y, closeTo(r.center.dy, 0.5));
-    });
+  testWidgets('a real resize mid-swap still settles on the logical cells', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final g = await h.dragTo(
+      GridCell(0, 0),
+      h.globalOf(GridCell(3, 3)),
+      release: false,
+    );
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(h.game.isAnimating, isTrue);
+    tester.view.physicalSize = const Size(360, 640);
+    await tester.pump(const Duration(milliseconds: 16));
+    await h.settle();
+    expect(h.game.isAnimating, isFalse);
+    expect(h.game.inputEnabled, isTrue);
+    for (final t in h.puzzle.tiles) {
+      final r = h.game.area.cellRect(h.puzzle.cellOf(t)).center;
+      expect(h.game.tiles[t.id]!.position.x, closeTo(r.dx, 0.01));
+      expect(h.game.tiles[t.id]!.position.y, closeTo(r.dy, 0.01));
+    }
+  });
 
-    testWidgets('dragging past the edges keeps the piece fully on the board', (
-      tester,
-    ) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final id = h.session.stackOrder.last;
-      await h.reveal(id);
-      final grab = h.visiblePointOf(id);
-      // Far beyond the bottom-right and then the top-left.
-      for (final dest in const [BoardPoint(40, 60), BoardPoint(-40, -60)]) {
-        final from = h.visiblePointOf(id);
-        await h.dragBoard(from, dest);
-        final s = h.session.piece(id)!;
-        expect(
-          h.session.bounds.containsPiece(s.position, s.piece.size),
-          isTrue,
-        );
-        final r = h.game.area.pieceRect(s.position, s.piece.size);
-        expect(r.left, greaterThanOrEqualTo(0));
-        expect(r.top, greaterThanOrEqualTo(0));
-        expect(r.right, lessThanOrEqualTo(h.gameSize.width));
-        expect(r.bottom, lessThanOrEqualTo(h.gameSize.height));
-      }
-      expect(grab, isNotNull);
-    });
+  testWidgets('a drop outside the board cancels and returns the tile', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final from = GridCell(1, 2);
+    final tile = h.puzzle.tileAt(from);
+    final before = [...h.puzzle.arrangement];
+    // Far above the board (into the header area of the play surface).
+    await h.dragTo(from, h.globalLocal(const Offset(5, 3)));
+    expect(h.puzzle.arrangement, before);
+    expect(h.state.swaps, 0);
+    final r = h.game.area.cellRect(from).center;
+    expect(h.game.tiles[tile.id]!.position.x, closeTo(r.dx, 0.01));
+    expect(h.game.tiles[tile.id]!.position.y, closeTo(r.dy, 0.01));
+    expect(h.game.tiles[tile.id]!.lifted, isFalse);
+    expect(h.game.inputEnabled, isTrue);
+  });
 
-    testWidgets('assembling every piece completes the puzzle', (tester) async {
-      final h = await pumpPuzzle(tester);
-      await h.toPlaying();
-      final total = h.state.totalCount;
-      var guard = 0;
-      while (!h.session.isComplete && guard++ < 40) {
-        final next = h.session.stackOrder.lastWhere(
-          (id) => !h.session.piece(id)!.locked,
-        );
-        if (!h.session.isFaceUp(next)) await h.reveal(next);
-        final p = h.session.piece(next)!;
-        await h.dragPieceTo(next, p.target);
-        expect(h.session.piece(next)!.locked, isTrue, reason: next);
-        if (!h.session.isComplete) {
-          expect(find.byKey(const Key('completion')), findsNothing);
+  testWidgets('a drop back on its own cell does nothing', (tester) async {
+    final h = await pumpPuzzle(tester);
+    final from = GridCell(2, 1);
+    final before = [...h.puzzle.arrangement];
+    final g = await h.dragTo(from, h.globalOf(GridCell(2, 2)), release: false);
+    await g.moveTo(h.globalOf(from));
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(h.game.hoveredTile, isNull);
+    await g.up();
+    await h.settle();
+    expect(h.puzzle.arrangement, before);
+    expect(h.state.swaps, 0);
+  });
+
+  testWidgets('a tile swapped into its correct cell glows and counts', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final (from, target) = misplacedTileAndTarget(h.puzzle);
+    final tile = h.puzzle.tileAt(from);
+    final before = h.puzzle.correctCount;
+    final g = await h.dragTo(from, h.globalOf(target), release: false);
+    await g.up();
+    await h.settle(frames: 6); // 300 ms: swap done, glow still fading
+    final c = h.game.tiles[tile.id]!;
+    expect(h.puzzle.isTileCorrect(tile), isTrue);
+    expect(c.correct, isTrue);
+    expect(c.isGlowing, isTrue);
+    expect(h.puzzle.correctCount, greaterThan(before));
+    expect(find.text('${h.puzzle.correctCount} / 16'), findsOneWidget);
+    await h.settle();
+    expect(c.isGlowing, isFalse);
+  });
+
+  testWidgets('incorrect swaps are accepted', (tester) async {
+    final h = await pumpPuzzle(tester);
+    // Find two tiles neither of which belongs in the other's cell.
+    final cells = h.puzzle.grid.cells.toList();
+    late GridCell a, b;
+    outer:
+    for (final x in cells) {
+      for (final y in cells) {
+        if (x == y) continue;
+        if (h.puzzle.tileAt(x).target != y && h.puzzle.tileAt(y).target != x) {
+          a = x;
+          b = y;
+          break outer;
         }
       }
-      expect(h.session.isComplete, isTrue);
-      await h.settle();
-      expect(find.byKey(const Key('completion')), findsOneWidget);
-      expect(find.text('All $total pieces placed'), findsOneWidget);
-      expect(
-        h.game.pieces.values.every((p) => p.locked && p.showsFront),
-        isTrue,
-      );
+    }
+    final correctBefore = h.puzzle.correctCount;
+    final ta = h.puzzle.tileAt(a);
+    await h.swap(a, b);
+    expect(h.puzzle.tileAt(b), ta);
+    expect(h.state.swaps, 1);
+    expect(h.puzzle.correctCount, lessThanOrEqualTo(correctBefore));
+  });
 
-      await tester.tap(find.byKey(const Key('new_puzzle')));
-      await h.settle();
-      expect(h.state.seed, testSeed + 1);
-      expect(h.state.phase, PuzzlePhase.intro);
-      expect(find.byKey(const Key('completion')), findsNothing);
-      expect(h.game.pieces.values.every((p) => !p.showsFront), isTrue);
-    });
+  testWidgets('solving shows the completed picture; New puzzle resets', (
+    tester,
+  ) async {
+    final h = await pumpPuzzle(tester);
+    final swaps = await h.solve();
+    expect(swaps, greaterThan(0));
+    expect(h.puzzle.isComplete, isTrue);
+    expect(find.text('16 / 16'), findsOneWidget);
+    await h.settle(frames: 30);
+    expect(find.byKey(const Key('completion')), findsOneWidget);
+    expect(find.text('Puzzle complete!'), findsOneWidget);
+    expect(find.byKey(const Key('completed_picture')), findsOneWidget);
+    expect(find.text('Solved in $swaps swaps'), findsOneWidget);
+    expect(h.game.inputEnabled, isFalse);
+    // Every tile rests in its correct cell.
+    for (final t in h.puzzle.tiles) {
+      final r = h.game.area.cellRect(t.target).center;
+      expect(h.game.tiles[t.id]!.position.x, closeTo(r.dx, 0.01));
+    }
+
+    await tester.tap(find.byKey(const Key('new_puzzle')));
+    await h.settle();
+    expect(h.state.seed, testSeed + 1);
+    expect(h.puzzle.isComplete, isFalse);
+    expect(h.state.swaps, 0);
+    expect(find.byKey(const Key('completion')), findsNothing);
+    expect(h.game.inputEnabled, isTrue);
   });
 
   group('responsive layout', () {
@@ -289,22 +266,23 @@ void main() {
       ) async {
         final h = await pumpPuzzle(tester, size: size);
         expect(tester.takeException(), isNull);
-        final area = h.game.area;
+        final b = h.game.area.board;
         final g = h.gameSize;
-        // Whole workspace on screen, square cells, comfortable targets.
-        expect(area.workspace.left, greaterThanOrEqualTo(0));
-        expect(area.workspace.top, greaterThanOrEqualTo(0));
-        expect(area.workspace.right, lessThanOrEqualTo(g.width + 0.01));
-        expect(area.workspace.bottom, lessThanOrEqualTo(g.height + 0.01));
-        expect(area.cellSize, greaterThanOrEqualTo(48));
-        // Every scattered piece is fully visible and individually hittable.
-        for (final p in h.session.pieces) {
-          final r = area.pieceRect(p.position, p.piece.size);
-          expect(area.workspace.inflate(0.01).contains(r.topLeft), isTrue);
-          expect(area.workspace.inflate(0.01).contains(r.bottomRight), isTrue);
-          expect(h.visiblePointOf(p.id), isNotNull);
-        }
+        expect(b.left, greaterThanOrEqualTo(0));
+        expect(b.top, greaterThanOrEqualTo(0));
+        expect(b.right, lessThanOrEqualTo(g.width + 0.01));
+        expect(b.bottom, lessThanOrEqualTo(g.height + 0.01));
+        expect(b.width / b.height, closeTo(1, 0.001), reason: 'no stretch');
+        // Comfortable touch targets.
+        expect(h.game.area.cellWidth, greaterThanOrEqualTo(64));
       });
     }
+
+    testWidgets('touch swap works on a small screen (320x568)', (tester) async {
+      final h = await pumpPuzzle(tester, size: const Size(320, 568));
+      final a = h.puzzle.tileAt(GridCell(3, 0));
+      await h.swap(GridCell(3, 0), GridCell(0, 3));
+      expect(h.puzzle.tileAt(GridCell(0, 3)), a);
+    });
   });
 }

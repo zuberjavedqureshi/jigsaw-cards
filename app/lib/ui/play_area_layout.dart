@@ -3,53 +3,52 @@ import 'dart:ui';
 
 import 'package:puzzle_domain/puzzle_domain.dart';
 
-/// Maps board space (cell units, see [BoardPoint]) to screen space inside
-/// the play area. The whole [PlayBounds] workspace is fitted into the
-/// available size with a margin, keeping square cells, so every piece
-/// position the domain allows is fully on screen at any aspect ratio.
+/// Screen geometry of the picture board inside the play area. The board
+/// keeps the source illustration's aspect ratio and is as large as fits
+/// with a margin, so tiles are never stretched or clipped.
 class BoardLayout {
-  const BoardLayout._({
-    required this.workspace,
-    required this.cellSize,
-    required this.origin,
-  });
+  const BoardLayout._(this.board, this.grid);
 
-  static const margin = 12.0;
+  static const margin = 16.0;
 
-  /// Workspace (play bounds) rect in play-area coordinates.
-  final Rect workspace;
-  final double cellSize;
+  /// Board rect in play-area (game) coordinates.
+  final Rect board;
+  final GridSize grid;
 
-  /// Screen position of board point (0, 0): the grid's top-left.
-  final Offset origin;
+  double get cellWidth => board.width / grid.columns;
+  double get cellHeight => board.height / grid.rows;
 
-  static BoardLayout compute(Size size, PlayBounds bounds) {
+  static BoardLayout compute(Size size, GridSize grid, Size sourceSize) {
     final availW = math.max(0.0, size.width - 2 * margin);
     final availH = math.max(0.0, size.height - 2 * margin);
-    final cell = math.min(availW / bounds.width, availH / bounds.height);
-    final w = cell * bounds.width;
-    final h = cell * bounds.height;
-    final ws = Rect.fromLTWH((size.width - w) / 2, (size.height - h) / 2, w, h);
+    final aspect = sourceSize.width / sourceSize.height;
+    var w = availW;
+    var h = w / aspect;
+    if (h > availH) {
+      h = availH;
+      w = h * aspect;
+    }
     return BoardLayout._(
-      workspace: ws,
-      cellSize: cell,
-      origin: ws.topLeft - Offset(bounds.left * cell, bounds.top * cell),
+      Rect.fromLTWH((size.width - w) / 2, (size.height - h) / 2, w, h),
+      grid,
     );
   }
 
-  Offset toScreen(BoardPoint p) =>
-      origin + Offset(p.x * cellSize, p.y * cellSize);
+  Rect cellRect(GridCell c) => Rect.fromLTWH(
+    board.left + c.column * cellWidth,
+    board.top + c.row * cellHeight,
+    cellWidth,
+    cellHeight,
+  );
 
-  BoardPoint toBoard(Offset o) =>
-      BoardPoint((o.dx - origin.dx) / cellSize, (o.dy - origin.dy) / cellSize);
-
-  Size pieceSize(PieceSize s) =>
-      Size(s.columnSpan * cellSize, s.rowSpan * cellSize);
-
-  Rect pieceRect(BoardPoint topLeft, PieceSize s) =>
-      toScreen(topLeft) & pieceSize(s);
-
-  /// Screen rect of the logical grid (the target picture area).
-  Rect gridRect(GridSize g) =>
-      origin & Size(g.columns * cellSize, g.rows * cellSize);
+  /// The cell under [p], or null outside the board.
+  GridCell? cellAt(Offset p) {
+    if (!board.contains(p)) return null;
+    final col = ((p.dx - board.left) / cellWidth).floor();
+    final row = ((p.dy - board.top) / cellHeight).floor();
+    return GridCell(
+      row.clamp(0, grid.rows - 1),
+      col.clamp(0, grid.columns - 1),
+    );
+  }
 }

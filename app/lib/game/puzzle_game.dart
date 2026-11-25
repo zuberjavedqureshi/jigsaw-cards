@@ -6,263 +6,266 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/game.dart';
-import 'package:flutter/animation.dart' show Curve, Curves;
+import 'package:flutter/animation.dart' show Curves;
 import 'package:puzzle_domain/puzzle_domain.dart';
 
 import '../artwork/puzzle_artwork.dart';
 import '../ui/play_area_layout.dart';
 import 'puzzle_game_bridge.dart';
 
-/// Flame scene for one free-placement memory puzzle: the board, every piece
-/// (face-down or face-up), flips, dragging, stacking and snap-and-lock
-/// animations. Rules live in the domain; state arrives through
-/// [syncSession] and requests leave through [PuzzleGameIntents] (ADR-0001).
-/// No Riverpod here.
+/// Flame scene for one picture-swap puzzle: the board, the tiles, the drag,
+/// the exchange animation and the completion shine. The rules live in the
+/// domain; state arrives through [syncPuzzle] and requests leave through
+/// [PuzzleGameIntents] (ADR-0001). No Riverpod here.
 class PuzzleGame extends FlameGame implements PuzzleGameView {
   PuzzleGame({
-    required PuzzleSession session,
+    required PicturePuzzle puzzle,
     required this.artwork,
     required this.intents,
-  }) : _session = session; // ignore: prefer_initializing_formals
+  }) : _puzzle = puzzle; // ignore: prefer_initializing_formals
 
-  static const flipDuration = 0.34;
-  static const flipStagger = 0.045;
-  static const snapDuration = 0.2;
-  static const settleDuration = 0.14;
+  static const swapDuration = 0.22;
+  static const returnDuration = 0.18;
 
   final PuzzleArtwork artwork;
   final PuzzleGameIntents intents;
 
-  PuzzleSession _session;
-  PuzzleSession get session => _session;
+  PicturePuzzle _puzzle;
+  PicturePuzzle get puzzle => _puzzle;
 
   late BoardLayout area;
-  late final BoardComponent board;
-  final Map<String, PieceComponent> pieces = {};
+  late final BoardFrame frame;
+  final Map<int, TileComponent> tiles = {};
 
-  /// Pieces still running a whole-board flip (preview start or end).
-  int _bulkFlipsPending = 0;
+  /// Tile animations still running (swap or cancel). Input waits for 0.
+  int _moving = 0;
+  bool _celebrating = false;
 
-  String? draggingId;
+  TileComponent? _pressed;
+  TileComponent? _dragged;
   int? _dragPointer;
+  GridCell? _dragFrom;
   Offset _grab = Offset.zero;
+  TileComponent? _hovered;
 
-  /// Input is accepted only in memory mode, after the flip-down finished.
-  bool get inputEnabled => _session.isInteractive && _bulkFlipsPending == 0;
-
-  /// True while any piece is flipping or moving.
-  bool get isAnimating =>
-      pieces.values.any((p) => p.isFlipping || p.isMoving) ||
-      _bulkFlipsPending > 0;
+  /// Accepts a new press or drag only when nothing is animating, so a
+  /// second swap can never start while the board is settling.
+  bool get inputEnabled => !_puzzle.isComplete && _moving == 0 && !_celebrating;
+  bool get isAnimating => _moving > 0 || _celebrating;
+  TileComponent? get draggedTile => _dragged;
+  TileComponent? get hoveredTile => _hovered;
 
   @override
   Color backgroundColor() => const Color(0x00000000);
 
+  Rect _srcRect(PictureTile t) {
+    final r = _puzzle.sourceRectOf(t);
+    return Rect.fromLTWH(r.left, r.top, r.width, r.height);
+  }
+
   @override
   Future<void> onLoad() async {
-    area = BoardLayout.compute(size.toSize(), _session.bounds);
-    board = BoardComponent(_session.layout.grid);
-    add(board);
-    for (final s in _session.pieces) {
-      final c = PieceComponent(
-        s.piece,
-        artwork,
-        _session.layout.grid,
-        faceUp: _session.isFaceUp(s.id),
-        locked: s.locked,
-      )..boardPosition = s.position;
-      pieces[s.id] = c;
+    area = BoardLayout.compute(size.toSize(), _puzzle.grid, artwork.sourceSize);
+    frame = BoardFrame();
+    add(frame);
+    for (final t in _puzzle.tiles) {
+      final c = TileComponent(t, artwork, _srcRect(t))
+        ..correct = _puzzle.isTileCorrect(t);
+      tiles[t.id] = c;
       add(c);
     }
     add(InputLayer()..priority = 1 << 20);
     _relayout();
-    _applyStack();
-    intents.onReady();
   }
 
+  /// Flame calls this on every widget rebuild, not only on real size
+  /// changes; relaying out unconditionally would cancel tile animations.
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    if (isLoaded) {
-      area = BoardLayout.compute(size.toSize(), _session.bounds);
-      _relayout();
-    }
+    if (!isLoaded) return;
+    final next = BoardLayout.compute(
+      size.toSize(),
+      _puzzle.grid,
+      artwork.sourceSize,
+    );
+    if (next.board == area.board) return;
+    area = next;
+    _relayout();
   }
+
+  Vector2 _centreOf(GridCell c) => area.cellRect(c).center.toVector2();
 
   void _relayout() {
-    board
-      ..position = area.workspace.topLeft.toVector2()
-      ..size = area.workspace.size.toVector2()
-      ..gridRect = area
-          .gridRect(_session.layout.grid)
-          .shift(-area.workspace.topLeft);
-    for (final c in pieces.values) {
-      c.size = area.pieceSize(c.piece.size).toVector2();
-      if (c.piece.id != draggingId) {
-        c.position = _centreOf(c.boardPosition, c.piece.size);
+    frame
+      ..position = area.board.topLeft.toVector2()
+      ..size = area.board.size.toVector2();
+    for (final t in _puzzle.tiles) {
+      final c = tiles[t.id]!;
+      c.size = Vector2(area.cellWidth, area.cellHeight);
+      if (c == _dragged) continue;
+      final centre = _centreOf(_puzzle.cellOf(t));
+      if (c.isMoving) {
+        // Real resize mid-animation: re-aim at the tile's cell (a returning
+        // tile's cell is still its original one), keeping its callback.
+        c.retarget(centre);
+      } else {
+        c
+          ..position = centre
+          ..priority = 1;
       }
-    }
-  }
-
-  Vector2 _centreOf(BoardPoint topLeft, PieceSize s) =>
-      area.pieceRect(topLeft, s).center.toVector2();
-
-  void _applyStack() {
-    final order = _session.stackOrder;
-    for (var i = 0; i < order.length; i++) {
-      final c = pieces[order[i]]!;
-      if (c.piece.id != draggingId) c.priority = i + 1;
     }
   }
 
   // ---- PuzzleGameView ----------------------------------------------------
 
   @override
-  void syncSession(PuzzleSession next) {
-    final prev = _session;
-    _session = next;
+  void syncPuzzle(PicturePuzzle next) {
+    final prev = _puzzle;
+    _puzzle = next;
     if (!isLoaded) return;
-
-    if (prev.phase == PuzzlePhase.intro && next.phase == PuzzlePhase.preview) {
-      _bulkFlip(faceUp: true, onAllDone: intents.onPreviewShown);
-    } else if (prev.phase == PuzzlePhase.preview &&
-        next.phase == PuzzlePhase.playing) {
-      _bulkFlip(faceUp: false, onAllDone: () {});
-    } else {
-      for (final s in next.pieces) {
-        final c = pieces[s.id]!;
-        final up = next.isFaceUp(s.id);
-        if (c.targetFaceUp != up) c.flipTo(up);
-      }
+    final moved = [
+      for (final t in next.tiles)
+        if (prev.cellOf(t) != next.cellOf(t)) tiles[t.id]!,
+    ];
+    if (moved.isEmpty) return;
+    _moving += moved.length;
+    for (final c in moved) {
+      // The dragged tile flies from under the finger; the displaced tile
+      // slides across, raised just below it.
+      c.priority = c == _dragged ? 1 << 18 : 1 << 17;
+      c.moveTo(
+        _centreOf(next.cellOf(c.tile)),
+        swapDuration,
+        onDone: () => _onMoveDone(c),
+      );
     }
-
-    for (final s in next.pieces) {
-      final c = pieces[s.id]!;
-      final wasLocked = prev.piece(s.id)!.locked;
-      if (s.locked && !wasLocked) {
-        _snapAndLock(c, s);
-      } else if (s.position != c.boardPosition && s.id != draggingId) {
-        c.boardPosition = s.position;
-        c.moveTo(_centreOf(s.position, s.piece.size), settleDuration);
-      }
-    }
-    _applyStack();
+    _dragged = null;
   }
 
-  void _bulkFlip({required bool faceUp, required void Function() onAllDone}) {
-    final targets = [
-      for (final id in _session.stackOrder)
-        if (pieces[id]!.targetFaceUp != (faceUp ? true : _session.isFaceUp(id)))
-          pieces[id]!,
-    ];
-    if (targets.isEmpty) {
-      onAllDone();
-      return;
-    }
-    _bulkFlipsPending = targets.length;
-    for (var i = 0; i < targets.length; i++) {
-      targets[i].flipTo(
-        faceUp,
-        delay: i * flipStagger,
-        onDone: () {
-          _bulkFlipsPending--;
-          if (_bulkFlipsPending == 0) onAllDone();
-        },
+  void _onMoveDone(TileComponent c) {
+    c
+      ..lifted = false
+      ..pressed = false
+      ..priority = 1;
+    final nowCorrect = _puzzle.isTileCorrect(c.tile);
+    if (nowCorrect && !c.correct) c.celebrateCorrect();
+    c.correct = nowCorrect;
+    _moving--;
+    if (_moving > 0) return;
+    // Settled: every tile rests exactly at its logical cell.
+    _relayout();
+    intents.onSwapSettled();
+    if (_puzzle.isComplete) {
+      _celebrating = true;
+      add(
+        CompletionShine(
+          area.board,
+          onDone: () {
+            _celebrating = false;
+            intents.onCompletionShown();
+          },
+        )..priority = 1 << 19,
       );
     }
   }
 
-  void _snapAndLock(PieceComponent c, PieceState s) {
+  // ---- Input (called by InputLayer) ----------------------------------------
+
+  TileComponent? _tileAt(Offset p) {
+    final cell = area.cellAt(p);
+    return cell == null ? null : tiles[_puzzle.tileAt(cell).id];
+  }
+
+  /// Pointer down: immediate press feedback on the tile.
+  void handlePress(Vector2 point) {
+    if (!inputEnabled || _dragged != null) return;
+    _pressed?.pressed = false;
+    _pressed = _tileAt(point.toOffset())?..pressed = true;
+  }
+
+  /// Pointer up without a drag (or a tap cancelled): clear the press.
+  void handleRelease() {
+    if (_dragged != null) return;
+    _pressed?.pressed = false;
+    _pressed = null;
+  }
+
+  void handleDragStart(int pointer, Vector2 point) {
+    if (!inputEnabled || _dragged != null) return;
+    final p = point.toOffset();
+    final cell = area.cellAt(p);
+    if (cell == null) return;
+    final c = tiles[_puzzle.tileAt(cell).id]!;
+    _pressed?.pressed = false;
+    _pressed = null;
+    _dragged = c;
+    _dragPointer = pointer;
+    _dragFrom = cell;
+    _grab = p - area.cellRect(cell).center;
     c
-      ..boardPosition = s.position
-      ..locked = true
-      ..lifted = false;
+      ..stopMoving()
+      ..lifted = true
+      ..priority = 1 << 18;
+  }
+
+  void handleDragUpdate(int pointer, Vector2 point) {
+    final c = _dragged;
+    if (c == null || pointer != _dragPointer) return;
+    final p = point.toOffset();
+    // Keep the dragged tile's centre on the play area.
+    final centre = p - _grab;
+    c.position = Vector2(
+      centre.dx.clamp(0, size.x),
+      centre.dy.clamp(0, size.y),
+    );
+    final over = area.cellAt(p);
+    final target = (over == null || over == _dragFrom)
+        ? null
+        : tiles[_puzzle.tileAt(over).id];
+    if (target != _hovered) {
+      _hovered?.hovered = false;
+      _hovered = target?..hovered = true;
+    }
+  }
+
+  void handleDragEnd(int pointer) {
+    final c = _dragged;
+    if (c == null || pointer != _dragPointer) return;
+    final target = _hovered;
+    _hovered?.hovered = false;
+    _hovered = null;
+    _dragPointer = null;
+    final from = _dragFrom!;
+    _dragFrom = null;
+    if (target != null) {
+      intents.onSwapRequested(from, _puzzle.cellOf(target.tile));
+      if (_dragged == c) _cancel(c, from); // swap was not applied
+    } else {
+      _cancel(c, from);
+    }
+  }
+
+  /// Released outside another tile: glide back to the original cell.
+  void _cancel(TileComponent c, GridCell from) {
+    _dragged = null;
+    _moving++;
     c.moveTo(
-      _centreOf(s.position, s.piece.size),
-      snapDuration,
+      _centreOf(from),
+      returnDuration,
       onDone: () {
-        c.add(
-          ScaleEffect.by(
-            Vector2.all(1.05),
-            EffectController(duration: 0.08, reverseDuration: 0.14),
-          ),
-        );
-        add(
-          SparkleRing(area.pieceRect(s.position, s.piece.size))
-            ..priority = 1 << 19,
-        );
-        intents.onLockComplete(s.id);
+        c
+          ..lifted = false
+          ..priority = 1;
+        _moving--;
       },
     );
   }
-
-  // ---- Input (called by InputLayer) ----------------------------------------
-
-  PieceState? _hit(Vector2 canvasPoint) =>
-      _session.topmostSelectableAt(area.toBoard(canvasPoint.toOffset()));
-
-  void handleTap(Vector2 canvasPoint) {
-    if (!inputEnabled || draggingId != null) return;
-    final hit = _hit(canvasPoint);
-    if (hit == null) return;
-    if (_session.isFaceUp(hit.id)) {
-      pieces[hit.id]!.bounce();
-      intents.onSelected(hit.id);
-    } else {
-      intents.onRevealRequested(hit.id);
-    }
-  }
-
-  void handleDragStart(int pointer, Vector2 canvasPoint) {
-    if (!inputEnabled || draggingId != null) return;
-    final hit = _hit(canvasPoint);
-    if (hit == null) return;
-    final c = pieces[hit.id]!;
-    if (!_session.isFaceUp(hit.id)) {
-      // Face-down pieces are revealed by tapping, not dragged.
-      c.shake();
-      return;
-    }
-    c.stopMoving();
-    draggingId = hit.id;
-    _dragPointer = pointer;
-    final topLeft = area.toScreen(c.boardPosition);
-    _grab = canvasPoint.toOffset() - topLeft;
-    c
-      ..lifted = true
-      ..priority = 1 << 18;
-    intents.onSelected(hit.id);
-  }
-
-  void handleDragUpdate(int pointer, Vector2 canvasPoint) {
-    final id = draggingId;
-    if (id == null || pointer != _dragPointer) return;
-    final c = pieces[id]!;
-    final clamped = _clampedTopLeft(c, canvasPoint);
-    c.position = _centreOf(clamped, c.piece.size);
-  }
-
-  BoardPoint _clampedTopLeft(PieceComponent c, Vector2 canvasPoint) => _session
-      .bounds
-      .clampOrigin(area.toBoard(canvasPoint.toOffset() - _grab), c.piece.size);
-
-  void handleDragEnd(int pointer) {
-    final id = draggingId;
-    if (id == null || pointer != _dragPointer) return;
-    final c = pieces[id]!;
-    final topLeft = area.toBoard((c.position - c.size / 2).toOffset());
-    draggingId = null;
-    _dragPointer = null;
-    c
-      ..lifted = false
-      ..boardPosition = topLeft;
-    intents.onDropRequested(id, topLeft);
-  }
 }
 
-/// Full-size, topmost input surface. Taps reveal or select; drags move
-/// face-up pieces. Hit testing is done against the domain stack so
-/// overlapping pieces resolve to the topmost selectable one.
+/// Full-size, topmost input surface: press feedback on pointer down, and
+/// drag-and-swap. Hit testing uses the board grid, so the tile under the
+/// finger is always the one in that logical cell.
 class InputLayer extends PositionComponent
     with TapCallbacks, DragCallbacks, HasGameReference<PuzzleGame> {
   @override
@@ -275,18 +278,23 @@ class InputLayer extends PositionComponent
   }
 
   @override
-  void onTapUp(TapUpEvent event) => game.handleTap(event.canvasPosition);
+  void onTapDown(TapDownEvent event) => game.handlePress(event.canvasPosition);
 
-  /// Reported at the initial touch point, so the grab offset is exact.
+  @override
+  void onTapUp(TapUpEvent event) => game.handleRelease();
+
+  @override
+  void onTapCancel(TapCancelEvent event) => game.handleRelease();
+
+  /// Reported at the initial touch point, so the grabbed tile is exact.
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
     game.handleDragStart(event.pointerId, event.canvasPosition);
   }
 
-  /// `DragUpdateEvent.canvasStartPosition` is the pointer's current
-  /// position. (`canvasEndPosition` adds the delta to a global position that
-  /// already includes it, overshooting by one movement step in Flame 1.38.)
+  /// `canvasStartPosition` is the pointer's current position
+  /// (`canvasEndPosition` overshoots by one step in Flame 1.38).
   @override
   void onDragUpdate(DragUpdateEvent event) =>
       game.handleDragUpdate(event.pointerId, event.canvasStartPosition);
@@ -298,122 +306,60 @@ class InputLayer extends PositionComponent
   }
 }
 
-/// The parchment workspace with the framed 4×4 target area.
-class BoardComponent extends PositionComponent {
-  BoardComponent(this.grid);
-
-  final GridSize grid;
-
-  /// Target grid rect in this component's local coordinates.
-  Rect gridRect = Rect.zero;
-
+/// Frame and dark bed behind the tiles (visible under a lifted tile).
+class BoardFrame extends PositionComponent {
   @override
   void render(Canvas canvas) {
     final rect = Offset.zero & size.toSize();
-    final r = math.max(10.0, size.x * 0.035);
+    final pad = math.max(5.0, size.x * 0.018);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        rect.shift(const Offset(0, 5)),
-        Radius.circular(r),
+        rect.inflate(pad).shift(const Offset(0, 5)),
+        Radius.circular(pad * 1.4),
       ),
       Paint()
         ..color = const Color(0x55000000)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, Radius.circular(r)),
+      RRect.fromRectAndRadius(rect.inflate(pad), Radius.circular(pad * 1.4)),
       Paint()..color = const Color(0xFF6B4A2B),
     );
-    final inner = rect.deflate(math.max(4.0, size.x * 0.012));
     canvas.drawRRect(
-      RRect.fromRectAndRadius(inner, Radius.circular(r * 0.8)),
-      Paint()
-        ..shader = Gradient.radial(
-          inner.center,
-          inner.longestSide * 0.7,
-          const [Color(0xFFF7EBCB), Color(0xFFE3CD98)],
-        ),
+      RRect.fromRectAndRadius(rect.inflate(pad * 0.4), Radius.circular(pad)),
+      Paint()..color = const Color(0xFFD9B86C),
     );
-    // Target picture area: recessed, framed, with faint cell lines.
-    final g = gridRect;
-    if (g.isEmpty) return;
-    canvas.drawRect(g, Paint()..color = const Color(0x33805A2E));
-    final cell = g.width / grid.columns;
-    final line = Paint()
-      ..color = const Color(0x407A5A33)
-      ..strokeWidth = 1;
-    for (var c = 1; c < grid.columns; c++) {
-      canvas.drawLine(
-        Offset(g.left + c * cell, g.top),
-        Offset(g.left + c * cell, g.bottom),
-        line,
-      );
-    }
-    for (var row = 1; row < grid.rows; row++) {
-      canvas.drawLine(
-        Offset(g.left, g.top + row * cell),
-        Offset(g.right, g.top + row * cell),
-        line,
-      );
-    }
-    canvas.drawRect(
-      g.inflate(2),
-      Paint()
-        ..color = const Color(0xFFC9A04E)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5,
-    );
+    canvas.drawRect(rect, Paint()..color = const Color(0xFF1B1636));
   }
 }
 
-/// One puzzle piece. Renders its card back or its image fragment, with a
-/// horizontal flip between them, a lift when selected and a gold edge once
-/// locked.
-class PieceComponent extends PositionComponent {
-  PieceComponent(
-    this.piece,
-    this.artwork,
-    this.grid, {
-    required bool faceUp,
-    this.locked = false,
-  }) : _face = faceUp ? 1 : 0,
-       targetFaceUp = faceUp,
-       super(anchor: Anchor.center);
+/// One picture tile: always shows its own source slice. Incorrectly placed
+/// tiles have a thin light edge; correctly placed tiles are drawn edge to
+/// edge so correct neighbours read as one continuous picture.
+class TileComponent extends PositionComponent {
+  TileComponent(this.tile, this.artwork, this.source)
+    : super(anchor: Anchor.center);
 
-  final PuzzlePiece piece;
+  final PictureTile tile;
   final PuzzleArtwork artwork;
-  final GridSize grid;
 
-  /// Board position this component rests at (or is animating to).
-  BoardPoint boardPosition = BoardPoint.zero;
+  /// Source region (source units).
+  final Rect source;
 
-  bool locked;
+  bool correct = false;
+  bool pressed = false;
   bool lifted = false;
+  bool hovered = false;
 
-  /// 0 = back fully shown, 1 = front fully shown.
-  double _face;
-  bool targetFaceUp;
-  double _flipFrom = 0;
-  double _flipElapsed = 0;
-  double _flipDelay = 0;
-  bool _flipping = false;
-  void Function()? _flipDone;
+  double _glow = 0;
+  Picture? _picture;
+  Size? _pictureSize;
 
-  bool get isFlipping => _flipping;
-  bool get showsFront => _face >= 0.5;
   bool get isMoving => children.whereType<MoveEffect>().isNotEmpty;
 
-  Picture? _front;
-  Size? _frontSize;
-
-  void flipTo(bool up, {double delay = 0, void Function()? onDone}) {
-    targetFaceUp = up;
-    _flipFrom = _face;
-    _flipElapsed = 0;
-    _flipDelay = delay;
-    _flipping = true;
-    _flipDone = onDone;
-  }
+  /// Completion callback of the current move; kept across [retarget].
+  void Function()? _onArrive;
+  bool get isGlowing => _glow > 0;
 
   void stopMoving() {
     for (final e in children.whereType<MoveEffect>().toList()) {
@@ -421,95 +367,50 @@ class PieceComponent extends PositionComponent {
     }
   }
 
-  void moveTo(
-    Vector2 centre,
-    double duration, {
-    Curve curve = Curves.easeOutCubic,
-    void Function()? onDone,
-  }) {
+  void moveTo(Vector2 centre, double duration, {void Function()? onDone}) {
     stopMoving();
-    if ((centre - position).length < 0.5) {
-      position = centre;
-      onDone?.call();
-      return;
-    }
-    // Non-overshooting curves only: Flame applies moves incrementally, and
-    // the final position is set exactly on completion.
+    _onArrive = onDone;
     add(
       MoveToEffect(
         centre,
-        EffectController(duration: duration, curve: curve),
+        EffectController(duration: duration, curve: Curves.easeInOutCubic),
         onComplete: () {
           position = centre;
-          onDone?.call();
+          final done = _onArrive;
+          _onArrive = null;
+          done?.call();
         },
       ),
     );
   }
 
-  void bounce() => add(
-    ScaleEffect.by(
-      Vector2.all(1.06),
-      EffectController(duration: 0.07, reverseDuration: 0.1),
-    ),
-  );
+  /// Sends an in-flight tile to a new centre without losing its callback.
+  void retarget(Vector2 centre) => moveTo(centre, 0.12, onDone: _onArrive);
 
-  void shake() => add(
-    MoveByEffect(
-      Vector2(size.x * 0.04, 0),
-      EffectController(duration: 0.05, reverseDuration: 0.05, repeatCount: 2),
-    ),
-  );
+  /// Brief golden glow when the tile lands in its correct cell.
+  void celebrateCorrect() => _glow = 1;
 
   @override
   void update(double dt) {
     super.update(dt);
-    if (!_flipping) return;
-    if (_flipDelay > 0) {
-      _flipDelay -= dt;
-      if (_flipDelay > 0) return;
-      dt = -_flipDelay;
-      _flipDelay = 0;
-    }
-    _flipElapsed += dt;
-    final target = targetFaceUp ? 1.0 : 0.0;
-    final t = (_flipElapsed / PuzzleGame.flipDuration).clamp(0.0, 1.0);
-    _face = _flipFrom + (target - _flipFrom) * Curves.easeInOut.transform(t);
-    if (t >= 1) {
-      _face = target;
-      _flipping = false;
-      final done = _flipDone;
-      _flipDone = null;
-      done?.call();
-    }
+    if (_glow > 0) _glow = math.max(0, _glow - dt / 0.6);
   }
 
-  Picture _frontPicture(Size s) {
-    if (_front == null || _frontSize != s) {
+  Picture _art(Size s) {
+    if (_picture == null || _pictureSize != s) {
       final rec = PictureRecorder();
-      paintPieceRegion(
-        Canvas(rec),
-        artwork,
-        Offset.zero & s,
-        row: piece.correctOrigin.row,
-        column: piece.correctOrigin.column,
-        rowSpan: piece.size.rowSpan,
-        columnSpan: piece.size.columnSpan,
-        gridRows: grid.rows,
-        gridColumns: grid.columns,
-        cornerRadius: 0,
-      );
-      _front?.dispose();
-      _front = rec.endRecording();
-      _frontSize = s;
+      paintTile(Canvas(rec), artwork, Offset.zero & s, source);
+      _picture?.dispose();
+      _picture = rec.endRecording();
+      _pictureSize = s;
     }
-    return _front!;
+    return _picture!;
   }
 
   @override
   void onRemove() {
-    _front?.dispose();
-    _front = null;
+    _picture?.dispose();
+    _picture = null;
     super.onRemove();
   }
 
@@ -517,45 +418,58 @@ class PieceComponent extends PositionComponent {
   void render(Canvas canvas) {
     final s = size.toSize();
     final rect = Offset.zero & s;
-    // Flip: squash horizontally through edge-on, with a small lift.
-    final edge = math.cos(math.pi * _face).abs();
-    final flipLift = 1 + 0.07 * math.sin(math.pi * _face);
-    final lift = lifted ? 1.06 : 1.0;
+    final scale = lifted ? 1.08 : (pressed ? 1.04 : 1.0);
     canvas.save();
     canvas.translate(s.width / 2, s.height / 2);
-    canvas.scale(math.max(edge, 0.02) * flipLift * lift, flipLift * lift);
+    canvas.scale(scale);
     canvas.translate(-s.width / 2, -s.height / 2);
-
-    final radius = locked ? 1.5 : math.min(s.width, s.height) * 0.07;
-    final rr = RRect.fromRectAndRadius(rect, Radius.circular(radius));
-    if (!locked) {
-      canvas.drawRRect(
-        rr.shift(Offset(0, lifted ? 7 : 3)),
-        Paint()
-          ..color = Color(lifted ? 0x66000000 : 0x40000000)
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, lifted ? 7 : 3),
-      );
-    }
-    if (showsFront) {
-      canvas.save();
-      canvas.clipRRect(rr);
-      canvas.drawPicture(_frontPicture(s));
-      canvas.restore();
-      canvas.drawRRect(
-        rr.deflate(0.5),
-        Paint()
-          ..color = locked ? const Color(0x55FFF6DA) : const Color(0xCCFFF1C9)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = locked ? 1 : 1.5,
-      );
-    } else {
-      paintCardBack(canvas, rect, cornerRadius: radius);
-    }
     if (lifted) {
-      canvas.drawRRect(
-        rr.inflate(1.5),
+      canvas.drawRect(
+        rect.shift(const Offset(0, 8)),
+        Paint()
+          ..color = const Color(0x77000000)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+    }
+    canvas.drawPicture(_art(s));
+    if (!correct || lifted) {
+      canvas.drawRect(
+        rect.deflate(0.5),
+        Paint()
+          ..color = const Color(0xB3FFFFFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1,
+      );
+    }
+    if (hovered) {
+      canvas.drawRect(rect, Paint()..color = const Color(0x33FFF1C4));
+      canvas.drawRect(
+        rect.deflate(1.5),
+        Paint()
+          ..color = const Color(0xFFFFF1C4)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3,
+      );
+    }
+    if (pressed || lifted) {
+      canvas.drawRect(
+        rect.deflate(1),
         Paint()
           ..color = const Color(0xFFFFC94D)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3,
+      );
+    }
+    if (_glow > 0) {
+      final a = (_glow * 200).round();
+      canvas.drawRect(
+        rect,
+        Paint()..color = Color.fromARGB(a ~/ 3, 255, 236, 170),
+      );
+      canvas.drawRect(
+        rect.deflate(1.5),
+        Paint()
+          ..color = Color.fromARGB(a, 255, 214, 110)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3,
       );
@@ -564,43 +478,40 @@ class PieceComponent extends PositionComponent {
   }
 }
 
-/// Short-lived golden ring and sparks around a newly locked piece.
-class SparkleRing extends PositionComponent {
-  SparkleRing(this.rect);
+/// A diagonal light sweep across the finished picture.
+class CompletionShine extends PositionComponent {
+  CompletionShine(this.board, {required this.onDone});
 
-  final Rect rect;
-  static const duration = 0.55;
+  final Rect board;
+  final void Function() onDone;
+  static const duration = 0.9;
   double _t = 0;
 
   @override
   void update(double dt) {
     _t += dt;
-    if (_t >= duration) removeFromParent();
+    if (_t >= duration) {
+      removeFromParent();
+      onDone();
+    }
   }
 
   @override
   void render(Canvas canvas) {
     final p = (_t / duration).clamp(0.0, 1.0);
-    final alpha = ((1 - p) * 255).round();
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect.inflate(2 + p * 10),
-        const Radius.circular(6),
-      ),
+    final x = board.left - board.width * 0.5 + p * board.width * 2;
+    canvas.save();
+    canvas.clipRect(board);
+    canvas.drawRect(
+      board,
       Paint()
-        ..color = Color.fromARGB(alpha, 255, 214, 110)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3 * (1 - p) + 0.5,
+        ..shader = Gradient.linear(
+          Offset(x - board.width * 0.25, board.top),
+          Offset(x + board.width * 0.25, board.bottom),
+          const [Color(0x00FFFFFF), Color(0x88FFF6DA), Color(0x00FFFFFF)],
+          const [0, 0.5, 1],
+        ),
     );
-    final spark = Paint()..color = Color.fromARGB(alpha, 255, 241, 196);
-    for (var i = 0; i < 8; i++) {
-      final a = i * math.pi / 4 + p;
-      final d = rect.shortestSide * (0.55 + p * 0.45);
-      canvas.drawCircle(
-        rect.center + Offset(math.cos(a) * d, math.sin(a) * d),
-        2.2 * (1 - p) + 0.4,
-        spark,
-      );
-    }
+    canvas.restore();
   }
 }

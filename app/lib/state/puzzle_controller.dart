@@ -1,15 +1,15 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puzzle_domain/puzzle_domain.dart';
 
-/// Board size for the prototype (GP-01).
+import '../artwork/puzzle_artwork.dart';
+
+/// Board size for the prototype (GP-01): 4 × 4 equal tiles.
 final prototypeGrid = GridSize(4, 4);
 
-/// Seed for the first puzzle. Seed source is an open technical question
-/// (TD-02); provisionally a fixed `--dart-define=PUZZLE_SEED=<n>` or, if
-/// unset, the launch time. The same seed drives the layout and the scatter.
+/// Seed for the first puzzle's shuffle. Seed source is an open technical
+/// question (TD-02); provisionally a fixed `--dart-define=PUZZLE_SEED=<n>`
+/// or, if unset, the launch time.
 final initialSeedProvider = Provider<int>((ref) {
   const fromEnv = int.fromEnvironment('PUZZLE_SEED', defaultValue: -1);
   return fromEnv >= 0
@@ -17,171 +17,84 @@ final initialSeedProvider = Provider<int>((ref) {
       : DateTime.now().millisecondsSinceEpoch % 1000000;
 });
 
-/// Layout generator behind the replaceable interface. Provisional
-/// implementation: TD-02 remains Pending.
-final layoutGeneratorProvider = Provider<LayoutGenerator>(
-  (ref) => const ProvisionalRandomFillGenerator(),
+/// The illustration being played. Defaults to the code-drawn placeholder
+/// (no final artwork exists). Its source size drives both the domain's tile
+/// slicing and the board's aspect ratio, so they cannot disagree.
+final artworkProvider = Provider<PuzzleArtwork>(
+  (ref) => const PlaceholderStorybookArtwork(),
 );
-
-/// Cancels a scheduled callback.
-typedef CancelScheduled = void Function();
-
-/// Schedules [callback] after [delay]. Injectable so tests control time
-/// explicitly instead of waiting on real timers.
-typedef Scheduler = CancelScheduled Function(
-  Duration delay,
-  void Function() callback,
-);
-
-final schedulerProvider = Provider<Scheduler>(
-  (ref) =>
-      (delay, callback) => Timer(delay, callback).cancel,
-);
-
-/// Short face-down introduction before the preview (provisional; the
-/// approved timing is only the 4 s preview itself).
-const introDuration = Duration(milliseconds: 1200);
 
 @immutable
 class PuzzleState {
   const PuzzleState({
     required this.seed,
-    required this.session,
+    required this.puzzle,
+    this.swaps = 0,
     this.showCompletion = false,
   });
 
   final int seed;
-  final PuzzleSession session;
+  final PicturePuzzle puzzle;
 
-  /// True once the last piece's lock animation has finished.
+  /// Swaps made in this puzzle (shown on completion only).
+  final int swaps;
+
+  /// True once the completion animation has finished.
   final bool showCompletion;
 
-  PuzzlePhase get phase => session.phase;
-  int get placedCount => session.lockedCount;
-  int get totalCount => session.pieceCount;
+  int get correctCount => puzzle.correctCount;
+  int get tileCount => puzzle.tileCount;
+  bool get isComplete => puzzle.isComplete;
 
-  /// The approved preview duration (GP-21).
-  Duration get previewDuration => PuzzleSession.previewDuration;
-
-  PuzzleState copyWith({PuzzleSession? session, bool? showCompletion}) =>
-      PuzzleState(
-        seed: seed,
-        session: session ?? this.session,
-        showCompletion: showCompletion ?? this.showCompletion,
-      );
+  PuzzleState copyWith({
+    PicturePuzzle? puzzle,
+    int? swaps,
+    bool? showCompletion,
+  }) => PuzzleState(
+    seed: seed,
+    puzzle: puzzle ?? this.puzzle,
+    swaps: swaps ?? this.swaps,
+    showCompletion: showCompletion ?? this.showCompletion,
+  );
 }
 
-/// Application state for the current puzzle (hand-written Notifier,
-/// ADR-0003). It sequences intro → preview → memory mode and forwards
-/// player actions to the domain, which makes every rule decision.
+SourceSize _sourceSize(PuzzleArtwork a) =>
+    SourceSize(a.sourceSize.width, a.sourceSize.height);
+
+/// Application state for the current picture-swap puzzle (hand-written
+/// Notifier, ADR-0003). Every rule decision is made by the domain.
 class PuzzleController extends Notifier<PuzzleState> {
-  CancelScheduled? _pending;
-  int? _readySeed;
-
   @override
-  PuzzleState build() {
-    ref.onDispose(_cancelPending);
-    return _newState(ref.read(initialSeedProvider));
-  }
+  PuzzleState build() => _newState(ref.read(initialSeedProvider));
 
-  PuzzleState _newState(int seed) {
-    final layout = ref
-        .read(layoutGeneratorProvider)
-        .generate(
-          grid: prototypeGrid,
-          constraints: LayoutConstraints.prototype,
-          seed: seed,
-        );
-    return PuzzleState(
+  PuzzleState _newState(int seed) => PuzzleState(
+    seed: seed,
+    puzzle: PicturePuzzle.shuffled(
+      prototypeGrid,
+      _sourceSize(ref.read(artworkProvider)),
       seed: seed,
-      session: PuzzleSession.start(
-        layout,
-        bounds: PlayBounds.prototype(prototypeGrid),
-        scatterSeed: seed,
-      ),
-    );
-  }
+    ),
+  );
 
-  void _cancelPending() {
-    _pending?.call();
-    _pending = null;
-  }
-
-  void _schedule(Duration d, void Function() f) {
-    _cancelPending();
-    _pending = ref.read(schedulerProvider)(d, () {
-      _pending = null;
-      f();
-    });
-  }
-
-  /// The game is showing the face-down pieces: start the short intro, then
-  /// the preview. Idempotent per puzzle.
-  void gameReady() {
-    if (_readySeed == state.seed || state.phase != PuzzlePhase.intro) return;
-    _readySeed = state.seed;
-    _schedule(introDuration, beginPreview);
-  }
-
-  /// intro → preview: every piece flips face-up.
-  void beginPreview() {
-    if (state.phase != PuzzlePhase.intro) return;
-    state = state.copyWith(session: state.session.beginPreview());
-  }
-
-  /// The flip-up finished; the pieces stay visible for exactly
-  /// [PuzzleSession.previewDuration].
-  void previewShown() {
-    if (state.phase != PuzzlePhase.preview) return;
-    _schedule(PuzzleSession.previewDuration, endPreview);
-  }
-
-  /// preview → memory mode: every piece flips face-down.
-  void endPreview() {
-    if (state.phase != PuzzlePhase.preview) return;
-    state = state.copyWith(session: state.session.endPreview());
-  }
-
-  /// Tap on a face-down piece: reveal only that piece and raise it.
-  RevealOutcome reveal(String pieceId) {
-    final outcome = state.session.reveal(pieceId);
-    if (outcome case PieceRevealed(:final session)) {
-      state = state.copyWith(session: session.bringToFront(pieceId));
+  /// Exchange the tiles in [from] and [to]. Wrong swaps are accepted.
+  SwapOutcome swap(GridCell from, GridCell to) {
+    final outcome = state.puzzle.swap(from, to);
+    if (outcome case TilesSwapped(:final puzzle)) {
+      state = state.copyWith(puzzle: puzzle, swaps: state.swaps + 1);
     }
     return outcome;
   }
 
-  /// A face-up piece was selected: raise it above the others.
-  void select(String pieceId) {
-    final next = state.session.bringToFront(pieceId);
-    if (!identical(next, state.session)) {
-      state = state.copyWith(session: next);
-    }
-  }
-
-  /// A piece was dropped with its top-left at [position].
-  MoveOutcome drop(String pieceId, BoardPoint position) {
-    final outcome = state.session.move(pieceId, position);
-    if (outcome case PieceMoved(:final session)) {
-      state = state.copyWith(session: session);
-    }
-    return outcome;
-  }
-
-  /// The snap animation for [pieceId] finished. Completion is shown once,
-  /// after the last lock. Rewards and cards attach here later (not in this
-  /// milestone).
-  void lockFinished(String pieceId) {
-    if (state.session.isComplete && !state.showCompletion) {
+  /// The completion animation finished. Rewards and progression attach
+  /// here later (not in this milestone).
+  void completionShown() {
+    if (state.isComplete && !state.showCompletion) {
       state = state.copyWith(showCompletion: true);
     }
   }
 
   /// Starts a new puzzle with the next seed.
-  void newPuzzle() {
-    _cancelPending();
-    state = _newState(state.seed + 1);
-  }
+  void newPuzzle() => state = _newState(state.seed + 1);
 }
 
 final puzzleControllerProvider =
