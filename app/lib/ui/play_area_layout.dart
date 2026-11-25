@@ -3,74 +3,53 @@ import 'dart:ui';
 
 import 'package:puzzle_domain/puzzle_domain.dart';
 
-/// Screen geometry of the play area, shared by the Flutter tray and the
-/// Flame board so both agree exactly. Derived from the available size: no
-/// hardcoded screen coordinates (Development Rule 6).
-class PlayAreaLayout {
-  const PlayAreaLayout({
-    required this.board,
-    required this.tray,
+/// Maps board space (cell units, see [BoardPoint]) to screen space inside
+/// the play area. The whole [PlayBounds] workspace is fitted into the
+/// available size with a margin, keeping square cells, so every piece
+/// position the domain allows is fully on screen at any aspect ratio.
+class BoardLayout {
+  const BoardLayout._({
+    required this.workspace,
     required this.cellSize,
-    required this.trayTile,
+    required this.origin,
   });
 
-  /// Tray: two rows (GP-16) of square tiles. 72 dp tiles keep touch targets
-  /// well above the 48 dp Android minimum (GP-17; the exact comfortable size
-  /// is not product-approved, so this value is provisional).
-  static const trayTileSize = 72.0;
-  static const trayGap = 10.0;
-  static const trayPadding = 12.0;
-  static const margin = 16.0;
+  static const margin = 12.0;
 
-  static double get trayHeight => 2 * trayTileSize + trayGap + 2 * trayPadding;
-
-  final Rect board;
-  final Rect tray;
+  /// Workspace (play bounds) rect in play-area coordinates.
+  final Rect workspace;
   final double cellSize;
-  final double trayTile;
 
-  static PlayAreaLayout compute(Size size, GridSize grid) {
-    final trayRect = Rect.fromLTWH(
-      margin,
-      size.height - trayHeight - margin,
-      math.max(0, size.width - 2 * margin),
-      trayHeight,
-    );
-    final availableW = size.width - 2 * margin;
-    final availableH = trayRect.top - 2 * margin;
-    final cell = math.max(
-      0.0,
-      math.min(availableW / grid.columns, availableH / grid.rows),
-    );
-    final boardW = cell * grid.columns;
-    final boardH = cell * grid.rows;
-    final board = Rect.fromLTWH(
-      (size.width - boardW) / 2,
-      margin + (availableH - boardH) / 2,
-      boardW,
-      boardH,
-    );
-    return PlayAreaLayout(
-      board: board,
-      tray: trayRect,
+  /// Screen position of board point (0, 0): the grid's top-left.
+  final Offset origin;
+
+  static BoardLayout compute(Size size, PlayBounds bounds) {
+    final availW = math.max(0.0, size.width - 2 * margin);
+    final availH = math.max(0.0, size.height - 2 * margin);
+    final cell = math.min(availW / bounds.width, availH / bounds.height);
+    final w = cell * bounds.width;
+    final h = cell * bounds.height;
+    final ws = Rect.fromLTWH((size.width - w) / 2, (size.height - h) / 2, w, h);
+    return BoardLayout._(
+      workspace: ws,
       cellSize: cell,
-      trayTile: trayTileSize,
+      origin: ws.topLeft - Offset(bounds.left * cell, bounds.top * cell),
     );
   }
 
-  /// Board rect for a piece whose top-left cell is [origin].
-  Rect pieceRectAt(GridCell origin, PieceSize size) => Rect.fromLTWH(
-    board.left + origin.column * cellSize,
-    board.top + origin.row * cellSize,
-    size.columnSpan * cellSize,
-    size.rowSpan * cellSize,
-  );
+  Offset toScreen(BoardPoint p) =>
+      origin + Offset(p.x * cellSize, p.y * cellSize);
 
-  /// Nearest cell for a piece whose top-left corner is at [topLeft]. This
-  /// is the magnetic-snap candidate: rounding means a drop within half a
-  /// cell of a cell boundary snaps to it (provisional feel parameter).
-  GridCell nearestOrigin(Offset topLeft) => GridCell(
-    ((topLeft.dy - board.top) / cellSize).round(),
-    ((topLeft.dx - board.left) / cellSize).round(),
-  );
+  BoardPoint toBoard(Offset o) =>
+      BoardPoint((o.dx - origin.dx) / cellSize, (o.dy - origin.dy) / cellSize);
+
+  Size pieceSize(PieceSize s) =>
+      Size(s.columnSpan * cellSize, s.rowSpan * cellSize);
+
+  Rect pieceRect(BoardPoint topLeft, PieceSize s) =>
+      toScreen(topLeft) & pieceSize(s);
+
+  /// Screen rect of the logical grid (the target picture area).
+  Rect gridRect(GridSize g) =>
+      origin & Size(g.columns * cellSize, g.rows * cellSize);
 }

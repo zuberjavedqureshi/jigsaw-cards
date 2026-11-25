@@ -212,7 +212,7 @@ class PlaceholderStorybookArtwork implements PuzzleArtwork {
 
 /// Paints [artwork]'s region for a piece into [dst]: the piece spans
 /// [rowSpan]×[columnSpan] cells starting at ([row], [column]) on a board of
-/// [gridRows]×[gridColumns] cells. Shared by the Flame board and the tray.
+/// [gridRows]×[gridColumns] cells.
 void paintPieceRegion(
   Canvas canvas,
   PuzzleArtwork artwork,
@@ -232,4 +232,102 @@ void paintPieceRegion(
   canvas.translate(dst.left - column * cellW, dst.top - row * cellH);
   artwork.paint(canvas, Size(cellW * gridColumns, cellH * gridRows));
   canvas.restore();
+}
+
+/// **TEMPORARY PLACEHOLDER** decorative card back for face-down pieces:
+/// midnight blue with a gold frame, a crescent-and-star emblem and a soft
+/// star pattern. Code-drawn; not final art.
+void paintCardBack(Canvas canvas, Rect dst, {double cornerRadius = 6}) {
+  final rr = RRect.fromRectAndRadius(dst, Radius.circular(cornerRadius));
+  canvas.save();
+  canvas.clipRRect(rr);
+  canvas.drawRect(
+    dst,
+    Paint()
+      ..shader = Gradient.linear(
+        dst.topLeft,
+        dst.bottomRight,
+        const [Color(0xFF26307A), Color(0xFF1A1E52), Color(0xFF2D2266)],
+        const [0, 0.55, 1],
+      ),
+  );
+  // Diamond lattice.
+  final unit = math.min(dst.width, dst.height) / 4;
+  final lattice = Paint()
+    ..color = const Color(0x22FFD98A)
+    ..strokeWidth = 1;
+  for (var d = -dst.height; d < dst.width + dst.height; d += unit) {
+    canvas.drawLine(
+      Offset(dst.left + d, dst.top),
+      Offset(dst.left + d + dst.height, dst.bottom),
+      lattice,
+    );
+    canvas.drawLine(
+      Offset(dst.left + d, dst.bottom),
+      Offset(dst.left + d + dst.height, dst.top),
+      lattice,
+    );
+  }
+  // Tiny stars at lattice crossings (deterministic).
+  final star = Paint()..color = const Color(0x55FFE7A8);
+  for (var y = dst.top + unit / 2; y < dst.bottom; y += unit) {
+    for (var x = dst.left + unit / 2; x < dst.right; x += unit) {
+      canvas.drawCircle(Offset(x, y), math.max(0.8, unit * 0.04), star);
+    }
+  }
+  canvas.restore();
+
+  // Gold frame.
+  final inset = math.max(2.0, unit * 0.12);
+  canvas.drawRRect(
+    rr.deflate(inset),
+    Paint()
+      ..color = const Color(0xFFE2BC62)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.2, unit * 0.05),
+  );
+  canvas.drawRRect(
+    rr.deflate(inset * 1.9),
+    Paint()
+      ..color = const Color(0x66E2BC62)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8,
+  );
+
+  // Emblem: crescent moon with a star, sized to the shorter side.
+  final c = dst.center;
+  final r = math.min(dst.width, dst.height) * 0.2;
+  canvas.drawCircle(
+    c,
+    r * 1.55,
+    Paint()
+      ..color = const Color(0x33FFE7A8)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.5),
+  );
+  final moon = Path()
+    ..addOval(Rect.fromCircle(center: c, radius: r))
+    ..fillType = PathFillType.evenOdd;
+  final bite = Path()
+    ..addOval(
+      Rect.fromCircle(
+        center: c.translate(r * 0.45, -r * 0.2),
+        radius: r * 0.85,
+      ),
+    );
+  canvas.drawPath(
+    Path.combine(PathOperation.difference, moon, bite),
+    Paint()..color = const Color(0xFFF4D27A),
+  );
+  _drawStar(canvas, c.translate(r * 0.7, -r * 0.55), r * 0.32);
+}
+
+void _drawStar(Canvas canvas, Offset c, double r) {
+  final path = Path();
+  for (var i = 0; i < 8; i++) {
+    final a = -math.pi / 2 + i * math.pi / 4;
+    final rad = i.isEven ? r : r * 0.38;
+    final p = c + Offset(math.cos(a) * rad, math.sin(a) * rad);
+    i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+  }
+  canvas.drawPath(path..close(), Paint()..color = const Color(0xFFFFF1C4));
 }
