@@ -1,0 +1,92 @@
+# Development/debug APK distribution for the product owner.
+# Builds a DEBUG APK (debug-signed, not for release) and uploads it as a
+# workflow artifact. No release signing, no store publishing.
+name: Android debug APK
+
+on:
+  push:
+    branches:
+      - feature/m1-1-core-puzzle-gameplay
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Versions this repository is developed and validated with.
+  FLUTTER_VERSION: "3.50.1"
+  JAVA_VERSION: "21"
+  # Path relative to app/ (the Flutter project inside the pub workspace).
+  APK_PATH: build/app/outputs/flutter-apk/app-debug.apk
+
+jobs:
+  build-debug-apk:
+    name: Build debug APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Show toolchain versions
+        run: |
+          flutter --version
+          java -version
+
+      - name: Resolve dependencies (pub workspace)
+        run: flutter pub get
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Verify APK exists
+        run: |
+          if [ ! -s "$APK_PATH" ]; then
+            echo "::error title=APK missing::Expected debug APK not found at app/$APK_PATH"
+            ls -la build/app/outputs/flutter-apk/ || true
+            exit 1
+          fi
+          size=$(stat -c %s "$APK_PATH")
+          sha=$(sha256sum "$APK_PATH" | cut -d' ' -f1)
+          echo "APK: app/$APK_PATH ($size bytes), sha256 $sha"
+          {
+            echo "### Debug APK built"
+            echo ""
+            echo "- Commit: \`${GITHUB_SHA::7}\` on \`${GITHUB_REF_NAME}\`"
+            echo "- Size: $((size / 1024 / 1024)) MB"
+            echo "- SHA-256: \`$sha\`"
+            echo "- Download the **jigsaw-cards-gameplay-debug** artifact below (kept 14 days)."
+            echo ""
+            echo "Debug build only: debug-signed, not for release."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: jigsaw-cards-gameplay-debug
+          path: app/${{ env.APK_PATH }}
+          if-no-files-found: error
+          retention-days: 14
+          # The APK is already compressed.
+          compression-level: 0
