@@ -60,7 +60,8 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 | `correctOrigin` | Top-left cell `(row, column)` of the piece's correct position |
 | `size` | `(rowSpan, columnSpan)` in cells, e.g. `(1,1)`, `(1,2)`, `(2,2)` |
 
-- **[Proposed]** A piece's runtime location is one of: `inTray(slot)` or `onBoard(origin)`.
+- **[Implemented, provisional model]** A piece's runtime state is separate from its definition: a free **current position** (`BoardPoint`, top-left in cell units, continuous), a **revealed** flag and a **locked** flag. The correct target (`correctOrigin`) never changes. The session also holds the **phase** (intro, preview, playing, complete) and a **stack order** (bottom to top) used for rendering and hit testing. *(History: the earlier proposal was `inTray(slot)` or `onBoard(origin)`, superseded with Q-011 on 2026-11-25.)*
+- **[Implemented, provisional]** The playable workspace (`PlayBounds`) is a rectangle in cell units that contains the grid: 0.3 cells around it and 3.4 extra cells below it (4.6 × 8.0 cells for 4×4). Every position is clamped so the whole piece stays inside it. The size is a presentation choice, not a product decision.
 - **[Proposed]** The image region of a piece is derived from `correctOrigin` and `size`, so no separate image coordinates are stored.
 
 **Tiling invariant [Confirmed, follows from PS-08]:** the set of piece rectangles at their correct origins tiles the grid exactly. Every cell is covered once, there are no overlaps, and nothing lies outside the grid. This is what makes a layout a *partition* of the 4×4 board (GP-01, PS-08), and it matches GAMEPLAY ("pieces together cover the whole board exactly, with no overlap"). It introduces no new product decision.
@@ -89,6 +90,8 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
 **[Provisional implementation — not a TD-02 decision]** `packages/puzzle_domain` generates layouts through a replaceable `LayoutGenerator` interface. The only implementation, `ProvisionalRandomFillGenerator`, fills cells in row-major order, picks a fitting allowed size uniformly with a seeded `Random`, and retries until the layout passes validation (tiling, sizes, 8–12 pieces). It is deterministic per seed and tested over 500 seeds, but it is a placeholder for the first playable prototype; its distribution and variety are not evaluated. The app seeds it with `--dart-define=PUZZLE_SEED=<n>` or, if unset, the launch time. Layouts are **not yet persisted** (PS-23 outstanding). TD-02 remains Pending.
 
+**[Provisional implementation]** Starting positions (GP-20) come from a replaceable `StartArranger`. `SeededScatterArranger` places larger pieces first, sampling 48 random candidate positions per piece and keeping the one with the least overlap with pieces already placed. It never places a piece within 1 cell (Chebyshev distance) of its own correct position, and stacks smaller pieces on top. It is deterministic per seed and workspace; tests over 300 seeds check that pieces stay in bounds, start at least 1 cell from their targets and keep at least 50% of their area uncovered.
+
 **[Confirmed]** Whatever algorithm is chosen, every generated layout must satisfy the tiling invariant in §4 (PS-08) and the approved size and count constraints (PS-20, PS-21). **[Confirmed]** Generation is puzzle domain logic and therefore must be unit-tested (Development Rule 5).
 
 ## 6. Grid Occupancy
@@ -96,40 +99,39 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 - **[Proposed]** The engine maintains an occupancy map: `cell → pieceId | empty`, derived from pieces currently on the board.
 - **[Proposed]** Occupancy is derived from piece locations (single source of truth) rather than stored separately, to avoid inconsistency.
 
-## 7. Placement Validation
+## 7. Placement Rules
 
-**[Confirmed]** Placement rule (Q-010, resolved 2026-11-23; PRD GP-06, GP-14, GP-15):
+**[Confirmed]** Free placement (Q-010 revised 2026-11-25; PRD GP-15, GP-24 to GP-26):
 
-- **Strict rule:** a placement is accepted only if the target origin equals the piece's `correctOrigin`. Pieces on the board are therefore always correct.
-- Correctly placed pieces are **permanently locked**. Locked pieces cannot be moved or swapped.
-- Incorrectly dropped pieces animate back to their previous position. Animation is a rendering concern; the domain rejects the placement and leaves state unchanged.
+- A revealed, unlocked piece may be moved to any position inside the workspace; positions outside are clamped so the whole piece stays inside. Overlap is allowed.
+- An incorrect position is **accepted and kept**. The domain never rejects a move for being incorrect and never returns a piece.
+- A move whose position is within the snapping tolerance of the correct position (§8) snaps exactly onto it and **locks** the piece permanently. Locked pieces cannot move again.
+- **[Implemented]** `move(pieceId, position)` returns `PieceMoved(session, snapped)` or `MoveRejected(reason)`. It is rejected (state unchanged, never thrown) for an unknown piece, outside memory mode, for a locked piece, or for a face-down piece (it must be revealed first).
+- **[Implemented]** `reveal(pieceId)` reveals only that piece (rejected outside memory mode, or if the piece is locked or already revealed). `bringToFront(pieceId)` raises a selected piece. `topmostSelectableAt(point)` returns the topmost unlocked piece under a point; locked pieces are skipped, so a touch passes through them.
 
-*History:* a "free" rule (any in-bounds, non-overlapping placement accepted; correctness checked only at completion) was considered and not adopted.
-
-- **[Proposed]** Placement checks, in order: piece exists → piece is not locked → target in bounds → target equals correct origin.
-- **[Proposed]** The operation returns a result value (`accepted` / `rejected(reason)`) and the new state; it never throws for normal gameplay rejections.
+*History:* the strict rule (2026-11-23: only the correct origin accepts a piece; incorrect drops animate back to their previous position) was superseded on 2026-11-25. Before that, a free rule had been considered and not adopted.
 
 ## 8. Magnetic Snapping
 
-Snapping spans two layers:
+- **[Confirmed]** A piece snaps only to its own correct position (GP-05, GP-26).
+- **[Implemented]** The decision is made in the domain: the Chebyshev distance between the dropped position and the correct position must be within `snapTolerance` (cell units). It is configurable per session (valid range `[0, 0.5)`), and the provisional default is **0.3 cells**, a feel parameter to tune on devices. Rendering only animates the snap.
 
-- **Rendering (Flame):** converts the drop point to the nearest candidate grid origin, using the piece's size and the current board layout. Decides whether the drop is "close enough" to snap.
-- **Domain:** validates the candidate origin (§7).
+## 8a. Reveal Sequence
 
-- **[Confirmed]** Under the strict rule (GP-14), only the piece's correct origin can accept it.
-- **[Open]** Snap threshold (e.g. a fraction of cell size), and whether snapping considers only the nearest cell or the piece's correct cell within a radius. These are feel parameters, to be tuned during validation and kept in configuration, not hardcoded.
+- **[Confirmed]** Phases: intro (face-down, no interaction) → preview (all face-up for exactly **4 seconds**, no interaction; `PuzzleSession.previewDuration`) → playing (memory mode) → complete (GP-20 to GP-23).
+- **[Implemented]** A piece is shown face-up during the preview, once revealed, once locked, and when complete. The application layer times the phases with an injectable scheduler: the 4 s starts when the flip-up animation has finished. The intro length (1.2 s) is provisional.
 
 ## 9. Completion Detection
 
 - **[Confirmed]** Completion detection (GP-09). Completion is reported through the shared completion reporting (PS-16); the application layer then applies rewards: the card reveal on designated puzzles (CC-04), progression rewards on non-designated puzzles (CC-05), and coins on both.
-- **[Proposed]** The puzzle is complete when every piece is on the board at its `correctOrigin`. Under the confirmed strict rule (GP-14) this is equivalent to "all pieces placed".
-- **[Proposed]** Completion is reported as part of the placement result so the app layer can react once.
+- **[Implemented]** The puzzle is complete when every piece is locked. A piece locks only at its exact correct position, so this means every piece is correctly placed. Wrong positions never count. The move that locks the last piece reports `completedPuzzle`, and the phase becomes `complete`.
 
 ## 10. Save / Restore
 
 - **[Confirmed]** Unfinished puzzles are saved automatically.
 - **[Confirmed]** The selected/generated layout is persisted, so an unfinished puzzle retains exactly the same arrangement (PS-23).
-- **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, puzzle style, the layout, each piece's location (tray or locked on the board), and a schema version. Restoring the same data yields an identical state.
+- **[Proposed]** Puzzle state is serialisable to a plain data structure: puzzle id, puzzle style, the layout, each piece's current position, revealed and locked flags, the stack order, the phase, and a schema version. Restoring the same data yields an identical state.
+- **[Not implemented]** Serialisation and restore are not implemented yet, so PS-23 (persisted layout) and GP-13 (auto-save) remain outstanding.
 
 ## 11. Future Puzzle Style: Traditional Irregular Jigsaw
 

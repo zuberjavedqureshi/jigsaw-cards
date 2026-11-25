@@ -39,7 +39,7 @@ Approved by the product owner on 2026-11-24, following the S-01 Hybrid Shell rev
 | ID | Topic | Notes |
 | --- | --- | --- |
 | TD-01 | Local database / storage | To be evaluated in Phase 1 against: simplicity, migration support, performance, dependency weight. No candidate is pre-selected. |
-| TD-02 | Rectangular partition generation algorithm | Product constraints approved via Q-009 (PRD PS-19 to PS-24: piece sizes, 8–12 pieces inclusive as a generation constraint, seeded generation, persisted layout). Still pending: the algorithm, runtime vs build-time generation and seed source (PUZZLE_ENGINE.md §5). A provisional seeded generator sits behind a replaceable `LayoutGenerator` interface for the first playable prototype (2026-11-25); this is **not** a decision and TD-02 stays Pending |
+| TD-02 | Rectangular partition generation algorithm | Product constraints approved via Q-009 (PRD PS-19 to PS-24: piece sizes, 8–12 pieces inclusive as a generation constraint, seeded generation, persisted layout). Still pending: the algorithm, runtime vs build-time generation and seed source (PUZZLE_ENGINE.md §5). A provisional seeded generator sits behind a replaceable `LayoutGenerator` interface for the first playable prototype (2026-11-25), and a provisional seeded starting scatter sits behind `StartArranger` for the free-placement gameplay; neither is a decision and TD-02 stays Pending |
 | TD-06 | Minimum Android version / target devices | Needed for performance validation |
 | TD-07 | Flutter / Flame version pinning policy | |
 | TD-08 | CI setup | Analyzer, formatter, tests on PRs |

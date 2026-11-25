@@ -20,7 +20,7 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 - Rive character animation inside the app (or decide an alternative).
 - flame_audio latency for feedback sounds.
 - Local persistence options → select one (ADR).
-- Responsive board/tray layout across screen sizes.
+- Responsive board layout across screen sizes and aspect ratios.
 
 **Exit:** ADRs for each validated decision; Flutter project structure approved.
 
@@ -33,7 +33,7 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 
 ## Phase 3 — Playable Prototype
 
-- One 4×4 mixed-rectangle puzzle end to end: tray, drag, snap, reject, preview, completion, reveal, coin animation, sound effects, auto-save/restore.
+- One 4×4 mixed-rectangle puzzle end to end: scattered face-down start, 4-second preview, tap to reveal, free placement, snap and lock, completion, character/card reveal, coin animation, sound effects, auto-save/restore.
 
 **Exit:** prototype success criteria in the PRD are met.
 

@@ -9,8 +9,8 @@
 | M1.3 | Rive validation spike | 1 | ⏳ Not started |
 | M1.4 | Persistence selection (ADR) | 1 | ⏳ Not started |
 | M1.5 | Flutter project structure approved (ADR) | 1 | ✅ Approved 2026-11-24 ([ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)); production workspace created 2026-11-25 on branch `feature/m1-1-core-puzzle-gameplay` (not merged) |
-| M2 | Puzzle domain complete with tests | 2 | 🔄 In progress — grid, piece, layout validation, provisional seeded generation, placement, locking and completion implemented with tests (branch `feature/m1-1-core-puzzle-gameplay`). **Outstanding:** TD-02 algorithm decision, serialisation/restore |
-| M3 | Playable 4×4 prototype | 3 | 🔄 In progress — first playable puzzle (board, two-row tray, drag, snap-and-lock, return, completion) with widget tests and a web-preview check. **Outstanding:** physical Android device validation, reference preview, card reveal, coin reward, sound, auto-save/restore, final artwork |
+| M2 | Puzzle domain complete with tests | 2 | 🔄 In progress — grid, pieces, layout validation, provisional seeded generation, provisional seeded scatter, reveal phases, free placement, snap tolerance, locking, stacking/hit testing and completion, with tests. **Outstanding:** TD-02 algorithm decision, serialisation/restore (PS-23) |
+| M3 | Playable 4×4 prototype | 3 | 🔄 In progress — free-placement memory gameplay (scattered face-down start, 4 s preview, tap to reveal, free drag with overlap, snap-and-lock, completion) with widget tests and a web-preview check, on branch `feature/gameplay-free-placement-reveal` (not merged). The earlier tray-based build is superseded. **Outstanding:** physical Android device validation of this build, reference preview, card reveal, coin reward, sound, auto-save/restore (including PS-23), final artwork |
 | M4 | MVP vertical slice | 4 | ⏳ Not started |
 
 ## Milestone Definitions

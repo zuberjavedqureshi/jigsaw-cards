@@ -169,29 +169,38 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 ### 7.2 Prototype gameplay
 
-All requirements below are **[Confirmed]**. GP-06 was confirmed, and GP-14 to GP-19 added, when Q-010 and Q-011 were resolved (2026-11-23).
+All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 was confirmed, and GP-14 to GP-19 added, when Q-010 and Q-011 were resolved (2026-11-23). On 2026-11-25 the product owner revised Q-010 and Q-011 after Android device testing and approved the free-placement memory gameplay (GP-20 to GP-28): tap to reveal, free placement and an exactly 4-second preview. Superseded requirements keep their IDs as history and must not be implemented.
 
 | ID | Requirement |
 | --- | --- |
 | GP-01 | One 4×4 logical board |
 | GP-02 | Mixed-sized rectangular pieces |
-| GP-03 | Piece tray below the board |
-| GP-04 | Pieces are dragged from the tray onto the board |
-| GP-05 | Automatic magnetic snapping |
-| GP-06 | Incorrectly dropped pieces animate back to their previous position (Q-010) |
+| GP-03 | ~~Piece tray below the board~~ **Superseded 2026-11-25** by GP-20 and GP-27 (Q-011 revised) |
+| GP-04 | ~~Pieces are dragged from the tray onto the board~~ **Superseded 2026-11-25** by GP-24 (pieces are dragged freely on the board) |
+| GP-05 | Automatic magnetic snapping (at the correct position, within the snapping tolerance; GP-26) |
+| GP-06 | ~~Incorrectly dropped pieces animate back to their previous position (Q-010)~~ **Superseded 2026-11-25** by GP-25 (incorrect drops stay where placed) |
 | GP-07 | No rotation in the prototype |
-| GP-08 | Optional reference-image preview |
+| GP-08 | Optional reference-image preview (separate from the start-of-puzzle preview, GP-21; interaction still open, Q-008) |
 | GP-09 | Completion detection |
 | GP-10 | Character/card reveal |
 | GP-11 | Coin reward animation |
 | GP-12 | Sound effects |
 | GP-13 | Automatic saving of unfinished puzzles |
-| GP-14 | Only a piece's correct position accepts it (Q-010) |
-| GP-15 | Correctly placed pieces become permanently locked; locked pieces cannot be moved or swapped (Q-010) |
-| GP-16 | The tray below the board has two rows and scrolls horizontally (Q-011) |
-| GP-17 | Tray pieces keep comfortable touch targets (Q-011) |
-| GP-18 | Picking up a piece enlarges it to board scale (Q-011) |
-| GP-19 | The board and tray layout adapts to different phone screen sizes (Q-011) |
+| GP-14 | ~~Only a piece's correct position accepts it (Q-010)~~ **Superseded 2026-11-25** by GP-24 and GP-25 (free placement) |
+| GP-15 | Correctly placed pieces become permanently locked; locked pieces cannot be moved or swapped (Q-010; still applies under free placement) |
+| GP-16 | ~~The tray below the board has two rows and scrolls horizontally (Q-011)~~ **Superseded 2026-11-25** (no tray in the primary interaction) |
+| GP-17 | ~~Tray pieces keep comfortable touch targets (Q-011)~~ **Superseded 2026-11-25**; touch-target intent continues in GP-28 |
+| GP-18 | ~~Picking up a piece enlarges it to board scale (Q-011)~~ **Superseded 2026-11-25** (pieces are always at board scale on the board) |
+| GP-19 | ~~The board and tray layout adapts to different phone screen sizes (Q-011)~~ **Superseded 2026-11-25** by GP-28 |
+| GP-20 | At puzzle start, every piece is placed face-down (decorative back) at its own seeded, randomised position scattered across the board; starting positions are independent of the correct positions, visibly distributed, individually selectable and do not expose the solution (Q-011 revised) |
+| GP-21 | After a short introduction, every piece flips face-up and stays face-up for **exactly 4 seconds** (the preview); no interaction during the introduction or the preview |
+| GP-22 | After the preview, every piece flips face-down and play begins (memory mode) |
+| GP-23 | **Tap to reveal:** tapping a face-down piece reveals only that piece; a revealed piece stays face-up, including while it is moved |
+| GP-24 | **Free placement:** a revealed, unlocked piece can be dragged anywhere within the playable board area; pieces may overlap temporarily; the selected piece is drawn above the others (Q-010 revised) |
+| GP-25 | An incorrectly placed piece stays where it was dropped and is never returned automatically; it can be picked up and repositioned repeatedly (Q-010 revised) |
+| GP-26 | When a piece is aligned with its correct position within the snapping tolerance, it animates exactly into place and locks (GP-05, GP-15); the tolerance is configurable |
+| GP-27 | The board is the primary gameplay workspace; the two-row tray is not part of the primary puzzle interaction (Q-011 revised) |
+| GP-28 | The board and its pieces fit different phone aspect ratios within the safe area; pieces stay fully accessible and never leave the board area; overlapping pieces remain individually selectable (the topmost selectable piece is chosen) |
 
 Details: [GAMEPLAY.md](GAMEPLAY.md). Technical specification: [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
 
@@ -333,7 +342,7 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 
 ## 15. Prototype Scope
 
-**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-19) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
+**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-28, excluding requirements marked Superseded) for a single 4×4 puzzle with mixed rectangular pieces, on Android, in portrait.
 
 **[Confirmed]** The prototype puzzle is a **designated card puzzle** (CC-07), so it validates the full discovery and reward experience: completion, character reveal, guaranteed card and coins.
 
@@ -343,7 +352,7 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 
 **[Proposed]** Prototype acceptance:
 
-- A player completes one puzzle end to end: drag from the scrollable tray, snap and lock at the correct position, return of an incorrectly dropped piece, completion, character/card reveal, coin animation and sound.
+- A player completes one puzzle end to end: 4-second preview, tap to reveal, free placement with incorrect pieces staying where dropped, snap and lock at the correct position, completion, character/card reveal, coin animation and sound. (Revised 2026-11-25; previously: drag from the scrollable tray and return of an incorrectly dropped piece.)
 - Leaving mid-puzzle and returning restores the exact state.
 - Domain logic is unit-tested and independent of Flame.
 
@@ -410,8 +419,8 @@ These must remain unchanged without explicit approval:
 | 6 | Hybrid puzzle system: separate rectangular tile and irregular jigsaw styles with shared session, configuration, interaction contracts, progress/completion reporting and reward integration | PS-04 to PS-18 |
 | 7 | Mixed rectangular pieces for the first prototype | PS-01, GP-02 |
 | 8 | Traditional irregular jigsaw as future functionality | PS-02, FP-01 |
-| 9 | Piece tray below the board | GP-03 |
-| 10 | Drag pieces from tray onto board | GP-04 |
+| 9 | ~~Piece tray below the board~~ Superseded 2026-11-25 by #31 | GP-03 |
+| 10 | ~~Drag pieces from tray onto board~~ Superseded 2026-11-25 by #32 | GP-04 |
 | 11 | Automatic magnetic snapping | GP-05 |
 | 12 | No rotation in the prototype | GP-07 |
 | 13 | Optional reference-image preview | GP-08 |
@@ -429,9 +438,12 @@ These must remain unchanged without explicit approval:
 | 25 | First prototype puzzle is a designated card puzzle | CC-07 |
 | 26 | Initial development: rectangular partition generation with logical grid occupancy | PS-06 to PS-08 |
 | 27 | Prototype piece generation: 4×4; pieces 1×1, 1×2, 2×1, 2×2; 8–12 pieces inclusive (generation constraint); seeded generation; layout persisted; hand-authored layouts not required for the prototype | PS-19 to PS-24 |
-| 28 | Strict placement: only the correct position accepts a piece; incorrect drops animate back to the previous position; correct pieces are permanently locked and cannot be moved or swapped | GP-06, GP-14, GP-15 |
-| 29 | Two-row, horizontally scrollable tray; comfortable touch targets; picked-up piece enlarges to board scale; layout adapts to phone screen sizes | GP-16 to GP-19 |
+| 28 | ~~Strict placement: only the correct position accepts a piece; incorrect drops animate back to the previous position; correct pieces are permanently locked and cannot be moved or swapped~~ Superseded 2026-11-25 by #32 (locking retained) | GP-06, GP-14, GP-15 |
+| 29 | ~~Two-row, horizontally scrollable tray; comfortable touch targets; picked-up piece enlarges to board scale; layout adapts to phone screen sizes~~ Superseded 2026-11-25 by #31 | GP-16 to GP-19 |
 | 30 | Target audience: core 16–35; overall intended audience 13+; teenagers and adults; under-13 not an intended target audience (product positioning, not a compliance determination) | TA-01 to TA-08 |
+| 31 | Pieces start face-down and scattered across the board, which is the primary workspace; no tray in the primary interaction; layout fits phone aspect ratios (Q-011 revised 2026-11-25) | GP-20, GP-27, GP-28 |
+| 32 | Free placement: drag revealed pieces anywhere on the board; temporary overlap allowed; incorrect drops stay where placed and can be repositioned; correct alignment within the snapping tolerance snaps and permanently locks (Q-010 revised 2026-11-25) | GP-15, GP-24 to GP-26 |
+| 33 | Memory reveal: all pieces face-up for exactly 4 seconds after a short introduction, then face-down; tap to reveal one piece at a time; revealed pieces stay face-up (2026-11-25) | GP-21 to GP-23 |
 
 ## 21. Source Gaps Summary
 

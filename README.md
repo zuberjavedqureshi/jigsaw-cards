@@ -5,7 +5,7 @@
 Jigsaw Cards is a magical storybook puzzle adventure for Android. Players solve beautifully illustrated image puzzles to discover animated characters, collect cards, complete themed collections and unlock new fantasy worlds.
 
 > **Project status: Early prototype — technical validation.**
-> A first playable 4×4 rectangular puzzle exists on a feature branch (`app/`, `packages/puzzle_domain/`): drag, strict snap-and-lock, return on wrong drop and completion. It uses a provisional generator and code-drawn placeholder artwork, and has not been validated on a physical Android device. Cards, coins, rewards, audio, persistence and reference preview are not implemented. See [Implementation Status](planning/IMPLEMENTATION_STATUS.md).
+> A playable 4×4 rectangular puzzle exists on feature branches (`app/`, `packages/puzzle_domain/`). The current version (`feature/gameplay-free-placement-reveal`) is a free-placement memory puzzle: pieces start scattered face-down, show their picture for 4 seconds, then the player taps to reveal pieces and drags them freely until each snaps and locks into place. It uses provisional generation and scatter, code-drawn placeholder artwork, and has not been validated on a physical Android device. Cards, coins, rewards, audio, persistence and the reference preview are not implemented. See [Implementation Status](planning/IMPLEMENTATION_STATUS.md).
 
 ---
 
@@ -25,9 +25,9 @@ Every puzzle is a page in a storybook. Completing puzzles rewards coins, and com
 **Initial puzzle prototype**
 
 - One 4×4 logical board with mixed-sized rectangular pieces.
-- Pieces start in a tray below the board and are dragged onto it.
-- Automatic magnetic snapping at the correct position only. Placed pieces lock permanently, and incorrect drops animate back to their previous position.
-- A two-row, horizontally scrollable tray; pieces enlarge to board scale when picked up.
+- Pieces start face-down, scattered across the board, which is the main workspace (no tray).
+- Every piece is shown face-up for exactly 4 seconds, then flips back: the player taps to reveal pieces one at a time.
+- Free placement: revealed pieces can be dragged anywhere and may overlap; wrong positions are kept and can be changed. A piece aligned with its correct position snaps into place and locks permanently.
 - Seeded generation of layouts with between 8 and 12 pieces (inclusive) of 1×1, 1×2, 2×1 or 2×2; the layout is saved with the puzzle.
 - No rotation in the initial prototype.
 - Optional reference-image preview.

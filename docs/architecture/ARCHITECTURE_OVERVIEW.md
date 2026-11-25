@@ -69,7 +69,7 @@ Details: [PUZZLE_ENGINE.md](PUZZLE_ENGINE.md).
 
 - **[Confirmed]** Flame as the game engine; flame_audio for audio.
 - **[Confirmed]** Flame communicates with the application layer through a manual bridge: intent callbacks out and a small view interface in, with explicit initial-state sync. Flame game and component classes do not use Riverpod, and `flame_riverpod` is not used (TD-03, [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md)).
-- **[Proposed]** Flame components translate pointer input into domain commands, and render the domain state. All positions are derived from the board/tray layout computed from screen size — no hardcoded screen coordinates.
+- **[Proposed]** Flame components translate pointer input into domain commands, and render the domain state. All positions are derived from the board layout computed from screen size — no hardcoded screen coordinates.
 - **[Confirmed, subject to validation]** Rive for character animation.
 
 ### 2.5 Local persistence
@@ -84,14 +84,16 @@ Details: [PUZZLE_ENGINE.md](PUZZLE_ENGINE.md).
 - **[Confirmed]** Firebase is used *when justified* (e.g. cloud save, remote config, analytics, crash reporting). No backend is required for the prototype.
 - **[Proposed]** Backend services plug in behind the same repository/service interfaces as local persistence.
 
-## 3. Data Flow — Placing a Piece (proposed)
+## 3. Data Flow — Moving a Piece (implemented on a feature branch, free placement)
 
-1. Player drags a piece (Flame handles the gesture and visual drag).
-2. On release, Flame converts the drop position into a candidate grid position using the current layout.
-3. The candidate is sent to the puzzle domain via the application state.
-4. The domain validates the placement and returns accepted/rejected plus new state.
-5. Flame animates the snap or the return to the previous position; flame_audio plays feedback.
-6. Application state triggers auto-save; on completion it triggers reveal and reward.
+1. The player drags a revealed piece. Flame handles the gesture and visual drag, hit testing against the domain's stack order.
+2. On release, Flame converts the piece's top-left into a board position (cell units) using the current layout.
+3. The position is sent to the puzzle domain through the application state (bridge intent).
+4. The domain accepts the move. It either keeps the piece where it was dropped, or snaps and locks it if it is within the snapping tolerance of the correct position, and returns the new state.
+5. The application layer syncs the new state to Flame, which animates the snap (or nothing, for a wrong drop); flame_audio feedback comes later.
+6. Application state will trigger auto-save (not implemented); on completion it triggers reveal and reward.
+
+*History:* before 2026-11-25 the flow ended in accepted/rejected, with a rejected piece animating back to the tray.
 
 ## 4. Project Layout (confirmed, not yet created)
 

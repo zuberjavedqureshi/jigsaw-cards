@@ -27,23 +27,35 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 - Pieces together cover the whole board exactly, with no overlap. This is the tiling invariant that follows from rectangular partition generation (PS-08; PUZZLE_ENGINE §4).
 - **No rotation** — every piece is always shown in its correct orientation.
 
-### Tray
+### Start: scattered face-down pieces (GP-20, GP-27)
 
-- At puzzle start, all pieces are arranged in a **tray below the board**.
-- **[Confirmed]** The tray has **two rows** and **scrolls horizontally** (GP-16).
-- **[Confirmed]** Tray pieces keep **comfortable touch targets** (GP-17).
-- **[Confirmed]** Picking up a piece **enlarges it to board scale** (GP-18).
-- **[Confirmed]** The layout adapts to different phone screen sizes (GP-19), with no hardcoded coordinates.
+- **[Confirmed 2026-11-25]** The board is the primary gameplay workspace. At puzzle start every piece lies **face-down** (decorative back) at its own **scattered position on the board**. There is no tray in the primary interaction.
+- Starting positions are seeded and randomised, independent of the correct positions, visibly distributed and individually selectable. No piece starts at its correct position, and the arrangement does not expose the solution.
 
-### Dragging and snapping
+### Memory preview (GP-21, GP-22)
 
-1. The player drags a piece from the tray onto the board.
-2. **[Confirmed]** Only the piece's **correct position** accepts it (GP-14). When released close enough to that position, the piece **magnetically snaps** into place.
-3. **[Confirmed]** A correctly placed piece becomes **permanently locked**. Locked pieces cannot be moved or swapped (GP-15).
-4. **[Confirmed]** If the drop is **incorrect**, the piece **animates back to its previous position** (GP-06). Because placed pieces are locked, a piece can only be picked up from the tray, so its previous position is its tray position.
-5. Feedback (sound, subtle animation) accompanies snap and rejection.
+1. A short introduction is shown while the pieces are face-down. The player cannot move pieces yet.
+2. **[Confirmed]** Every piece flips face-up and stays visible for **exactly 4 seconds**. No interaction during the preview.
+3. **[Confirmed]** Every piece flips face-down again and memory mode begins.
 
-> Snap distance and animation timing are tuning parameters, set during technical validation (S-03) and kept in configuration.
+### Reveal, arrange and lock (GP-23 to GP-26, GP-15)
+
+1. **[Confirmed]** **Tap to reveal:** tapping a face-down piece reveals only that piece. A revealed piece stays face-up, including while it is moved.
+2. **[Confirmed]** **Free placement:** a revealed piece can be dragged anywhere on the board. Pieces may overlap temporarily; the piece being moved is drawn above the others. When pieces overlap, a touch selects the topmost selectable piece.
+3. **[Confirmed]** An **incorrect** drop is accepted: the piece stays where it was dropped and is never sent back automatically. It can be picked up and repositioned as often as the player likes.
+4. **[Confirmed]** When a piece is aligned with its correct position within the **snapping tolerance**, it **magnetically snaps** exactly into place and becomes **permanently locked** (GP-05, GP-15). Locked pieces cannot be moved or swapped.
+5. Feedback (subtle animation now; sound later) accompanies reveal, pick-up and snap.
+
+> The snapping tolerance, the introduction length and animation timings are tuning parameters kept in configuration (S-03). The 4-second preview length is a product decision, not a tuning parameter.
+
+### Layout (GP-28)
+
+- The board and its pieces fit different phone aspect ratios within the system safe area, with no hardcoded coordinates. Pieces always stay fully on the board area and remain individually selectable.
+
+### Superseded (history)
+
+- **Q-011, 2026-11-23 → revised 2026-11-25:** pieces previously started in a two-row, horizontally scrolling tray below the board, with comfortable touch targets, and enlarged to board scale when picked up (GP-03, GP-04, GP-16 to GP-19).
+- **Q-010, 2026-11-23 → revised 2026-11-25:** previously only the correct position accepted a piece (GP-14), and incorrect drops animated back to their previous (tray) position (GP-06). Locking of correctly placed pieces (GP-15) is unchanged.
 
 ### Reference preview
 
@@ -66,11 +78,11 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 ### Saving
 
 - Unfinished puzzles are **saved automatically** (e.g. on each placement and when the app is backgrounded).
-- Returning to a puzzle restores all piece positions.
+- Returning to a puzzle restores all piece positions, reveal states and locks. **Not yet implemented**; the persisted-layout requirement PS-23 is also outstanding.
 
 ### Audio
 
-- Sound effects for pick-up, snap, rejection, completion, reveal and coins (exact list TBC).
+- Sound effects for reveal, pick-up, snap, completion, card reveal and coins (exact list TBC).
 - Background music is not specified for the prototype (TBC).
 
 ## 2. Future Puzzle Styles (not approved for implementation)
