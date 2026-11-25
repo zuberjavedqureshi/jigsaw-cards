@@ -1,0 +1,10 @@
+# S-01 spike workspace root (TD-04 experiment). Throwaway; not production.
+name: s01_hybrid_shell_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.14.0
+
+workspace:
+  - app
+  - packages/puzzle_domain

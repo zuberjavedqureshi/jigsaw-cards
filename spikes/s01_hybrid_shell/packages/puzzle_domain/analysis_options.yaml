@@ -1,0 +1,8 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Boundary guard (TD-04 finding): in a pub workspace all packages share one
+    # package_config.json, so `package:flutter` / `package:flame` would resolve
+    # here even though they are not dependencies. Make that a hard error.
+    depend_on_referenced_packages: error
