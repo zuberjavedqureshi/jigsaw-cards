@@ -248,7 +248,8 @@ void main() {
     }
 
     await tester.tap(find.byKey(const Key('new_puzzle')));
-    await h.settle();
+    await h.settle(frames: 2);
+    await h.finishIntro();
     expect(h.state.seed, testSeed + 1);
     expect(h.puzzle.isComplete, isFalse);
     expect(h.state.swaps, 0);

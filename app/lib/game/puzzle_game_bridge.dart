@@ -10,6 +10,7 @@ class PuzzleGameIntents {
     required this.onSwapRequested,
     required this.onSwapSettled,
     required this.onCompletionShown,
+    this.onIntroFinished,
   });
 
   /// A tile dragged from [from] was released over the tile in [to].
@@ -20,6 +21,9 @@ class PuzzleGameIntents {
 
   /// The completion animation finished (show the completion state).
   final void Function() onCompletionShown;
+
+  /// The introduction (entrance and reveal) finished; input is enabled.
+  final void Function()? onIntroFinished;
 }
 
 /// Application → Flame. [syncPuzzle] is the only state input: the game

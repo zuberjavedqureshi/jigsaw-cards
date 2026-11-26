@@ -9,19 +9,25 @@ import 'package:flame/game.dart';
 import 'package:flutter/animation.dart' show Curves;
 import 'package:puzzle_domain/puzzle_domain.dart';
 
+import '../artwork/card_back.dart';
 import '../artwork/puzzle_artwork.dart';
 import '../ui/play_area_layout.dart';
+import 'intro/intro_director.dart';
+import 'intro/intro_timeline.dart';
 import 'puzzle_game_bridge.dart';
 
-/// Flame scene for one picture-swap puzzle: the board, the tiles, the drag,
-/// the exchange animation and the completion shine. The rules live in the
+/// Flame scene for one picture-swap puzzle: the board, the tiles, the
+/// introduction (via the reusable [IntroDirector]), the drag, the exchange
+/// animation and the completion shine. The rules live in the
 /// domain; state arrives through [syncPuzzle] and requests leave through
 /// [PuzzleGameIntents] (ADR-0001). No Riverpod here.
-class PuzzleGame extends FlameGame implements PuzzleGameView {
+class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
   PuzzleGame({
     required PicturePuzzle puzzle,
     required this.artwork,
     required this.intents,
+    this.cardBack = const PlaceholderCardBack(),
+    this.introTiming = const IntroTiming(),
   }) : _puzzle = puzzle; // ignore: prefer_initializing_formals
 
   static const swapDuration = 0.22;
@@ -29,6 +35,11 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
 
   final PuzzleArtwork artwork;
   final PuzzleGameIntents intents;
+  final CardBackDesign cardBack;
+  final IntroTiming introTiming;
+
+  /// Coordinates the entrance and reveal; owns tile poses until finished.
+  late final IntroDirector intro;
 
   PicturePuzzle _puzzle;
   PicturePuzzle get puzzle => _puzzle;
@@ -54,7 +65,11 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
 
   /// Accepts a new press or drag only when nothing is animating, so a
   /// second swap can never start while the board is settling.
-  bool get inputEnabled => !_puzzle.isComplete && _moving == 0 && !_celebrating;
+  /// Input is also blocked until the introduction has finished.
+  bool get inputEnabled =>
+      intro.isFinished && !_puzzle.isComplete && _moving == 0 && !_celebrating;
+
+  IntroPhase get introPhase => intro.phase;
   bool get isAnimating => _moving > 0 || _celebrating;
   TileComponent? get draggedTile => _dragged;
   TileComponent? get hoveredTile => _hovered;
@@ -73,14 +88,24 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
     frame = BoardFrame();
     add(frame);
     for (final t in _puzzle.tiles) {
-      final c = TileComponent(t, artwork, _srcRect(t))
-        ..correct = _puzzle.isTileCorrect(t);
+      final c = TileComponent(t, artwork, _srcRect(t), cardBack: cardBack)
+        ..correct = _puzzle.isTileCorrect(t)
+        ..face = 0;
       tiles[t.id] = c;
       add(c);
     }
     targetMarker = TargetMarker()..priority = 1 << 19;
     add(targetMarker);
     add(InputLayer()..priority = 1 << 20);
+    intro = IntroDirector(
+      timeline: IntroTimeline.forGrid(
+        _puzzle.grid.rows,
+        _puzzle.grid.columns,
+        timing: introTiming,
+      ),
+      stage: this,
+    );
+    add(intro);
     _relayout();
   }
 
@@ -106,6 +131,15 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
     frame
       ..position = area.board.topLeft.toVector2()
       ..size = area.board.size.toVector2();
+    if (!intro.isFinished) {
+      // The intro owns tile positions; re-pose them for the new layout
+      // without restarting the sequence.
+      for (final c in tiles.values) {
+        c.size = Vector2(area.cellWidth, area.cellHeight);
+      }
+      intro.refresh();
+      return;
+    }
     for (final t in _puzzle.tiles) {
       final c = tiles[t.id]!;
       c.size = Vector2(area.cellWidth, area.cellHeight);
@@ -121,6 +155,50 @@ class PuzzleGame extends FlameGame implements PuzzleGameView {
           ..priority = 1;
       }
     }
+  }
+
+  // ---- IntroStage (reusable introduction) ---------------------------------
+
+  @override
+  int get introCellCount => _puzzle.grid.cellCount;
+
+  @override
+  Size get introPlayArea => size.toSize();
+
+  @override
+  Rect introCellRect(int cell) => area.cellRect(_puzzle.grid.cellAt(cell));
+
+  /// Poses whichever tile currently sits in [cell]: the intro animates the
+  /// actual shuffled arrangement and never changes it.
+  @override
+  void poseIntroTile(
+    int cell, {
+    required Offset centre,
+    required double angle,
+    required double scale,
+    required double face,
+    required bool inFlight,
+  }) {
+    final c = tiles[_puzzle.tileAt(_puzzle.grid.cellAt(cell)).id]!;
+    c
+      ..position = centre.toVector2()
+      ..angle = angle
+      ..scale = Vector2.all(scale)
+      ..face = face
+      // Tiles still flying pass over the ones that have landed.
+      ..priority = inFlight ? 2 + cell : 1;
+  }
+
+  @override
+  void introFinished() {
+    for (final c in tiles.values) {
+      c
+        ..angle = 0
+        ..scale = Vector2.all(1)
+        ..face = 1;
+    }
+    _relayout();
+    intents.onIntroFinished?.call();
   }
 
   // ---- PuzzleGameView ----------------------------------------------------
@@ -373,11 +451,22 @@ class BoardFrame extends PositionComponent {
 /// tiles have a thin light edge; correctly placed tiles are drawn edge to
 /// edge so correct neighbours read as one continuous picture.
 class TileComponent extends PositionComponent {
-  TileComponent(this.tile, this.artwork, this.source)
-    : super(anchor: Anchor.center);
+  TileComponent(
+    this.tile,
+    this.artwork,
+    this.source, {
+    this.cardBack = const PlaceholderCardBack(),
+  }) : super(anchor: Anchor.center);
 
   final PictureTile tile;
   final PuzzleArtwork artwork;
+  final CardBackDesign cardBack;
+
+  /// 0 = card back, 1 = picture. Driven by the intro; 1 during gameplay.
+  double face = 1;
+
+  /// Whether the picture side is the visible one.
+  bool get showsFront => face >= 0.5;
 
   /// Source region (source units).
   final Rect source;
@@ -390,6 +479,8 @@ class TileComponent extends PositionComponent {
   double _glow = 0;
   Picture? _picture;
   Size? _pictureSize;
+  Picture? _back;
+  Size? _backSize;
 
   bool get isMoving => children.whereType<MoveEffect>().isNotEmpty;
 
@@ -443,16 +534,68 @@ class TileComponent extends PositionComponent {
     return _picture!;
   }
 
+  Picture _backArt(Size s) {
+    if (_back == null || _backSize != s) {
+      final rec = PictureRecorder();
+      cardBack.paint(Canvas(rec), Offset.zero & s);
+      _back?.dispose();
+      _back = rec.endRecording();
+      _backSize = s;
+    }
+    return _back!;
+  }
+
   @override
   void onRemove() {
     _picture?.dispose();
     _picture = null;
+    _back?.dispose();
+    _back = null;
     super.onRemove();
+  }
+
+  /// 3D-style card flip: the card narrows to edge-on and widens again with
+  /// the other side, lifting slightly and darkening towards the edge.
+  void _renderFlip(Canvas canvas, Size s) {
+    final rect = Offset.zero & s;
+    final edge = math.cos(math.pi * face).abs();
+    final lift = 1 + 0.07 * math.sin(math.pi * face);
+    canvas.save();
+    canvas.translate(s.width / 2, s.height / 2);
+    canvas.scale(math.max(edge, 0.02) * lift, lift);
+    canvas.translate(-s.width / 2, -s.height / 2);
+    canvas.drawRect(
+      rect.shift(const Offset(0, 4)),
+      Paint()
+        ..color = const Color(0x55000000)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
+    if (showsFront) {
+      canvas.drawPicture(_art(s));
+      canvas.drawRect(
+        rect.deflate(0.5),
+        Paint()
+          ..color = const Color(0xB3FFFFFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1,
+      );
+    } else {
+      canvas.drawPicture(_backArt(s));
+    }
+    final shade = ((1 - edge) * 110).round();
+    if (shade > 0) {
+      canvas.drawRect(rect, Paint()..color = Color.fromARGB(shade, 0, 0, 0));
+    }
+    canvas.restore();
   }
 
   @override
   void render(Canvas canvas) {
     final s = size.toSize();
+    if (face < 1) {
+      _renderFlip(canvas, s);
+      return;
+    }
     final rect = Offset.zero & s;
     final scale = lifted ? 1.08 : (pressed ? 1.04 : 1.0);
     canvas.save();

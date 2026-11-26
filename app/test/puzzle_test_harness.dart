@@ -33,6 +33,15 @@ class Harness {
 
   TileComponent componentAt(GridCell c) => game.tiles[puzzle.tileAt(c).id]!;
 
+  /// Pumps until the puzzle introduction has finished (bounded).
+  Future<void> finishIntro() async {
+    for (var i = 0; i < 200 && !game.intro.isFinished; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(game.intro.isFinished, isTrue, reason: 'intro did not finish');
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+
   Future<void> settle({int frames = 12}) async {
     for (var i = 0; i < frames; i++) {
       await tester.pump(const Duration(milliseconds: 50));
@@ -82,6 +91,7 @@ Future<Harness> pumpPuzzle(
   WidgetTester tester, {
   Size size = const Size(412, 915),
   int seed = testSeed,
+  bool waitForIntro = true,
 }) async {
   tester.view
     ..physicalSize = size
@@ -98,7 +108,8 @@ Future<Harness> pumpPuzzle(
     ),
   );
   final h = Harness(tester, container);
-  await h.settle();
+  await h.settle(frames: 2);
+  if (waitForIntro) await h.finishIntro();
   return h;
 }
 
