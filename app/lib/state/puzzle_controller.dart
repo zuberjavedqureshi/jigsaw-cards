@@ -116,6 +116,17 @@ class PuzzleController extends Notifier<PuzzleState> {
     return outcome;
   }
 
+  /// Drags the tile in [from] onto [to]. Correct, adjacent tiles form a
+  /// connected group and move together; a loose tile moves alone, exactly
+  /// like [swap] (M3.2). The domain decides what moves.
+  GroupMoveOutcome moveTile(GridCell from, GridCell to) {
+    final outcome = state.puzzle.moveGroup(from, to);
+    if (outcome case GroupMoved(:final puzzle)) {
+      state = state.copyWith(puzzle: puzzle, swaps: state.swaps + 1);
+    }
+    return outcome;
+  }
+
   /// The completion animation finished. Rewards and progression attach
   /// here later (not in this milestone).
   void completionShown() {

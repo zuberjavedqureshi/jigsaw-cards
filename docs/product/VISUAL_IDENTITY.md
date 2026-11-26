@@ -58,6 +58,15 @@
 
 *History:* the first M3.1 implementation used a sky-to-cream gradient (`#BFE8FF` → `#FFF4D6`) with soft white clouds. After device review it looked washed out and competed with the board, so it was replaced on 2026-11-26: briefly by a muted periwinkle gradient, then by the patterned violet background above, which was approved on the product owner's Android device.
 
+## 2c. Connected Tile Groups (approved on device 2026-11-26)
+
+**[Confirmed]** (PRD VI-08, with GP-41 to GP-44) Connected groups read as **one piece of the picture**. No new colours or assets are introduced; the existing board tokens are reused.
+
+- **At rest:** no edge lines between members of a group, only the light tile edge (white, about 80% opacity) around the group's outside. This applies wherever the group is, even away from its final cells. A correctly placed group stays edge to edge with no outline, as in M3.1. Loose tiles keep their full light edge.
+- **Pressed or lifted:** the sunflower selection outline runs around the group's outside only. A lifted group is drawn about 8% larger and seamless (members spaced with the same scale), with **one shared soft shadow** instead of one shadow per tile.
+- **Target feedback:** a single deep-teal outline with a soft turquoise glow around every cell the group would occupy (no inner lines). Displaced tiles get the existing target highlight.
+- **Single tiles:** unchanged from M3.1 (selection outline, target cell outline, correct-tile glow).
+
 ## 3. Mascot
 
 - One recurring mascot character guides the player throughout the game (onboarding, world transitions, encouragement).

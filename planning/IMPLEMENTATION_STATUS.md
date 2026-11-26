@@ -9,16 +9,44 @@
 | Repository & documentation | ✅ Complete | PRD reconciled (canonical edition); Q-017 and Q-018 resolved; source-text gaps tracked in Q-019 |
 | Technical feasibility review | 📝 Drafted, awaiting review | [TECHNICAL_FEASIBILITY_REVIEW.md](../docs/architecture/TECHNICAL_FEASIBILITY_REVIEW.md). Its TD-03, TD-04 and TD-05 recommendations were approved on 2026-11-24 through [ADR-0001](../docs/decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../docs/decisions/ADR-0002-pub-workspace-and-domain-boundary.md) and [ADR-0003](../docs/decisions/ADR-0003-handwritten-riverpod-providers.md); its other recommendations are not approved. S-01 Android device validation is still outstanding |
 | Product decisions | ✅ Updated | Q-009 (piece generation), Q-010 (placement), Q-011 (tray) resolved 2026-11-23; Q-001 (target audience: core 16–35, overall 13+) resolved 2026-11-24; Q-010 and Q-011 revised twice on 2026-11-25, first to free placement and memory reveal, then to the **rectangular picture-swap puzzle** (PRD GP-29 to GP-36; hints planned for v1). **Q-022 resolved 2026-11-25** (equal-sized tiles on a uniform 4×4 grid; mixed-size partition superseded for this gameplay; Q-009 revised) and **Q-023 resolved 2026-11-25** (correct tiles remain movable; no locking); see [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
-| Flutter project | 🔄 Created (feature branches) | Pub workspace per ADR-0002: `app/` (Flutter, Android) and `packages/puzzle_domain/` (pure Dart). Current gameplay on `feature/gameplay-picture-swap`; earlier builds on `feature/m1-1-core-puzzle-gameplay` and `feature/gameplay-free-placement-reveal` (superseded); none merged. Application ID `com.example.jigsaw_cards` is a temporary placeholder (owner decision) |
-| Puzzle domain | 🔄 In progress | Picture-swap model: equal tiles cut from a source size, seeded Fisher–Yates shuffle (never solved, ≥75% misplaced; provisional), swap, occupancy validation, correctness counts, completion, minimum swaps. Matches Q-022 and Q-023. The partition generator, superseded for this gameplay by Q-022, is kept but not used. 35 unit tests. Serialisation/restore not started |
-| Flame rendering | 🔄 Playable | Framed board keeping the artwork aspect; tiles drawn from cached slices; press, lift and target feedback; eased exchange and cancel animations; correct-tile glow, with correct tiles drawn edge to edge; completion shine; input blocked while settling; manual bridge per ADR-0001 (`syncPuzzle` in, intents out); puzzle introduction (card entrance and reveal, GP-37) via a reusable `IntroTimeline` + `IntroDirector` with a replaceable code-drawn card back |
-| Riverpod state | 🔄 Playable | Hand-written `PuzzleController` Notifier (ADR-0003): shuffled puzzle, swaps, completion state ready for future rewards; a single `artworkProvider` feeds both domain slicing and rendering |
+| Flutter project | 🔄 Created (feature branches) | Pub workspace per ADR-0002: `app/` (Flutter, Android) and `packages/puzzle_domain/` (pure Dart). Current gameplay on `feature/m32-connected-tile-groups` (M3.2, based on the M3.1 branch `feature/gameplay-picture-swap`); earlier builds on `feature/m1-1-core-puzzle-gameplay` and `feature/gameplay-free-placement-reveal` (superseded); none merged. Application ID `com.example.jigsaw_cards` is a temporary placeholder (owner decision) |
+| Puzzle domain | 🔄 In progress | Picture-swap model with connected tile groups (M3.2: groups by relative alignment, group moves keeping the board full; `TileGroups` extension, `PicturePuzzle` unchanged): equal tiles cut from a source size, seeded Fisher–Yates shuffle (never solved, ≥75% misplaced; provisional), swap, occupancy validation, correctness counts, completion, minimum swaps. Matches Q-022 and Q-023. The partition generator, superseded for this gameplay by Q-022, is kept but not used. 35 unit tests. Serialisation/restore not started |
+| Flame rendering | 🔄 Playable | Framed board keeping the artwork aspect; tiles drawn from cached slices; press, lift and target feedback; eased exchange and cancel animations; correct-tile glow, with correct tiles drawn edge to edge; connected groups lifted, dragged and drawn as one seamless piece (M3.2); completion shine; input blocked while settling; manual bridge per ADR-0001 (`syncPuzzle` in, intents out); puzzle introduction (card entrance and reveal, GP-37) via a reusable `IntroTimeline` + `IntroDirector` with a replaceable code-drawn card back |
+| Riverpod state | 🔄 Playable | Hand-written `PuzzleController` Notifier (ADR-0003): shuffled puzzle, swaps and group moves (`moveTile`), completion state ready for future rewards; a single `artworkProvider` feeds both domain slicing and rendering |
 | Persistence | ⛔ Not started | Technology not selected |
 | Audio | ⛔ Not started | |
 | Rive animation | ⛔ Not validated | |
 | Art assets | ⛔ Not started | Code-drawn **placeholder** storybook scene only; no downloaded or generated artwork |
 | CI | 🔄 Partial | `.github/workflows/android-apk.yml` builds and uploads a **debug** APK for product-owner testing (not a release pipeline). Format, analyze and test checks on PRs (TD-08) are not configured |
 | Architecture decisions | ✅ TD-03, TD-04, TD-05 confirmed 2026-11-24 | [ADR-0001](../docs/decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../docs/decisions/ADR-0002-pub-workspace-and-domain-boundary.md), [ADR-0003](../docs/decisions/ADR-0003-handwritten-riverpod-providers.md). S-01 Android device validation (§8.1 timings, `paused`/`resumed`) **still outstanding**; S-01 not complete. TD-01, TD-02, TD-06 to TD-08 Pending |
+
+## M3.2 Connected Tile Groups (core gameplay feature; implemented and approved on the product owner's Android device 2026-11-26; branch `feature/m32-connected-tile-groups`, based on `2cd20f2`, not merged)
+
+Approved scope (PRD GP-41 to GP-44, VI-08): the M3.1 picture-swap gameplay, unchanged, plus one mechanic. Neighbouring tiles that line up as in the original picture join into a group, anywhere on the board, and a group moves as one unit.
+
+**Implemented:**
+- **Domain:** a `TileGroups` extension on `PicturePuzzle` (`packages/puzzle_domain/lib/src/tile_groups.dart`). `PicturePuzzle` and `swap()` are unchanged.
+  - `connectedGroups`, `groupAt` and `unitAt`: two board neighbours join when both are shifted from their correct cells by the same offset, transitively.
+  - `moveGroup(from, to)`: the unit moves rigidly by `to − from`; displaced tiles slide back against the drag direction into the vacated cells, so the board stays full. A single tile delegates to `swap()`. A unit that would leave the board is refused.
+  - Groups are derived after every move, never stored.
+- **State and bridge:** `PuzzleController.moveTile(from, to)`, with the existing `swap()` kept. The screen sends the existing `onSwapRequested` intent to `moveTile`, and the bridge contract is unchanged.
+- **Flame:**
+  - Pressing or dragging any member lifts the whole group, which is drawn seamless and slightly enlarged with one shared shadow (`GroupLiftShadow`).
+  - The target marker outlines all destination cells, and displaced tiles are highlighted. A refused drop glides the whole group back.
+  - Resting groups are drawn without inner edges (`TileComponent.joinedSides`).
+  - The intro, celebration, exit and single-tile rendering are unchanged.
+
+**Validated:**
+- In this environment: 58 domain tests (23 new for groups) and 96 app tests (10 new interaction tests; all 86 M3.1 tests unchanged); formatting, both analyzers and the boundary guard and its self-tests clean. The new domain tests cover:
+  - detection, including L-shapes, merges and groups away from their final cells;
+  - group movement, group-to-group exchange, overlapping moves and a group with a notch;
+  - single tiles behaving exactly like `swap()`;
+  - 300 randomised move sequences and a solvability check on 500 boards.
+- In a browser preview: pairs joining away from their final cells, lifting by either member, an L-shaped group moving, and two groups merging.
+- On device: the product owner tested the debug APK (SHA-256 `c7a52fc7…1e1ab7`) on their Android phone and approved it on 2026-11-26.
+- No performance measurements yet.
+
+**Rejected (history):** the M3.2 "Direction B" prototype, with free-moving groups on a scattered workbench, continuous positions and snapping (`experiment/m32-connected-groups`, uncommitted), was rejected by the product owner. A first correction that grouped only tiles in their final cells was replaced by relative alignment after comparison with the reference recording.
 
 ## M3.1 "Bright & Celebrate" (approved 2026-11-26; implemented and approved on the product owner's Android device 2026-11-26; branch `feature/gameplay-picture-swap`, not merged)
 

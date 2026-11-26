@@ -91,7 +91,7 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 
 **[Confirmed]** Drag-and-swap (Q-010 revised again 2026-11-25; PRD GP-32, GP-33):
 
-- The only move is a **swap** of two cells: their tiles exchange positions. Exactly two cells change; every tile stays in exactly one cell and no cell is ever empty.
+- A single tile's move is a **swap** of two cells: their tiles exchange positions. Exactly two cells change; every tile stays in exactly one cell and no cell is ever empty. A tile in a connected group moves with its group (§7a).
 - Incorrect swaps are accepted. There is no rejection for being wrong, no limit and no penalty, and tiles can be moved repeatedly.
 - **[Confirmed, Q-023]** Correctly positioned tiles are **not locked**. Any two tiles can be swapped at any time, whether or not either is already correct. Correct-position status is never checked when a swap is validated.
 - **[Implemented]** `swap(from, to)` returns `TilesSwapped(puzzle, movedTile, displacedTile, nowCorrect, completedPuzzle)` or `SwapRejected(reason)`. It is rejected, with the board unchanged and nothing thrown, when a cell is outside the grid (`outOfBounds`), both cells are the same (`sameCell`), or the puzzle is already complete (`complete`). Puzzles are immutable.
@@ -100,6 +100,19 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 - No rotation.
 
 *History:* the strict rule (2026-11-23) was superseded by free placement with snapping and locking (2026-11-25), which was itself superseded by drag-and-swap (2026-11-25).
+
+## 7a. Connected Tile Groups
+
+**[Confirmed, implemented 2026-11-26]** (PRD GP-41 to GP-44.) The rules are a pure-Dart `TileGroups` extension on `PicturePuzzle` (`tile_groups.dart`). `PicturePuzzle` and `swap()` are unchanged.
+
+- **Detection (`connectedGroups`, `groupAt`, `unitAt`):** the *offset* of a tile is its current cell minus its correct cell. Two board neighbours (4-way) are joined when their offsets are equal, so they touch exactly as in the picture. Groups are the connected components of this relation with at least two tiles, at any offset (zero = correctly placed). Groups are derived from the arrangement and never stored.
+- **Movement (`moveGroup(from, to)`):** the *unit* is the group containing `from`, or that single tile.
+  - Every unit cell moves by `d = to − from`. The move is refused (`outOfBounds`) if any destination cell is off the board, and also for `sameCell` and `complete`.
+  - Each tile in a destination cell the unit does not cover moves to `c − k·d` for the smallest `k ≥ 1` that leaves the destination set. That cell is always one the unit vacated, and the mapping is one-to-one, so the result is a permutation and the board stays full.
+  - When the old and new unit cells do not overlap, `k = 1` for every displaced tile, so a displaced block, including another whole group, keeps its shape.
+  - A single-tile unit delegates to `swap()`, so its result is identical to the original swap.
+- **Result:** `GroupMoved(puzzle, from, to, unit, displaced)` or `GroupMoveRejected(reason)`. Group moves return a new puzzle through `fromArrangement`, which validates occupancy.
+- **Solvability:** moving any unit so that the dragged tile lands in its correct cell puts the whole unit in its correct cells. This never disturbs a correctly placed tile, because those cells belong to the unit's own tiles, and it adds at least one correct tile, so every board can be finished.
 
 ## 8. Magnetic Snapping
 

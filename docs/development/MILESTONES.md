@@ -12,6 +12,7 @@
 | M2 | Puzzle domain complete with tests | 2 | 🔄 In progress — picture-swap model (equal tiles, seeded shuffle, swap, occupancy validation, correctness and completion) with tests, consistent with Q-022 (equal tiles) and Q-023 (no locking), both resolved 2026-11-25; the superseded partition generator is kept but not used. **Outstanding:** TD-02 (seed source), serialisation/restore (PS-23) |
 | M3 | Playable 4×4 prototype | 3 | 🔄 In progress — picture-swap gameplay (shuffled 4×4 grid, drag-and-swap, correct-tile feedback, completion) with widget tests and a web-preview recording, on branch `feature/gameplay-picture-swap` (not merged). The tray build and the memory/free-placement build are superseded. **Outstanding:** physical Android device validation, reference preview, card reveal, coin reward, sound, auto-save/restore (including PS-23), final artwork; hints are planned for v1 |
 | M3.1 | Bright & Celebrate | 3 | ✅ Done 2026-11-26: implemented and approved on the product owner's Android device (branch `feature/gameplay-picture-swap`, not merged to `main`). Patterned violet background and Sunlit palette across the UI, bright daytime placeholder picture, board spacing (GP-38), short completion celebration without rewards (GP-39), next-puzzle transition (GP-40) |
+| M3.2 | Connected Tile Groups | 3 | ✅ Done 2026-11-26: implemented and approved on the product owner's Android device (branch `feature/m32-connected-tile-groups`, based on the M3.1 commit `2cd20f2`, not merged to `main`). Core gameplay feature (PRD GP-41 to GP-44, VI-08) |
 | M4 | MVP vertical slice | 4 | ⏳ Not started |
 
 ## Milestone Definitions
@@ -35,5 +36,7 @@ Completion condition: all three designated blocking questions are resolved and d
 **M3 — Playable prototype.** All confirmed initial gameplay features working on an Android device.
 
 **M3.1 — Bright & Celebrate** (approved 2026-11-26). Objective: make the prototype bright and pleasant end to end without changing the puzzle mechanics, shuffle rules or introduction. Scope: PRD VI-06, VI-07, GP-38, GP-39 and GP-40. Acceptance criteria are defined in the approved M3.1 implementation plan. Out of scope: merging into `main`, world progression and level selection, real rewards (coins, cards, character reveal), persistence, hints, sound, and the application ID. Completing M3.1 does not complete M3.
+
+**M3.2 — Connected Tile Groups** (approved on device 2026-11-26). Objective: add connected groups to the approved M3.1 picture-swap gameplay without changing anything else. Scope: PRD GP-41 to GP-44 and VI-08. Groups form by relative picture alignment anywhere on the board and move, merge and render as one piece, while single tiles keep drag-and-swap and the board stays full. Acceptance: approval on the product owner's Android device (given 2026-11-26); all M3.1 tests unchanged and passing. An earlier free-placement prototype ("Direction B": scattered workbench, continuous positions) was evaluated and rejected; it is not part of M3.2.
 
 **M4 — MVP vertical slice.** Scope to be defined after M3.

@@ -13,7 +13,8 @@ class PuzzleGameIntents {
     this.onIntroFinished,
   });
 
-  /// A tile dragged from [from] was released over the tile in [to].
+  /// A tile dragged from [from] (with its connected group, if any) was
+  /// released over the tile in [to].
   final void Function(GridCell from, GridCell to) onSwapRequested;
 
   /// The exchange animation of the last swap finished.

@@ -4,8 +4,8 @@
 
 | Style | Status | Characteristics |
 | --- | --- | --- |
-| Rectangular tile | Initial development and first prototype | Picture-swap puzzle: equal-sized rectangular tiles on a uniform grid, logical grid occupancy (Q-022; originally mixed-sized pieces from rectangular partition generation, superseded 2026-11-25) |
-| Traditional irregular jigsaw | Future expansion, not approved for implementation | Interlocking geometry, tabs and blanks, rotation, connected-piece grouping |
+| Rectangular tile | Initial development and first prototype | Picture-swap puzzle: equal-sized rectangular tiles on a uniform grid, logical grid occupancy (Q-022; originally mixed-sized pieces from rectangular partition generation, superseded 2026-11-25), with connected tile groups (GP-41 to GP-44, approved 2026-11-26) |
+| Traditional irregular jigsaw | Future expansion, not approved for implementation | Interlocking geometry, tabs and blanks, rotation, connected-piece grouping for irregular pieces |
 
 The styles are not necessarily combined within one puzzle. Both share puzzle session management, level configuration, common interaction contracts where practical, progress and completion reporting, and reward integration (PRD PS-13 to PS-17).
 
@@ -61,6 +61,46 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 - Any two tiles can be swapped at any time, including tiles that are already correct. Every swap is valid whether or not either tile was correct.
 - Correct-position feedback (a brief glow, and correct tiles joining seamlessly into the picture) is **visual only** and never restricts movement.
 
+### Connected tile groups (GP-41 to GP-44, VI-08; core gameplay feature, approved on device 2026-11-26)
+
+Implemented in M3.2 and approved after testing on the product owner's Android device. It extends drag-and-swap; the full-board picture-swap model is unchanged.
+
+**Formation**
+
+- Two tiles that are next to each other on the board (horizontally or vertically) **join** when they are next to each other **the same way in the original picture**. Equivalently, both are shifted from their correct cells by the same offset (**relative alignment**).
+- Groups form **anywhere on the board**. A group does not need to be at its final cells; tiles in their correct cells are simply the zero-offset case.
+- Joining is transitive. Groups grow into lines, rectangles, L-shapes and other irregular shapes, and further matching tiles join an existing group.
+- **Merging:** when two groups line up, they become one larger group.
+- Groups are recalculated from the board after every move and never stored, so membership is never stale. A tile knocked out of alignment leaves its group, and tiles that come into alignment join.
+
+**Movement**
+
+1. Pressing or dragging **any member** lifts the **whole group**. It follows the finger as one unit, slightly enlarged, with its internal arrangement unchanged.
+2. While dragging, every cell the group would occupy is outlined, and the tiles it would displace are highlighted.
+3. On release, every member moves by the same offset (the dragged tile's drop cell minus its start cell), so the picture inside the group is preserved.
+4. The tiles in the destination cells that the group does not already cover move into the cells the group left, sliding back against the drag direction. When the group moves by one cell, a displaced tile hops past it. **The board always stays full**: no empty spaces and no free placement.
+5. A group pushed aside whole keeps its shape and stays joined. Tiles knocked out of a group rejoin whatever they now line up with.
+6. A group that would not fit on the board (part of it would leave the grid) is not moved: it glides back.
+
+**Single tiles**
+
+- A tile with no aligned neighbour is not in a group and keeps the original drag-and-swap: it swaps with **any** tile, including a member of a group, which then leaves that group.
+
+**Rules that still apply**
+
+- Nothing locks; correct tiles and groups remain movable (Q-023).
+- Every arrangement stays solvable: dragging any group so that its tiles land in their own cells is always possible, never disturbs a correctly placed tile, and adds at least one correct tile.
+- Completion is unchanged (GP-34): every tile in its correct cell.
+
+**Look (VI-08)**
+
+- A group reads as one piece of the picture: no edge lines between members, only the group's outer outline. A correctly placed group stays edge to edge, as before.
+- A lifted group is drawn seamless, with one shared shadow and one outline.
+
+**Rejected alternative (history)**
+
+- **M3.2 "Direction B", 2026-11-26:** free-moving connected groups on a scattered workbench, with continuous positions and snapping. A prototype was built on `experiment/m32-connected-groups` (uncommitted) and **rejected** by the product owner. It is historical work only and not the gameplay direction. A first correction that grouped only tiles already in their final cells was also replaced, by relative alignment, after comparison with the reference gameplay recording.
+
 ### Hints (GP-36)
 
 - **Intentionally excluded from the initial prototype; planned for v1.** The hint design is not specified yet.
@@ -108,7 +148,7 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 | --- | --- |
 | Traditional irregular jigsaw pieces | Separate puzzle style with interlocking geometry, tabs and blanks |
 | Rotation | Listed under irregular jigsaw expansion |
-| Connected-piece grouping | Listed under irregular jigsaw expansion; joined pieces move together |
+| Connected-piece grouping (irregular pieces) | Listed under irregular jigsaw expansion. For rectangular tiles, connected tile groups are approved and implemented (§1) |
 | Zoom and pan | For larger boards |
 | Board sizes and difficulty levels | Beyond 4×4 |
 

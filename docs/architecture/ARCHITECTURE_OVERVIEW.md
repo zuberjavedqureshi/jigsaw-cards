@@ -108,6 +108,6 @@ packages/
 
 ## 5. Non-Goals for the Prototype
 
-- No rotation, irregular shapes, grouping, zoom/pan, or variable board sizes.
+- No rotation, irregular shapes, grouping of irregular pieces, zoom/pan, or variable board sizes. (Connected groups of rectangular tiles are implemented, M3.2: PRD GP-41 to GP-44.)
 - No backend.
 - No speculative abstraction layers beyond what the prototype needs.

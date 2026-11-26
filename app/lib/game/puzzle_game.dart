@@ -59,6 +59,9 @@ class PuzzleGame extends FlameGame
   /// Outline of the swap target, drawn above the dragged tile so it stays
   /// visible while the tile covers the target cell.
   late final TargetMarker targetMarker;
+
+  /// Shadow of a lifted connected group (M3.2).
+  late final GroupLiftShadow liftShadow;
   final Map<int, TileComponent> tiles = {};
 
   /// Tile animations still running (swap or cancel). Input waits for 0.
@@ -74,12 +77,26 @@ class PuzzleGame extends FlameGame
 
   bool get isExiting => exit != null && !exit!.isFinished;
 
-  TileComponent? _pressed;
   TileComponent? _dragged;
   int? _dragPointer;
   GridCell? _dragFrom;
   Offset _grab = Offset.zero;
   TileComponent? _hovered;
+
+  /// Tiles showing press feedback: the pressed tile's whole unit.
+  List<TileComponent> _pressedUnit = const [];
+
+  /// The dragged unit (M3.2): the grabbed tile and, if it is in a connected
+  /// group, the other members, each with its offset from the grabbed tile's
+  /// centre at rest.
+  Map<TileComponent, Offset> _dragUnit = const {};
+
+  /// Tiles the current drop would displace (highlighted).
+  List<TileComponent> _displaced = const [];
+
+  /// The cell the dragged tile would land on, if that move is allowed.
+  GridCell? _dropCell;
+  GridCell? _lastOver;
 
   /// Accepts a new press or drag only when nothing is animating, so a
   /// second swap can never start while the board is settling.
@@ -91,6 +108,12 @@ class PuzzleGame extends FlameGame
   bool get isAnimating => _moving > 0 || _celebrating;
   TileComponent? get draggedTile => _dragged;
   TileComponent? get hoveredTile => _hovered;
+
+  /// Every tile moving with the current drag (the grabbed tile first).
+  List<TileComponent> get draggedUnit => _dragUnit.keys.toList();
+
+  /// Tiles the current drop would displace.
+  List<TileComponent> get displacedTiles => _displaced;
 
   @override
   Color backgroundColor() => const Color(0x00000000);
@@ -121,6 +144,8 @@ class PuzzleGame extends FlameGame
     }
     targetMarker = TargetMarker(style)..priority = 1 << 19;
     add(targetMarker);
+    liftShadow = GroupLiftShadow(style)..priority = (1 << 18) - 1;
+    add(liftShadow);
     add(InputLayer()..priority = 1 << 20);
     intro = IntroDirector(
       timeline: IntroTimeline.forGrid(
@@ -173,7 +198,7 @@ class PuzzleGame extends FlameGame
     for (final t in _puzzle.tiles) {
       final c = tiles[t.id]!;
       c.size = Vector2(area.cellWidth, area.cellHeight);
-      if (c == _dragged) continue;
+      if (_dragUnit.containsKey(c)) continue;
       final centre = _centreOf(_puzzle.cellOf(t));
       if (c.isMoving) {
         // Real resize mid-animation: re-aim at the tile's cell (a returning
@@ -185,7 +210,29 @@ class PuzzleGame extends FlameGame
           ..priority = 1;
       }
     }
+    _refreshJoins();
   }
+
+  /// Joined sides of every tile at rest, from the current groups (M3.2).
+  Map<int, int> _restSides = const {};
+
+  /// Recomputes which tile edges are joined inside a connected group, so a
+  /// resting group is drawn seamlessly (outer outline only), wherever it is.
+  void _refreshJoins() {
+    final sides = <int, int>{};
+    for (final g in _puzzle.connectedGroups) {
+      for (final c in g) {
+        sides[_puzzle.tileAt(c).id] = _joinedSides(c, g);
+      }
+    }
+    _restSides = sides;
+    for (final c in tiles.values) {
+      if (_dragUnit.containsKey(c) || c.pressed || c.isMoving) continue;
+      c.joinedSides = _restSidesOf(c);
+    }
+  }
+
+  int _restSidesOf(TileComponent c) => _restSides[c.tile.id] ?? 0;
 
   // ---- IntroStage (reusable introduction) ---------------------------------
 
@@ -247,7 +294,9 @@ class PuzzleGame extends FlameGame
     for (final c in moved) {
       // The dragged tile flies from under the finger; the displaced tile
       // slides across, raised just below it.
-      c.priority = c == _dragged ? 1 << 18 : 1 << 17;
+      c.priority = _dragUnit.containsKey(c)
+          ? (1 << 18) + _cellIndex(prev.cellOf(c.tile))
+          : 1 << 17;
       c.moveTo(
         _centreOf(next.cellOf(c.tile)),
         swapDuration,
@@ -255,12 +304,17 @@ class PuzzleGame extends FlameGame
       );
     }
     _dragged = null;
+    _dragUnit = const {};
   }
+
+  int _cellIndex(GridCell c) => c.row * _puzzle.grid.columns + c.column;
 
   void _onMoveDone(TileComponent c) {
     c
       ..lifted = false
       ..pressed = false
+      ..joinedSides = _restSidesOf(c)
+      ..castsShadow = true
       ..priority = 1;
     final nowCorrect = _puzzle.isTileCorrect(c.tile);
     if (nowCorrect && !c.correct) c.celebrateCorrect();
@@ -336,23 +390,54 @@ class PuzzleGame extends FlameGame
 
   // ---- Input (called by InputLayer) ----------------------------------------
 
-  TileComponent? _tileAt(Offset p) {
-    final cell = area.cellAt(p);
-    return cell == null ? null : tiles[_puzzle.tileAt(cell).id];
-  }
-
-  /// Pointer down: immediate press feedback on the tile.
+  /// Pointer down: immediate press feedback on the tile (and its group).
   void handlePress(Vector2 point) {
     if (!inputEnabled || _dragged != null) return;
-    _pressed?.pressed = false;
-    _pressed = _tileAt(point.toOffset())?..pressed = true;
+    _clearPress();
+    final cell = area.cellAt(point.toOffset());
+    if (cell == null) return;
+    final unit = _puzzle.unitAt(cell);
+    _pressedUnit = [
+      for (final m in unit)
+        tiles[_puzzle.tileAt(m).id]!
+          ..pressed = true
+          ..joinedSides = _joinedSides(m, unit),
+    ];
   }
 
   /// Pointer up without a drag (or a tap cancelled): clear the press.
   void handleRelease() {
     if (_dragged != null) return;
-    _pressed?.pressed = false;
-    _pressed = null;
+    _clearPress();
+  }
+
+  void _clearPress() {
+    for (final c in _pressedUnit) {
+      c
+        ..pressed = false
+        ..joinedSides = _restSidesOf(c);
+    }
+    _pressedUnit = const [];
+  }
+
+  /// Sides of [cell] that touch another member of [unit] (no outline is
+  /// drawn there, so the group reads as one piece).
+  int _joinedSides(GridCell cell, Set<GridCell> unit) {
+    if (unit.length < 2) return 0;
+    var sides = 0;
+    if (unit.contains(GridCell(cell.row - 1, cell.column))) {
+      sides |= TileComponent.sideTop;
+    }
+    if (unit.contains(GridCell(cell.row, cell.column + 1))) {
+      sides |= TileComponent.sideRight;
+    }
+    if (unit.contains(GridCell(cell.row + 1, cell.column))) {
+      sides |= TileComponent.sideBottom;
+    }
+    if (unit.contains(GridCell(cell.row, cell.column - 1))) {
+      sides |= TileComponent.sideLeft;
+    }
+    return sides;
   }
 
   void handleDragStart(int pointer, Vector2 point) {
@@ -361,73 +446,125 @@ class PuzzleGame extends FlameGame
     final cell = area.cellAt(p);
     if (cell == null) return;
     final c = tiles[_puzzle.tileAt(cell).id]!;
-    _pressed?.pressed = false;
-    _pressed = null;
+    _clearPress();
     _dragged = c;
     _dragPointer = pointer;
     _dragFrom = cell;
     _grab = p - area.cellRect(cell).center;
-    c
-      ..stopMoving()
-      ..lifted = true
-      ..priority = 1 << 18;
+    _lastOver = null;
+    _dropCell = null;
+    // The grabbed tile and its connected group move as one unit (M3.2).
+    final unit = _puzzle.unitAt(cell);
+    final origin = area.cellRect(cell).center;
+    _dragUnit = {
+      c: Offset.zero,
+      for (final m in unit)
+        if (m != cell)
+          tiles[_puzzle.tileAt(m).id]!: area.cellRect(m).center - origin,
+    };
+    liftShadow.members = unit.length > 1 ? _dragUnit.keys.toList() : const [];
+    for (final m in unit) {
+      tiles[_puzzle.tileAt(m).id]!
+        ..stopMoving()
+        ..lifted = true
+        ..castsShadow = unit.length == 1
+        ..joinedSides = _joinedSides(m, unit)
+        // Lower rows drawn later, so a member's shadow never falls on
+        // another member.
+        ..priority = (1 << 18) + _cellIndex(m);
+    }
   }
 
   void handleDragUpdate(int pointer, Vector2 point) {
     final c = _dragged;
     if (c == null || pointer != _dragPointer) return;
     final p = point.toOffset();
-    // Keep the dragged tile's centre on the play area.
-    final centre = p - _grab;
-    c.position = Vector2(
-      centre.dx.clamp(0, size.x),
-      centre.dy.clamp(0, size.y),
+    // Keep the dragged tile's centre on the play area; group members keep
+    // their places around it (scaled with the lift, so the group stays
+    // seamless).
+    final centre = Offset(
+      (p - _grab).dx.clamp(0, size.x),
+      (p - _grab).dy.clamp(0, size.y),
     );
+    _dragUnit.forEach((m, offset) {
+      m.position = (centre + offset * TileComponent.liftScale).toVector2();
+    });
     final over = area.cellAt(p);
-    final target = (over == null || over == _dragFrom)
+    if (over == _lastOver) return;
+    _lastOver = over;
+    final plan = (over == null || over == _dragFrom)
         ? null
-        : tiles[_puzzle.tileAt(over).id];
-    if (target != _hovered) {
-      _hovered?.hovered = false;
-      _hovered = target?..hovered = true;
-      targetMarker.rect = over == null || target == null
-          ? null
-          : area.cellRect(over);
+        : switch (_puzzle.moveGroup(_dragFrom!, over)) {
+            final GroupMoved m => m,
+            GroupMoveRejected() => null,
+          };
+    final displaced = plan == null
+        ? const <TileComponent>[]
+        : [for (final d in plan.displaced.keys) tiles[_puzzle.tileAt(d).id]!];
+    for (final t in _displaced) {
+      t.hovered = false;
     }
+    for (final t in displaced) {
+      t.hovered = true;
+    }
+    _displaced = displaced;
+    final target = plan == null ? null : tiles[_puzzle.tileAt(over!).id]!;
+    _hovered = (target == null || _dragUnit.containsKey(target))
+        ? null
+        : target;
+    _dropCell = plan == null ? null : over;
+    targetMarker
+      ..rect = plan == null ? null : area.cellRect(over!)
+      ..groupRects = (plan == null || plan.unit.length < 2)
+          ? const []
+          : [for (final d in plan.destination) area.cellRect(d)];
   }
 
   void handleDragEnd(int pointer) {
     final c = _dragged;
     if (c == null || pointer != _dragPointer) return;
-    final target = _hovered;
-    _hovered?.hovered = false;
+    for (final t in _displaced) {
+      t.hovered = false;
+    }
+    _displaced = const [];
     _hovered = null;
-    targetMarker.rect = null;
+    targetMarker
+      ..rect = null
+      ..groupRects = const [];
     _dragPointer = null;
     final from = _dragFrom!;
+    final drop = _dropCell;
     _dragFrom = null;
-    if (target != null) {
-      intents.onSwapRequested(from, _puzzle.cellOf(target.tile));
-      if (_dragged == c) _cancel(c, from); // swap was not applied
+    _dropCell = null;
+    _lastOver = null;
+    if (drop != null) {
+      intents.onSwapRequested(from, drop);
+      if (_dragged == c) _cancel(); // the move was not applied
     } else {
-      _cancel(c, from);
+      _cancel();
     }
   }
 
-  /// Released outside another tile: glide back to the original cell.
-  void _cancel(TileComponent c, GridCell from) {
+  /// Released where no move is possible: the unit glides back to its cells.
+  void _cancel() {
+    final unit = _dragUnit.keys.toList();
     _dragged = null;
-    _moving++;
-    c.moveTo(
-      _centreOf(from),
-      returnDuration,
-      onDone: () {
-        c
-          ..lifted = false
-          ..priority = 1;
-        _moving--;
-      },
-    );
+    _dragUnit = const {};
+    _moving += unit.length;
+    for (final c in unit) {
+      c.moveTo(
+        _centreOf(_puzzle.cellOf(c.tile)),
+        returnDuration,
+        onDone: () {
+          c
+            ..lifted = false
+            ..joinedSides = _restSidesOf(c)
+            ..castsShadow = true
+            ..priority = 1;
+          _moving--;
+        },
+      );
+    }
   }
 }
 
@@ -474,17 +611,104 @@ class InputLayer extends PositionComponent
   }
 }
 
+/// One soft shadow under a lifted connected group (M3.2), so the members
+/// read as one piece; a single lifted tile keeps its own shadow.
+class GroupLiftShadow extends Component {
+  GroupLiftShadow(this.style);
+
+  final BoardStyle style;
+
+  /// Members of the lifted group (shadow drawn while they are lifted).
+  List<TileComponent> members = const [];
+
+  @override
+  void render(Canvas canvas) {
+    final lifted = members.where((m) => m.lifted).toList();
+    if (lifted.isEmpty) {
+      members = const [];
+      return;
+    }
+    final path = Path();
+    for (final m in lifted) {
+      path.addRect(
+        Rect.fromCenter(
+          center: m.position.toOffset(),
+          width: m.size.x * TileComponent.liftScale,
+          height: m.size.y * TileComponent.liftScale,
+        ),
+      );
+    }
+    canvas.drawPath(
+      path.shift(const Offset(0, 8)),
+      Paint()
+        ..color = style.shadow.withValues(alpha: 0.45)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
+  }
+}
+
 /// Bright outline around the cell a dragged tile would swap into.
 class TargetMarker extends Component {
   TargetMarker(this.style);
 
   final BoardStyle style;
+
+  /// The cell the dragged tile would land on.
   Rect? rect;
+
+  /// When a connected group is dragged: every cell it would occupy.
+  List<Rect> groupRects = const [];
 
   @override
   void render(Canvas canvas) {
+    if (groupRects.isNotEmpty) {
+      _groupOutline(canvas);
+      return;
+    }
     final r = rect;
-    if (r == null) return;
+    if (r != null) _outline(canvas, r);
+  }
+
+  /// One outline around the whole group destination (no inner lines).
+  void _groupOutline(Canvas canvas) {
+    Path edges(double grow) {
+      final path = Path();
+      final cells = groupRects.toSet();
+      for (final r in cells) {
+        final o = r.inflate(grow);
+        void side(Rect neighbour, Offset a, Offset b) {
+          if (cells.contains(neighbour)) return;
+          path
+            ..moveTo(a.dx, a.dy)
+            ..lineTo(b.dx, b.dy);
+        }
+
+        side(r.shift(Offset(0, -r.height)), o.topLeft, o.topRight);
+        side(r.shift(Offset(r.width, 0)), o.topRight, o.bottomRight);
+        side(r.shift(Offset(0, r.height)), o.bottomRight, o.bottomLeft);
+        side(r.shift(Offset(-r.width, 0)), o.bottomLeft, o.topLeft);
+      }
+      return path;
+    }
+
+    canvas.drawPath(
+      edges(3),
+      Paint()
+        ..color = style.targetGlow
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 9
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
+    canvas.drawPath(
+      edges(1.5),
+      Paint()
+        ..color = style.target
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+  }
+
+  void _outline(Canvas canvas, Rect r) {
     canvas.drawRect(
       r.inflate(3),
       Paint()
@@ -563,6 +787,22 @@ class TileComponent extends PositionComponent {
   final PuzzleArtwork artwork;
   final CardBackDesign cardBack;
   final BoardStyle style;
+
+  /// Scale of a lifted (dragged) tile.
+  static const liftScale = 1.08;
+
+  static const sideTop = 1;
+  static const sideRight = 2;
+  static const sideBottom = 4;
+  static const sideLeft = 8;
+
+  /// Sides joined to another member of the lifted or pressed group (M3.2):
+  /// no outline is drawn there. 0 for a single tile.
+  int joinedSides = 0;
+
+  /// False while the tile is part of a lifted group, whose shadow is drawn
+  /// once by [GroupLiftShadow].
+  bool castsShadow = true;
 
   /// 0 = card back, 1 = picture. Driven by the intro; 1 during gameplay.
   double face = 1;
@@ -691,6 +931,28 @@ class TileComponent extends PositionComponent {
     canvas.restore();
   }
 
+  /// A rectangle outline, leaving out [joinedSides] (a single tile draws
+  /// the full rectangle, as before).
+  void _outline(Canvas canvas, Rect r, Paint paint) {
+    if (joinedSides == 0) {
+      canvas.drawRect(r, paint);
+      return;
+    }
+    final path = Path();
+    void side(int bit, Offset a, Offset b) {
+      if (joinedSides & bit != 0) return;
+      path
+        ..moveTo(a.dx, a.dy)
+        ..lineTo(b.dx, b.dy);
+    }
+
+    side(sideTop, r.topLeft, r.topRight);
+    side(sideRight, r.topRight, r.bottomRight);
+    side(sideBottom, r.bottomRight, r.bottomLeft);
+    side(sideLeft, r.bottomLeft, r.topLeft);
+    canvas.drawPath(path, paint);
+  }
+
   @override
   void render(Canvas canvas) {
     final s = size.toSize();
@@ -699,12 +961,12 @@ class TileComponent extends PositionComponent {
       return;
     }
     final rect = Offset.zero & s;
-    final scale = lifted ? 1.08 : (pressed ? 1.04 : 1.0);
+    final scale = lifted ? liftScale : (pressed ? 1.04 : 1.0);
     canvas.save();
     canvas.translate(s.width / 2, s.height / 2);
     canvas.scale(scale);
     canvas.translate(-s.width / 2, -s.height / 2);
-    if (lifted) {
+    if (lifted && castsShadow) {
       canvas.drawRect(
         rect.shift(const Offset(0, 8)),
         Paint()
@@ -714,7 +976,8 @@ class TileComponent extends PositionComponent {
     }
     canvas.drawPicture(_art(s));
     if (!correct || lifted) {
-      canvas.drawRect(
+      _outline(
+        canvas,
         rect.deflate(0.5),
         Paint()
           ..color = style.tileEdge
@@ -726,7 +989,8 @@ class TileComponent extends PositionComponent {
       canvas.drawRect(rect, Paint()..color = style.targetGlow);
     }
     if (pressed || lifted) {
-      canvas.drawRect(
+      _outline(
+        canvas,
         rect.deflate(1),
         Paint()
           ..color = style.selected

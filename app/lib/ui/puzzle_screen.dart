@@ -40,7 +40,7 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
         puzzle: s.puzzle,
         artwork: _artwork,
         intents: PuzzleGameIntents(
-          onSwapRequested: (from, to) => _controller.swap(from, to),
+          onSwapRequested: (from, to) => _controller.moveTile(from, to),
           onSwapSettled: () {},
           onCompletionShown: () => _controller.completionShown(),
         ),

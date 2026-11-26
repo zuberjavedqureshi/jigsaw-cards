@@ -36,6 +36,7 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 - [x] Puzzle introduction: card entrance and reveal (GP-37), commit `37c5af4`; approved by the product owner on their Android phone 2026-11-26
 - [x] Functional device check of the picture-swap gameplay by the product owner (2026-11-25/26); performance and low-end device validation (S-01) still outstanding
 - [x] **M3.1 Bright & Celebrate** (approved 2026-11-26; implemented and approved on device 2026-11-26): Sunlit Storybook palette with the patterned violet gameplay background (VI-06); bright code-drawn daytime placeholder picture (VI-07); board spacing (GP-38); short completion celebration without rewards (GP-39); next-puzzle transition (GP-40)
+- [x] **M3.2 Connected Tile Groups** (core gameplay feature; implemented and approved on device 2026-11-26; branch `feature/m32-connected-tile-groups`): neighbouring tiles join by relative picture alignment anywhere on the board; groups lift, move and merge as one unit with their shape kept; single tiles keep drag-and-swap; the board stays full (GP-41 to GP-44, VI-08). The free-placement workbench prototype ("Direction B") was rejected
 - [x] Q-022 resolved 2026-11-25: equal-sized tiles on a uniform 4×4 grid. Q-023 resolved 2026-11-25: correct tiles remain movable. The implementation already matches both
 - *(Superseded 2026-11-25: scattered face-down start, 4-second preview, tap to reveal, free placement)*
 - [ ] Reference preview
@@ -49,7 +50,7 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 ## Icebox (future — requires approval)
 - Irregular jigsaw pieces
 - Rotation
-- Connected-piece grouping
+- Connected-piece grouping for irregular jigsaw pieces (rectangular-tile groups are done: M3.2)
 - Zoom and pan
 - Board sizes and difficulty levels
 - Firebase services

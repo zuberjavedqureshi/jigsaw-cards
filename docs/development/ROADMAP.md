@@ -35,6 +35,7 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 
 - One 4×4 picture-swap puzzle end to end: puzzle introduction, shuffled grid, drag-and-swap, correct-tile feedback, completion, character/card reveal, coin animation, sound effects, auto-save/restore. Hints follow in v1.
 - M3.1 (done 2026-11-26, approved on device): Sunlit Storybook visuals with a patterned violet gameplay background, board spacing, a short completion celebration and the next-puzzle transition.
+- M3.2 (done 2026-11-26, approved on device): Connected Tile Groups, a core gameplay feature. Neighbouring tiles that line up as in the picture join anywhere on the board, and groups move and merge as one unit within the full-board drag-and-swap model. A free-placement workbench alternative was prototyped and rejected.
 
 **Exit:** prototype success criteria in the PRD are met.
 
@@ -46,5 +47,5 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 ## Later (requires approval)
 
 - Remaining worlds (working names: Ocean Kingdom, Fantasy Kingdom, Cosmic Adventures).
-- Future puzzle styles: irregular pieces, rotation, grouping, zoom/pan, board sizes and difficulty levels.
+- Future puzzle styles: irregular pieces, rotation, grouping of irregular pieces, zoom/pan, board sizes and difficulty levels.
 - Firebase services where justified.
