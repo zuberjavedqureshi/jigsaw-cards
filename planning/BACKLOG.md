@@ -33,7 +33,9 @@ Prioritised per the [feasibility review §8](../docs/architecture/TECHNICAL_FEAS
 ## Phase 3 — Prototype
 - [x] Picture-swap board: shuffled 4 × 4 grid of equal tiles that keeps the artwork's aspect ratio (GP-29 to GP-31, GP-35). First implementation on a feature branch, not device-validated
 - [x] Drag-and-swap with press, target and exchange animations, cancel on release outside, correct-tile feedback and completion state (GP-32 to GP-34). First implementation on a feature branch
-- [ ] Physical-device validation of the picture-swap gameplay
+- [x] Puzzle introduction: card entrance and reveal (GP-37), commit `37c5af4`; approved by the product owner on their Android phone 2026-11-26
+- [x] Functional device check of the picture-swap gameplay by the product owner (2026-11-25/26); performance and low-end device validation (S-01) still outstanding
+- [x] **M3.1 Bright & Celebrate** (approved 2026-11-26; implemented and approved on device 2026-11-26): Sunlit Storybook palette with the patterned violet gameplay background (VI-06); bright code-drawn daytime placeholder picture (VI-07); board spacing (GP-38); short completion celebration without rewards (GP-39); next-puzzle transition (GP-40)
 - [x] Q-022 resolved 2026-11-25: equal-sized tiles on a uniform 4×4 grid. Q-023 resolved 2026-11-25: correct tiles remain movable. The implementation already matches both
 - *(Superseded 2026-11-25: scattered face-down start, 4-second preview, tap to reveal, free placement)*
 - [ ] Reference preview

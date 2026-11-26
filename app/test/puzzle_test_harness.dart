@@ -9,10 +9,24 @@ import 'package:puzzle_domain/puzzle_domain.dart';
 
 const testSeed = 42;
 
+/// Deterministic seeds for new puzzles: 1000, 1001, … (counts calls).
+class SequenceSeedSource implements PuzzleSeedSource {
+  SequenceSeedSource([this.next = 1000]);
+  int next;
+  int calls = 0;
+
+  @override
+  int nextSeed() {
+    calls++;
+    return next++;
+  }
+}
+
 class Harness {
-  Harness(this.tester, this.container);
+  Harness(this.tester, this.container, this.seeds);
   final WidgetTester tester;
   final ProviderContainer container;
+  final SequenceSeedSource seeds;
 
   PuzzleState get state => container.read(puzzleControllerProvider);
   PicturePuzzle get puzzle => state.puzzle;
@@ -32,6 +46,19 @@ class Harness {
   Offset globalLocal(Offset local) => _box.localToGlobal(local);
 
   TileComponent componentAt(GridCell c) => game.tiles[puzzle.tileAt(c).id]!;
+
+  /// Taps Next puzzle and waits for the exit, the new puzzle and its
+  /// introduction to finish.
+  Future<void> tapNextPuzzle() async {
+    final round = state.round;
+    await tester.tap(find.byKey(const Key('next_puzzle')));
+    for (var i = 0; i < 100 && state.round == round; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(state.round, round + 1, reason: 'next puzzle did not start');
+    await tester.pump(const Duration(milliseconds: 16));
+    await finishIntro();
+  }
 
   /// Pumps until the puzzle introduction has finished (bounded).
   Future<void> finishIntro() async {
@@ -97,8 +124,12 @@ Future<Harness> pumpPuzzle(
     ..physicalSize = size
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  final seeds = SequenceSeedSource();
   final container = ProviderContainer(
-    overrides: [initialSeedProvider.overrideWithValue(seed)],
+    overrides: [
+      initialSeedProvider.overrideWithValue(seed),
+      puzzleSeedSourceProvider.overrideWithValue(seeds),
+    ],
   );
   addTearDown(container.dispose);
   await tester.pumpWidget(
@@ -107,7 +138,7 @@ Future<Harness> pumpPuzzle(
       child: const MaterialApp(home: Scaffold(body: PuzzleScreen())),
     ),
   );
-  final h = Harness(tester, container);
+  final h = Harness(tester, container, seeds);
   await h.settle(frames: 2);
   if (waitForIntro) await h.finishIntro();
   return h;

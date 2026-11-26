@@ -6,7 +6,7 @@ import '../artwork/puzzle_artwork.dart';
 import '../game/puzzle_game.dart';
 import '../game/puzzle_game_bridge.dart';
 import '../state/puzzle_controller.dart';
-import 'storybook_theme.dart';
+import 'sunlit_theme.dart';
 
 /// The puzzle screen: a slim header and the Flame board, which fills the
 /// rest of the safe area. All communication with the game goes through
@@ -22,14 +22,19 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
   late final PuzzleArtwork _artwork = ref.read(artworkProvider);
 
   PuzzleGame? _game;
-  int? _gameSeed;
+  int? _gameRound;
+
+  /// True from the first Next puzzle tap until the new puzzle's game
+  /// exists: further taps are ignored and sequences never overlap (GP-40).
+  bool _transitioning = false;
 
   PuzzleController get _controller =>
       ref.read(puzzleControllerProvider.notifier);
 
   PuzzleGame _gameFor(PuzzleState s) {
-    if (_game == null || _gameSeed != s.seed) {
-      _gameSeed = s.seed;
+    if (_game == null || _gameRound != s.round) {
+      _gameRound = s.round;
+      _transitioning = false;
       // Explicit initial sync: the game starts from the current puzzle.
       _game = PuzzleGame(
         puzzle: s.puzzle,
@@ -44,37 +49,45 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
     return _game!;
   }
 
+  /// Next puzzle: hide the card, clear the board, then start a new puzzle,
+  /// whose introduction runs as usual. Only the first tap counts.
+  void _nextPuzzle() {
+    if (_transitioning) return;
+    setState(() => _transitioning = true);
+    final started = _game?.playExit(_controller.newPuzzle) ?? false;
+    if (!started) _controller.newPuzzle();
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(puzzleControllerProvider, (prev, next) {
-      if (prev != null && prev.seed == next.seed) {
+      if (prev != null && prev.round == next.round) {
         _game?.syncPuzzle(next.puzzle);
       }
     });
     final s = ref.watch(puzzleControllerProvider);
     final game = _gameFor(s);
 
-    return DecoratedBox(
-      decoration: Storybook.background,
+    return SunlitBackground(
       child: SafeArea(
         child: Column(
           children: [
-            _Header(state: s),
+            _Header(state: s, artwork: _artwork),
             Expanded(
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: GameWidget(
-                      key: ValueKey('game_${s.seed}'),
+                      key: ValueKey('game_${s.round}'),
                       game: game,
                     ),
                   ),
-                  if (s.showCompletion)
+                  if (s.showCompletion && !_transitioning)
                     Positioned.fill(
                       child: _CompletionOverlay(
                         artwork: _artwork,
                         swaps: s.swaps,
-                        onNewPuzzle: _controller.newPuzzle,
+                        onNextPuzzle: _nextPuzzle,
                       ),
                     ),
                 ],
@@ -88,9 +101,10 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.state});
+  const _Header({required this.state, required this.artwork});
 
   final PuzzleState state;
+  final PuzzleArtwork artwork;
 
   @override
   Widget build(BuildContext context) {
@@ -101,11 +115,12 @@ class _Header extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Moonlit Castle',
-                  style: TextStyle(
-                    color: Storybook.parchment,
+                  artwork.title,
+                  key: const Key('title'),
+                  style: const TextStyle(
+                    color: Sunlit.onBackdrop,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'serif',
@@ -114,8 +129,16 @@ class _Header extends StatelessWidget {
               ),
               DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0x33FFF6DA),
-                  borderRadius: BorderRadius.circular(14),
+                  color: Sunlit.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Sunlit.sunflower, width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Sunlit.shadow,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -128,7 +151,7 @@ class _Header extends StatelessWidget {
                     semanticsLabel:
                         '${state.correctCount} of ${state.tileCount} tiles in place',
                     style: const TextStyle(
-                      color: Storybook.gold,
+                      color: Sunlit.deepTeal,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -143,7 +166,7 @@ class _Header extends StatelessWidget {
                 ? 'The picture is whole again!'
                 : 'Drag a tile onto another to swap them',
             key: const Key('hint'),
-            style: const TextStyle(color: Color(0xDDF7EBCB), fontSize: 14),
+            style: const TextStyle(color: Sunlit.onBackdrop, fontSize: 14),
           ),
         ],
       ),
@@ -151,25 +174,26 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Completion state: the finished illustration and a New puzzle action.
-/// Rewards and progression attach here later (not in this milestone).
+/// Completion state (GP-39): the finished illustration and a Next puzzle
+/// action. No rewards are shown in this milestone; reward presentation
+/// attaches here later.
 class _CompletionOverlay extends StatelessWidget {
   const _CompletionOverlay({
     required this.artwork,
     required this.swaps,
-    required this.onNewPuzzle,
+    required this.onNextPuzzle,
   });
 
   final PuzzleArtwork artwork;
   final int swaps;
-  final VoidCallback onNewPuzzle;
+  final VoidCallback onNextPuzzle;
 
   @override
   Widget build(BuildContext context) {
     final src = artwork.sourceSize;
     return ColoredBox(
       key: const Key('completion'),
-      color: const Color(0x99000000),
+      color: Sunlit.scrim,
       child: Center(
         child: TweenAnimationBuilder<double>(
           tween: Tween(begin: 0, end: 1),
@@ -184,9 +208,16 @@ class _CompletionOverlay extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
             constraints: const BoxConstraints(maxWidth: 360),
             decoration: BoxDecoration(
-              color: Storybook.parchment,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Storybook.wood, width: 4),
+              color: Sunlit.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Sunlit.sunflower, width: 3),
+              boxShadow: const [
+                BoxShadow(
+                  color: Sunlit.shadow,
+                  blurRadius: 18,
+                  offset: Offset(0, 6),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -194,7 +225,7 @@ class _CompletionOverlay extends StatelessWidget {
                 const Text(
                   'Puzzle complete!',
                   style: TextStyle(
-                    color: Storybook.ink,
+                    color: Sunlit.ink,
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'serif',
@@ -205,7 +236,7 @@ class _CompletionOverlay extends StatelessWidget {
                   aspectRatio: src.width / src.height,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Storybook.wood, width: 3),
+                      border: Border.all(color: Sunlit.frameEdge, width: 3),
                     ),
                     child: CustomPaint(
                       key: const Key('completed_picture'),
@@ -216,17 +247,13 @@ class _CompletionOverlay extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   'Solved in $swaps swaps',
-                  style: const TextStyle(color: Storybook.ink, fontSize: 15),
+                  style: const TextStyle(color: Sunlit.ink, fontSize: 15),
                 ),
                 const SizedBox(height: 14),
                 FilledButton(
-                  key: const Key('new_puzzle'),
-                  onPressed: onNewPuzzle,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Storybook.wood,
-                    minimumSize: const Size(180, 48),
-                  ),
-                  child: const Text('New puzzle'),
+                  key: const Key('next_puzzle'),
+                  onPressed: onNextPuzzle,
+                  child: const Text('Next puzzle'),
                 ),
               ],
             ),

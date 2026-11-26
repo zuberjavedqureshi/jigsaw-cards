@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 1.0 (canonical repository edition, reconciliation 5: picture-swap gameplay; Q-022 and Q-023 resolved) |
+| Version | 1.0 (canonical repository edition, reconciliation 7: M3.1 implemented and approved on device; gameplay background refined) |
 | Status | Approved product decisions; pre-development technical validation |
 | Platform | Android first, portrait |
 | Tagline | **Solve. Discover. Collect.** |
@@ -28,6 +28,8 @@ Requirement IDs (e.g. `GP-03`) are stable and may be referenced from issues, ADR
 | --- | --- | --- |
 | 4 | 2026-11-24 | Q-001 target audience resolved |
 | 5 | 2026-11-25 | Gameplay revised twice: free placement with memory reveal (GP-20 to GP-28, then superseded), then the **rectangular picture-swap puzzle** (GP-29 to GP-36). Q-010 and Q-011 revised. **Q-022** resolved (equal-sized tiles; mixed-size partition superseded for this gameplay; PS-01, PS-06, PS-08, PS-19 to PS-24, GP-02 revised) and **Q-023** resolved (correct tiles remain movable; GP-32, GP-34). Hints excluded from the prototype, planned for v1 (GP-36) |
+| 6 | 2026-11-26 | Puzzle introduction (card entrance and reveal), already implemented and approved on the product owner's device, recorded as **GP-37**. M3.1 "Bright & Celebrate" approved: **Sunlit Storybook** palette for the whole UI (**VI-06**), bright code-drawn daytime placeholder picture (**VI-07**), board spacing (**GP-38**), completion celebration without rewards (**GP-39**) and the next-puzzle transition (**GP-40**) |
+| 7 | 2026-11-26 | M3.1 implemented and approved on the product owner's Android device. **VI-06** refined: the gameplay background is a patterned violet storybook background (flat `#7543EE`, darker `#6531DE` diamond lattice, subtle four-petal motifs, cream header text), replacing the sky-to-cream gradient with clouds. GP-37 to GP-40 behaviour approved on device |
 
 ---
 
@@ -91,9 +93,11 @@ Jigsaw Cards is a broad casual puzzle game primarily designed for teenagers and 
 - **VI-03** Characters are revealed with animation (Rive, subject to technical validation, TD).
 - **VI-04** Each world has its own visual theme.
 - **VI-05** Portrait UI that frames the artwork rather than competing with it.
+- **VI-06** *(approved 2026-11-26; background refined and approved on device the same day)* The whole game UI follows the rich, cheerful **Sunlit Storybook** direction. The gameplay background is a **patterned violet storybook background**: a flat violet base (`#7543EE`) with a subtle, darker diamond lattice (`#6531DE`) and small four-petal motifs, drawn in code, with cream header text (`#FFFBF2`). It also uses cream paper surfaces, slate-blue text on light surfaces and harmonious accents, all defined as shared design tokens and used consistently across gameplay, menus and progression screens. The puzzle board is the focal point; the background stays atmospheric and never competes with it. Details: [VISUAL_IDENTITY.md §2a–2b](VISUAL_IDENTITY.md#2a-sunlit-storybook-palette-approved-2026-11-26). *(History: the first implementation used a sky-to-cream gradient background with clouds, replaced after device review.)*
+- **VI-07** *(approved 2026-11-26)* Until real artwork exists, the placeholder puzzle picture is a **bright, code-drawn daytime** storybook scene, replacing the night scene. No AI-generated or downloaded artwork.
 
 Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md).
-**[Source text needed]** Any approved palette, typography or style-guide direction.
+**[Source text needed]** Any palette, typography or style-guide direction in the original approved PRD text. Typography remains open; the M3.1 palette (VI-06) was approved separately on 2026-11-26.
 
 ## 5. Mascot and Character Discovery
 
@@ -176,7 +180,7 @@ Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
 ### 7.2 Prototype gameplay
 
-All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 was confirmed, and GP-14 to GP-19 added, when Q-010 and Q-011 were resolved (2026-11-23). On 2026-11-25 the product owner revised Q-010 and Q-011 after Android device testing and approved the free-placement memory gameplay (GP-20 to GP-28): tap to reveal, free placement and an exactly 4-second preview. Superseded requirements keep their IDs as history and must not be implemented. On 2026-11-25 the product owner then **rejected** the memory and free-placement gameplay and approved the **rectangular picture-swap puzzle** from a reference gameplay recording (GP-29 to GP-36). GP-20 to GP-28 are superseded. Q-022 (equal-sized tiles) and Q-023 (correct tiles remain movable) were resolved the same day and are reflected in GP-02, GP-15, GP-29, GP-30, GP-32 and GP-34.
+All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 was confirmed, and GP-14 to GP-19 added, when Q-010 and Q-011 were resolved (2026-11-23). On 2026-11-25 the product owner revised Q-010 and Q-011 after Android device testing and approved the free-placement memory gameplay (GP-20 to GP-28): tap to reveal, free placement and an exactly 4-second preview. Superseded requirements keep their IDs as history and must not be implemented. On 2026-11-25 the product owner then **rejected** the memory and free-placement gameplay and approved the **rectangular picture-swap puzzle** from a reference gameplay recording (GP-29 to GP-36). GP-20 to GP-28 are superseded. Q-022 (equal-sized tiles) and Q-023 (correct tiles remain movable) were resolved the same day and are reflected in GP-02, GP-15, GP-29, GP-30, GP-32 and GP-34. On 2026-11-26 the implemented puzzle introduction was recorded (GP-37) and the M3.1 "Bright & Celebrate" requirements were approved (GP-38 to GP-40).
 
 | ID | Requirement |
 | --- | --- |
@@ -216,6 +220,10 @@ All requirements below are **[Confirmed]** unless marked **Superseded**. GP-06 w
 | GP-34 | **Completion:** detected only when every tile (all 16 in the prototype) is in its correct cell, based solely on the whole board matching the target arrangement; tiles landing in their correct cell get visible feedback, which is visual only and never restricts movement (Q-023); completion shows the finished illustration and a New puzzle or Continue action, ready for future rewards and progression |
 | GP-35 | **Layout:** the board keeps the illustration's aspect ratio, fits different phone screens within the safe area, is never clipped and keeps comfortable touch targets |
 | GP-36 | **Hints** are intentionally excluded from the initial prototype and are planned for v1 (design not yet specified) |
+| GP-37 | **Puzzle introduction** *(implemented, approved 2026-11-26 after testing on the product owner's device)*: every new puzzle starts with all tiles showing a shared card back; the tiles enter from below the board one by one, with staggered, tilted flights that settle into their actual shuffled cells; after the last tile has arrived they flip to their picture in a fast, coordinated sequence; then gameplay starts. Input is disabled until the reveal finishes. The sequence never changes the arrangement and runs again for every new puzzle. It is a reusable presentation shared by all puzzles, not puzzle-specific logic |
+| GP-38 | **Board spacing** *(approved 2026-11-26)*: measured to the **outer edge of the board frame**, the horizontal margin to each screen edge is **20–32 dp**, scaling with screen width; the board is centred vertically between the header and the bottom safe area, with comfortable space above and below; it respects all safe areas (status bar, display cutouts, navigation and gesture insets), stays responsive across screen sizes with a maximum width on large screens, keeps tiles comfortable to touch, and never touches or crosses a screen edge. The 4×4 layout and the image aspect ratio are unchanged. No bottom action bar is reserved until hint and preview actions exist |
+| GP-39 | **Completion celebration** *(approved 2026-11-26)*: when the last tile is correct, a satisfying but short celebration plays (picture shine and a brief sparkle effect), then the finished illustration is presented with a **Next puzzle** action. No coins, rewards, placeholder rewards or empty reward slots are shown until reward rules are implemented; the celebration is structured so rewards (GP-10, GP-11) can be added later. Input on the board stays disabled during the celebration |
+| GP-40 | **Next-puzzle transition** *(approved 2026-11-26)*: **Next puzzle** clears the board with a short exit animation and starts a new puzzle; for now it **reshuffles the same placeholder picture**, and the puzzle introduction (GP-37) runs again. A transition can only be started once: repeated taps are ignored and sequences never overlap |
 
 Details: [GAMEPLAY.md](GAMEPLAY.md). Technical specification: [PUZZLE_ENGINE.md](../architecture/PUZZLE_ENGINE.md).
 
@@ -357,7 +365,7 @@ Details: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md) ·
 
 ## 15. Prototype Scope
 
-**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-36, excluding requirements marked Superseded) for a single 4×4 picture-swap puzzle of equal-sized rectangular tiles (Q-022), on Android, in portrait.
+**[Confirmed]** The first prototype delivers the gameplay in Section 7.2 (GP-01 to GP-40, excluding requirements marked Superseded) for a single 4×4 picture-swap puzzle of equal-sized rectangular tiles (Q-022), on Android, in portrait.
 
 **[Confirmed]** The prototype puzzle is a **designated card puzzle** (CC-07), so it validates the full discovery and reward experience: completion, character reveal, guaranteed card and coins.
 
@@ -463,6 +471,10 @@ These must remain unchanged without explicit approval:
 | 35 | Hints excluded from the initial prototype; planned for v1 (2026-11-25) | GP-36 |
 | 36 | Equal-sized rectangular tiles: uniform 4×4 grid, 16 tiles of identical dimensions, one per cell, cut as equal fragments of the illustration; mixed-size pieces superseded for the picture-swap gameplay (Q-022, resolved 2026-11-25) | PS-01, PS-06, PS-08, PS-19 to PS-24, GP-02, GP-29, GP-30 |
 | 37 | Correctly positioned tiles remain movable: no locking; any two tiles can be swapped at any time; correct-position feedback is visual only; completion only when every tile is in its correct cell (Q-023, resolved 2026-11-25) | GP-15, GP-32, GP-34 |
+| 38 | Puzzle introduction: card backs enter from below into the shuffled cells, then flip to the picture in sequence; input disabled until finished; runs for every new puzzle (2026-11-26) | GP-37 |
+| 39 | Sunlit Storybook palette for the entire UI; bright code-drawn daytime placeholder picture; no AI-generated or downloaded art (2026-11-26) | VI-06, VI-07 |
+| 40 | Board spacing: 20–32 dp horizontal margin to the frame's outer edge, safe areas respected, responsive; no reserved bottom action bar yet (2026-11-26) | GP-38 |
+| 41 | Short completion celebration with no rewards shown yet (extensible for future rewards); Next puzzle reshuffles the same picture, reruns the introduction, and cannot be triggered twice (2026-11-26) | GP-39, GP-40 |
 
 ## 21. Source Gaps Summary
 

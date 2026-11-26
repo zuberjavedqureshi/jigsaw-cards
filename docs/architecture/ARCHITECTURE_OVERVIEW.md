@@ -70,6 +70,7 @@ Details: [PUZZLE_ENGINE.md](PUZZLE_ENGINE.md).
 - **[Confirmed]** Flame as the game engine; flame_audio for audio.
 - **[Confirmed]** Flame communicates with the application layer through a manual bridge: intent callbacks out and a small view interface in, with explicit initial-state sync. Flame game and component classes do not use Riverpod, and `flame_riverpod` is not used (TD-03, [ADR-0001](../decisions/ADR-0001-flame-riverpod-manual-bridge.md)).
 - **[Proposed]** Flame components translate pointer input into domain commands, and render the domain state. All positions are derived from the board layout computed from screen size — no hardcoded screen coordinates.
+- **[Implemented]** Presentation sequences shared by every puzzle are separate from puzzle logic: a pure-Dart timeline (for example `IntroTimeline`) drives a Flame director (`IntroDirector`) that poses components through a small stage interface, and gates input until it finishes. This is used for the puzzle introduction (GP-37); the M3.1 completion celebration and next-puzzle transition (GP-39, GP-40) are planned to follow the same pattern. Visual styling (card back, and the M3.1 palette tokens) is injected into the game as plain objects, never read through Riverpod.
 - **[Confirmed, subject to validation]** Rive for character animation.
 
 ### 2.5 Local persistence

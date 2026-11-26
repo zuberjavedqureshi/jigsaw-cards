@@ -2,7 +2,7 @@
 
 **Current phase:** Phase 0 — Foundation (pre-development technical validation)
 
-**Last updated:** 2026-11-25
+**Last updated:** 2026-11-26
 
 | Area | Status | Notes |
 | --- | --- | --- |
@@ -11,7 +11,7 @@
 | Product decisions | ✅ Updated | Q-009 (piece generation), Q-010 (placement), Q-011 (tray) resolved 2026-11-23; Q-001 (target audience: core 16–35, overall 13+) resolved 2026-11-24; Q-010 and Q-011 revised twice on 2026-11-25, first to free placement and memory reveal, then to the **rectangular picture-swap puzzle** (PRD GP-29 to GP-36; hints planned for v1). **Q-022 resolved 2026-11-25** (equal-sized tiles on a uniform 4×4 grid; mixed-size partition superseded for this gameplay; Q-009 revised) and **Q-023 resolved 2026-11-25** (correct tiles remain movable; no locking); see [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
 | Flutter project | 🔄 Created (feature branches) | Pub workspace per ADR-0002: `app/` (Flutter, Android) and `packages/puzzle_domain/` (pure Dart). Current gameplay on `feature/gameplay-picture-swap`; earlier builds on `feature/m1-1-core-puzzle-gameplay` and `feature/gameplay-free-placement-reveal` (superseded); none merged. Application ID `com.example.jigsaw_cards` is a temporary placeholder (owner decision) |
 | Puzzle domain | 🔄 In progress | Picture-swap model: equal tiles cut from a source size, seeded Fisher–Yates shuffle (never solved, ≥75% misplaced; provisional), swap, occupancy validation, correctness counts, completion, minimum swaps. Matches Q-022 and Q-023. The partition generator, superseded for this gameplay by Q-022, is kept but not used. 35 unit tests. Serialisation/restore not started |
-| Flame rendering | 🔄 Playable | Framed board keeping the artwork aspect; tiles drawn from cached slices; press, lift and target feedback; eased exchange and cancel animations; correct-tile glow, with correct tiles drawn edge to edge; completion shine; input blocked while settling; manual bridge per ADR-0001 (`syncPuzzle` in, intents out) |
+| Flame rendering | 🔄 Playable | Framed board keeping the artwork aspect; tiles drawn from cached slices; press, lift and target feedback; eased exchange and cancel animations; correct-tile glow, with correct tiles drawn edge to edge; completion shine; input blocked while settling; manual bridge per ADR-0001 (`syncPuzzle` in, intents out); puzzle introduction (card entrance and reveal, GP-37) via a reusable `IntroTimeline` + `IntroDirector` with a replaceable code-drawn card back |
 | Riverpod state | 🔄 Playable | Hand-written `PuzzleController` Notifier (ADR-0003): shuffled puzzle, swaps, completion state ready for future rewards; a single `artworkProvider` feeds both domain slicing and rendering |
 | Persistence | ⛔ Not started | Technology not selected |
 | Audio | ⛔ Not started | |
@@ -19,6 +19,38 @@
 | Art assets | ⛔ Not started | Code-drawn **placeholder** storybook scene only; no downloaded or generated artwork |
 | CI | 🔄 Partial | `.github/workflows/android-apk.yml` builds and uploads a **debug** APK for product-owner testing (not a release pipeline). Format, analyze and test checks on PRs (TD-08) are not configured |
 | Architecture decisions | ✅ TD-03, TD-04, TD-05 confirmed 2026-11-24 | [ADR-0001](../docs/decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../docs/decisions/ADR-0002-pub-workspace-and-domain-boundary.md), [ADR-0003](../docs/decisions/ADR-0003-handwritten-riverpod-providers.md). S-01 Android device validation (§8.1 timings, `paused`/`resumed`) **still outstanding**; S-01 not complete. TD-01, TD-02, TD-06 to TD-08 Pending |
+
+## M3.1 "Bright & Celebrate" (approved 2026-11-26; implemented and approved on the product owner's Android device 2026-11-26; branch `feature/gameplay-picture-swap`, not merged)
+
+Approved scope (PRD VI-06, VI-07, GP-38 to GP-40): the Sunlit Storybook palette across the whole UI; a bright code-drawn daytime placeholder picture; the board spacing rules (20–32 dp to the frame's outer edge, safe areas, responsive, no reserved bottom bar); a short completion celebration with no rewards shown; and a Next puzzle transition that reshuffles the same picture and reruns the introduction, with no duplicate taps or overlapping sequences. Puzzle mechanics, shuffle rules and the introduction are unchanged. Out of scope: merging into `main`, world progression, real rewards, and the application ID.
+
+**Implemented:**
+- **Design tokens:** a `Sunlit` palette and theme; filled buttons in deep teal with white text, per the contrast rule; the header and completion card restyled.
+- **Gameplay background (VI-06, refined after device review):** a flat violet base (`#7543EE`) with a code-drawn diamond lattice (`#6531DE`, about 122 × 133 dp diamonds, 3.4 dp lines) and four-petal motifs (`#6633DD`) at the diamond centres, covering the whole screen; cream header text. This replaces the first implementation's sky-to-cream gradient with clouds.
+- **Board:** a `BoardStyle` object injected into the Flame game, with a honey-wood frame, a pale bed, a turquoise target outline, a sunflower selection outline and a leaf correct glow; the intro rendering is unchanged.
+- **Spacing (GP-38):** `BoardLayout` measures 20–32 dp to the frame's outer edge (6% of the width), at least 16 dp above and 24 dp below, and caps the frame at 560 dp; margins grow beyond 32 dp only when the board is capped or limited by height.
+- **Placeholder picture (VI-07):** a bright code-drawn daytime scene ("Sunny Castle") with a distinct detail in every tile region.
+- **Celebration (GP-39):** a step-based `CelebrationTimeline` with a `CelebrationDirector` (shine 0–0.7 s, sparkle burst 0.3–1.1 s); it starts at most once and keeps input disabled; there is no reward UI.
+- **Next puzzle (GP-40):** the card hides, an `ExitTimeline` with an `ExitDirector` clears the board in about 0.6 s, then a new puzzle starts with the same picture and a seed from the injectable `PuzzleSeedSource` (no seed arithmetic; a repeated arrangement is skipped), and the introduction runs again. Repeated taps are ignored.
+
+**Validated:**
+- In this environment: 86 app tests (45 new for M3.1: palette, background and contrast; board spacing at 8 sizes with insets; artwork brightness and tile distinctness; celebration; next puzzle) and 35 domain tests; formatting, both analyzers and the boundary guard clean; the puzzle domain and the introduction are unchanged; checked visually in scratch web builds at 412×915 and 320×568.
+- On device: the product owner tested the final M3.1 debug APK on their Android phone and approved it on 2026-11-26.
+- No performance measurements yet, and S-01 low-end device validation is still outstanding.
+
+## Puzzle introduction (2026-11-26, commit `37c5af4`, branch `feature/gameplay-picture-swap`, not merged)
+
+**Implemented (GP-37):** tiles start as card backs, fly in from below one by one, tilted, into their actual shuffled cells, then flip to their picture in a fixed scattered order, after which input is enabled.
+- **Structure:** a pure-Dart `IntroTimeline` (phases `idle → entering → revealing → ready`, keyed by board cell) and a Flame `IntroDirector` posing tiles through an `IntroStage` interface; the card back (`CardBackDesign`) is a replaceable, code-drawn placeholder.
+- **Behaviour:** input is gated until the reveal finishes; resizes and rebuilds do not restart the sequence; the time step is capped so pauses cannot skip it; a new puzzle runs it again.
+
+**Validated:**
+- 18 new tests (8 timeline unit tests and 10 widget tests covering backs at start, shuffled target cells, reveal only after arrival, reveal order, correct fragments, input gating in both phases, enablement afterwards, rerun for a new puzzle, resize and rebuild, and pause/resume); 41 app tests and 35 domain tests in total; analyzer and boundary guard clean.
+- GitHub Actions debug APK run #5 (161,648,194 bytes).
+- Product owner functional check on their own Android phone (2026-11-26): entrance and reveal approved.
+- No performance measurements yet.
+
+**Provisional tuning:** entrance stagger 85 ms, flight 400 ms, reveal delay 40 ms, flip 220 ms, reveal stagger 50 ms (about 2.6 s in total).
 
 ## Picture-swap gameplay (2026-11-25, branch `feature/gameplay-picture-swap`, not merged)
 
@@ -41,7 +73,7 @@ Supersedes the memory/free-placement build and the tray build below (Q-010 and Q
 - a clean `flutter build apk --debug` (161,622,378 bytes; apksigner, zipalign and `unzip -t` pass);
 - a scripted solve of a scratch web build (screenshots and a recording).
 
-**Not validated on a physical Android device**; no performance measurements.
+**Device check:** the product owner reported the picture-swap gameplay working on their own Android phone (functional check, 2026-11-25/26). No performance measurements, and S-01 low-end and mid-range device validation remains outstanding.
 
 **Provisional choices (not product or technical decisions):**
 - shuffle at least 75% misplaced; seed from `--dart-define=PUZZLE_SEED` or launch time;

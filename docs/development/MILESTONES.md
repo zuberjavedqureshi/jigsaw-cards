@@ -11,6 +11,7 @@
 | M1.5 | Flutter project structure approved (ADR) | 1 | ✅ Approved 2026-11-24 ([ADR-0002](../decisions/ADR-0002-pub-workspace-and-domain-boundary.md)); production workspace created 2026-11-25 on branch `feature/m1-1-core-puzzle-gameplay` (not merged) |
 | M2 | Puzzle domain complete with tests | 2 | 🔄 In progress — picture-swap model (equal tiles, seeded shuffle, swap, occupancy validation, correctness and completion) with tests, consistent with Q-022 (equal tiles) and Q-023 (no locking), both resolved 2026-11-25; the superseded partition generator is kept but not used. **Outstanding:** TD-02 (seed source), serialisation/restore (PS-23) |
 | M3 | Playable 4×4 prototype | 3 | 🔄 In progress — picture-swap gameplay (shuffled 4×4 grid, drag-and-swap, correct-tile feedback, completion) with widget tests and a web-preview recording, on branch `feature/gameplay-picture-swap` (not merged). The tray build and the memory/free-placement build are superseded. **Outstanding:** physical Android device validation, reference preview, card reveal, coin reward, sound, auto-save/restore (including PS-23), final artwork; hints are planned for v1 |
+| M3.1 | Bright & Celebrate | 3 | ✅ Done 2026-11-26: implemented and approved on the product owner's Android device (branch `feature/gameplay-picture-swap`, not merged to `main`). Patterned violet background and Sunlit palette across the UI, bright daytime placeholder picture, board spacing (GP-38), short completion celebration without rewards (GP-39), next-puzzle transition (GP-40) |
 | M4 | MVP vertical slice | 4 | ⏳ Not started |
 
 ## Milestone Definitions
@@ -32,5 +33,7 @@ Completion condition: all three designated blocking questions are resolved and d
 **M2 — Puzzle domain.** Pure-Dart engine implementing PUZZLE_ENGINE.md with passing unit tests.
 
 **M3 — Playable prototype.** All confirmed initial gameplay features working on an Android device.
+
+**M3.1 — Bright & Celebrate** (approved 2026-11-26). Objective: make the prototype bright and pleasant end to end without changing the puzzle mechanics, shuffle rules or introduction. Scope: PRD VI-06, VI-07, GP-38, GP-39 and GP-40. Acceptance criteria are defined in the approved M3.1 implementation plan. Out of scope: merging into `main`, world progression and level selection, real rewards (coins, cards, character reveal), persistence, hints, sound, and the application ID. Completing M3.1 does not complete M3.
 
 **M4 — MVP vertical slice.** Scope to be defined after M3.

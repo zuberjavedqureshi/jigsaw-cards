@@ -12,22 +12,28 @@ import 'package:puzzle_domain/puzzle_domain.dart';
 import '../artwork/card_back.dart';
 import '../artwork/puzzle_artwork.dart';
 import '../ui/play_area_layout.dart';
+import 'board_style.dart';
+import 'celebration/celebration_director.dart';
+import 'celebration/celebration_timeline.dart';
 import 'intro/intro_director.dart';
 import 'intro/intro_timeline.dart';
 import 'puzzle_game_bridge.dart';
+import 'transition/exit_sequence.dart';
 
 /// Flame scene for one picture-swap puzzle: the board, the tiles, the
 /// introduction (via the reusable [IntroDirector]), the drag, the exchange
 /// animation and the completion shine. The rules live in the
 /// domain; state arrives through [syncPuzzle] and requests leave through
 /// [PuzzleGameIntents] (ADR-0001). No Riverpod here.
-class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
+class PuzzleGame extends FlameGame
+    implements PuzzleGameView, IntroStage, CelebrationStage, ExitStage {
   PuzzleGame({
     required PicturePuzzle puzzle,
     required this.artwork,
     required this.intents,
     this.cardBack = const PlaceholderCardBack(),
     this.introTiming = const IntroTiming(),
+    this.style = BoardStyle.sunlit,
   }) : _puzzle = puzzle; // ignore: prefer_initializing_formals
 
   static const swapDuration = 0.22;
@@ -37,6 +43,9 @@ class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
   final PuzzleGameIntents intents;
   final CardBackDesign cardBack;
   final IntroTiming introTiming;
+
+  /// Board colours (Sunlit Storybook by default).
+  final BoardStyle style;
 
   /// Coordinates the entrance and reveal; owns tile poses until finished.
   late final IntroDirector intro;
@@ -55,6 +64,15 @@ class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
   /// Tile animations still running (swap or cancel). Input waits for 0.
   int _moving = 0;
   bool _celebrating = false;
+
+  /// The completion celebration, once started (at most once per puzzle).
+  CelebrationDirector? celebration;
+
+  /// The board-clearing exit before the next puzzle (at most once).
+  ExitDirector? exit;
+  void Function()? _onExitDone;
+
+  bool get isExiting => exit != null && !exit!.isFinished;
 
   TileComponent? _pressed;
   TileComponent? _dragged;
@@ -85,16 +103,23 @@ class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
   @override
   Future<void> onLoad() async {
     area = BoardLayout.compute(size.toSize(), _puzzle.grid, artwork.sourceSize);
-    frame = BoardFrame();
+    frame = BoardFrame(style);
     add(frame);
     for (final t in _puzzle.tiles) {
-      final c = TileComponent(t, artwork, _srcRect(t), cardBack: cardBack)
-        ..correct = _puzzle.isTileCorrect(t)
-        ..face = 0;
+      final c =
+          TileComponent(
+              t,
+              artwork,
+              _srcRect(t),
+              cardBack: cardBack,
+              style: style,
+            )
+            ..correct = _puzzle.isTileCorrect(t)
+            ..face = 0;
       tiles[t.id] = c;
       add(c);
     }
-    targetMarker = TargetMarker()..priority = 1 << 19;
+    targetMarker = TargetMarker(style)..priority = 1 << 19;
     add(targetMarker);
     add(InputLayer()..priority = 1 << 20);
     intro = IntroDirector(
@@ -120,7 +145,7 @@ class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
       _puzzle.grid,
       artwork.sourceSize,
     );
-    if (next.board == area.board) return;
+    if (next.frame == area.frame && next.board == area.board) return;
     area = next;
     _relayout();
   }
@@ -129,15 +154,20 @@ class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
 
   void _relayout() {
     frame
-      ..position = area.board.topLeft.toVector2()
-      ..size = area.board.size.toVector2();
-    if (!intro.isFinished) {
-      // The intro owns tile positions; re-pose them for the new layout
-      // without restarting the sequence.
+      ..position = area.frame.topLeft.toVector2()
+      ..size = area.frame.size.toVector2()
+      ..thickness = area.frameThickness;
+    if (!intro.isFinished || exit != null) {
+      // A presentation sequence owns tile positions; re-pose them for the
+      // new layout without restarting it.
       for (final c in tiles.values) {
         c.size = Vector2(area.cellWidth, area.cellHeight);
       }
-      intro.refresh();
+      if (exit != null) {
+        exit!.refresh();
+      } else {
+        intro.refresh();
+      }
       return;
     }
     for (final t in _puzzle.tiles) {
@@ -240,18 +270,68 @@ class PuzzleGame extends FlameGame implements PuzzleGameView, IntroStage {
     // Settled: every tile rests exactly at its logical cell.
     _relayout();
     intents.onSwapSettled();
-    if (_puzzle.isComplete) {
-      _celebrating = true;
-      add(
-        CompletionShine(
-          area.board,
-          onDone: () {
-            _celebrating = false;
-            intents.onCompletionShown();
-          },
-        )..priority = 1 << 19,
-      );
-    }
+    if (_puzzle.isComplete) _startCelebration();
+  }
+
+  void _startCelebration() {
+    if (celebration != null) return; // exactly once
+    _celebrating = true;
+    celebration = CelebrationDirector(
+      timeline: CelebrationTimeline.standard(),
+      stage: this,
+      style: style,
+    )..priority = 1 << 19;
+    add(celebration!);
+  }
+
+  // ---- Exit (next-puzzle transition, GP-40) --------------------------------
+
+  @override
+  bool playExit(void Function() onDone) {
+    if (exit != null || !_puzzle.isComplete || _celebrating) return false;
+    _onExitDone = onDone;
+    exit = ExitDirector(
+      timeline: ExitTimeline(_puzzle.grid.cellCount),
+      stage: this,
+    );
+    add(exit!);
+    return true;
+  }
+
+  @override
+  int get exitCellCount => _puzzle.grid.cellCount;
+
+  @override
+  Size get exitPlayArea => size.toSize();
+
+  @override
+  Rect exitCellRect(int cell) => area.cellRect(_puzzle.grid.cellAt(cell));
+
+  @override
+  void poseExitTile(int cell, {required Offset centre, required double angle}) {
+    final c = tiles[_puzzle.tileAt(_puzzle.grid.cellAt(cell)).id]!;
+    c
+      ..position = centre.toVector2()
+      ..angle = angle
+      ..priority = 2 + cell;
+  }
+
+  @override
+  void exitFinished() {
+    final done = _onExitDone;
+    _onExitDone = null;
+    done?.call();
+  }
+
+  // ---- CelebrationStage ----------------------------------------------------
+
+  @override
+  Rect get celebrationBoard => area.board;
+
+  @override
+  void celebrationFinished() {
+    _celebrating = false;
+    intents.onCompletionShown();
   }
 
   // ---- Input (called by InputLayer) ----------------------------------------
@@ -396,6 +476,9 @@ class InputLayer extends PositionComponent
 
 /// Bright outline around the cell a dragged tile would swap into.
 class TargetMarker extends Component {
+  TargetMarker(this.style);
+
+  final BoardStyle style;
   Rect? rect;
 
   @override
@@ -405,45 +488,62 @@ class TargetMarker extends Component {
     canvas.drawRect(
       r.inflate(3),
       Paint()
-        ..color = const Color(0x66FFF1C4)
+        ..color = style.targetGlow
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 8
+        ..strokeWidth = 9
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
     );
     canvas.drawRect(
       r.inflate(1.5),
       Paint()
-        ..color = const Color(0xFFFFF6DA)
+        ..color = style.target
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3,
     );
   }
 }
 
-/// Frame and dark bed behind the tiles (visible under a lifted tile).
+/// Light honey-wood frame and pale bed behind the tiles (visible under a
+/// lifted tile). Positioned at the frame's outer rect; [thickness] is the
+/// frame width, so the bed exactly matches the board.
 class BoardFrame extends PositionComponent {
+  BoardFrame(this.style);
+
+  final BoardStyle style;
+  double thickness = 8;
+
   @override
   void render(Canvas canvas) {
-    final rect = Offset.zero & size.toSize();
-    final pad = math.max(5.0, size.x * 0.018);
+    final outer = Offset.zero & size.toSize();
+    final radius = Radius.circular(thickness * 1.4);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect.inflate(pad).shift(const Offset(0, 5)),
-        Radius.circular(pad * 1.4),
-      ),
+      RRect.fromRectAndRadius(outer.shift(const Offset(0, 4)), radius),
       Paint()
-        ..color = const Color(0x55000000)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        ..color = style.shadow
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect.inflate(pad), Radius.circular(pad * 1.4)),
-      Paint()..color = const Color(0xFF6B4A2B),
+      RRect.fromRectAndRadius(outer, radius),
+      Paint()..color = style.frame,
+    );
+    // Soft highlight on the upper half of the frame.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(outer.deflate(thickness * 0.2), radius),
+      Paint()
+        ..color = style.frameHighlight
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = thickness * 0.25,
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect.inflate(pad * 0.4), Radius.circular(pad)),
-      Paint()..color = const Color(0xFFD9B86C),
+      RRect.fromRectAndRadius(outer.deflate(0.75), radius),
+      Paint()
+        ..color = style.frameEdge
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
     );
-    canvas.drawRect(rect, Paint()..color = const Color(0xFF1B1636));
+    final bed = outer.deflate(thickness);
+    canvas.drawRect(bed.inflate(1), Paint()..color = style.frameEdge);
+    canvas.drawRect(bed, Paint()..color = style.bed);
   }
 }
 
@@ -456,11 +556,13 @@ class TileComponent extends PositionComponent {
     this.artwork,
     this.source, {
     this.cardBack = const PlaceholderCardBack(),
+    this.style = BoardStyle.sunlit,
   }) : super(anchor: Anchor.center);
 
   final PictureTile tile;
   final PuzzleArtwork artwork;
   final CardBackDesign cardBack;
+  final BoardStyle style;
 
   /// 0 = card back, 1 = picture. Driven by the intro; 1 during gameplay.
   double face = 1;
@@ -606,7 +708,7 @@ class TileComponent extends PositionComponent {
       canvas.drawRect(
         rect.shift(const Offset(0, 8)),
         Paint()
-          ..color = const Color(0x77000000)
+          ..color = style.shadow.withValues(alpha: 0.45)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
       );
     }
@@ -615,82 +717,39 @@ class TileComponent extends PositionComponent {
       canvas.drawRect(
         rect.deflate(0.5),
         Paint()
-          ..color = const Color(0xB3FFFFFF)
+          ..color = style.tileEdge
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1,
       );
     }
     if (hovered) {
-      canvas.drawRect(rect, Paint()..color = const Color(0x33FFF1C4));
-      canvas.drawRect(
-        rect.deflate(1.5),
-        Paint()
-          ..color = const Color(0xFFFFF1C4)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3,
-      );
+      canvas.drawRect(rect, Paint()..color = style.targetGlow);
     }
     if (pressed || lifted) {
       canvas.drawRect(
         rect.deflate(1),
         Paint()
-          ..color = const Color(0xFFFFC94D)
+          ..color = style.selected
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3,
       );
     }
     if (_glow > 0) {
-      final a = (_glow * 200).round();
       canvas.drawRect(
         rect,
-        Paint()..color = Color.fromARGB(a ~/ 3, 255, 236, 170),
+        Paint()
+          ..color = style.correctFill.withValues(
+            alpha: style.correctFill.a * _glow,
+          ),
       );
       canvas.drawRect(
         rect.deflate(1.5),
         Paint()
-          ..color = Color.fromARGB(a, 255, 214, 110)
+          ..color = style.correctGlow.withValues(alpha: _glow)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3,
       );
     }
-    canvas.restore();
-  }
-}
-
-/// A diagonal light sweep across the finished picture.
-class CompletionShine extends PositionComponent {
-  CompletionShine(this.board, {required this.onDone});
-
-  final Rect board;
-  final void Function() onDone;
-  static const duration = 0.9;
-  double _t = 0;
-
-  @override
-  void update(double dt) {
-    _t += dt;
-    if (_t >= duration) {
-      removeFromParent();
-      onDone();
-    }
-  }
-
-  @override
-  void render(Canvas canvas) {
-    final p = (_t / duration).clamp(0.0, 1.0);
-    final x = board.left - board.width * 0.5 + p * board.width * 2;
-    canvas.save();
-    canvas.clipRect(board);
-    canvas.drawRect(
-      board,
-      Paint()
-        ..shader = Gradient.linear(
-          Offset(x - board.width * 0.25, board.top),
-          Offset(x + board.width * 0.25, board.bottom),
-          const [Color(0x00FFFFFF), Color(0x88FFF6DA), Color(0x00FFFFFF)],
-          const [0, 0.5, 1],
-        ),
-    );
     canvas.restore();
   }
 }

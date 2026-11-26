@@ -33,7 +33,8 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 
 ## Phase 3 — Playable Prototype
 
-- One 4×4 picture-swap puzzle end to end: shuffled grid, drag-and-swap, correct-tile feedback, completion, character/card reveal, coin animation, sound effects, auto-save/restore. Hints follow in v1.
+- One 4×4 picture-swap puzzle end to end: puzzle introduction, shuffled grid, drag-and-swap, correct-tile feedback, completion, character/card reveal, coin animation, sound effects, auto-save/restore. Hints follow in v1.
+- M3.1 (done 2026-11-26, approved on device): Sunlit Storybook visuals with a patterned violet gameplay background, board spacing, a short completion celebration and the next-puzzle transition.
 
 **Exit:** prototype success criteria in the PRD are met.
 

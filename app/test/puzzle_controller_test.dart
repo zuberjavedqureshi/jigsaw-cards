@@ -4,9 +4,15 @@ import 'package:jigsaw_cards/state/puzzle_controller.dart';
 import 'package:puzzle_domain/puzzle_domain.dart';
 
 void main() {
-  ProviderContainer make(int seed) {
+  ProviderContainer make(int seed, {List<int> nextSeeds = const [500]}) {
+    var i = 0;
     final c = ProviderContainer(
-      overrides: [initialSeedProvider.overrideWithValue(seed)],
+      overrides: [
+        initialSeedProvider.overrideWithValue(seed),
+        puzzleSeedSourceProvider.overrideWithValue(
+          _ListSeedSource(() => nextSeeds[i++ % nextSeeds.length]),
+        ),
+      ],
     );
     addTearDown(c.dispose);
     return c;
@@ -56,13 +62,22 @@ void main() {
     expect(st(c).showCompletion, isTrue);
   });
 
-  test('new puzzle advances the seed and resets', () {
+  test('new puzzle takes its seed from the seed source and resets', () {
     final c = make(9);
     ctl(c).swap(GridCell(0, 0), GridCell(0, 1));
     ctl(c).newPuzzle();
-    expect(st(c).seed, 10);
+    expect(st(c).seed, 500);
+    expect(st(c).round, 1);
     expect(st(c).swaps, 0);
     expect(st(c).showCompletion, isFalse);
     expect(st(c).isComplete, isFalse);
   });
+}
+
+class _ListSeedSource implements PuzzleSeedSource {
+  _ListSeedSource(this._next);
+  final int Function() _next;
+
+  @override
+  int nextSeed() => _next();
 }

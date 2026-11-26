@@ -247,10 +247,9 @@ void main() {
       expect(h.game.tiles[t.id]!.position.x, closeTo(r.dx, 0.01));
     }
 
-    await tester.tap(find.byKey(const Key('new_puzzle')));
-    await h.settle(frames: 2);
-    await h.finishIntro();
-    expect(h.state.seed, testSeed + 1);
+    await h.tapNextPuzzle();
+    expect(h.state.round, 1);
+    expect(h.state.seed, 1000, reason: 'from the seed source');
     expect(h.puzzle.isComplete, isFalse);
     expect(h.state.swaps, 0);
     expect(find.byKey(const Key('completion')), findsNothing);

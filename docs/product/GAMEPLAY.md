@@ -17,11 +17,12 @@ This document describes player-facing gameplay. Requirement IDs (GP-xx, FP-xx, C
 
 The product owner chose this gameplay from a reference gameplay recording. It replaces the earlier tray and memory/free-placement designs (history below).
 
-### Board (GP-01, GP-29, GP-35)
+### Board (GP-01, GP-29, GP-35, GP-38)
 
 - A fixed, uniform **rectangular grid**: **4 × 4** for the prototype (Q-022).
 - Every cell always holds exactly **one tile**. There are no empty cells, no overlapping, no free placement and no free-floating pieces, and tiles never leave the board.
 - The board keeps the illustration's aspect ratio and fits phone screens within the safe area, with comfortable touch targets.
+- **[Confirmed 2026-11-26] Spacing (GP-38):** measured to the outer edge of the board frame, the horizontal margin to each screen edge is 20–32 dp, scaling with screen width. The board is centred vertically between the header and the bottom safe area, respects every safe area, has a maximum width on large screens and never touches a screen edge. No bottom action bar is reserved until hint and preview actions exist.
 
 ### Tiles (GP-30)
 
@@ -33,6 +34,17 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 ### Start (GP-31)
 
 - The tiles begin **shuffled** (seeded and deterministic). The arrangement is never already solved, and every arrangement can be solved by swapping.
+
+### Puzzle introduction (GP-37; implemented, approved 2026-11-26)
+
+1. Every new puzzle starts with all tiles showing the shared **card back**.
+2. **Entrance:** the tiles fly in from below the board one by one, slightly tilted, and settle into their **actual shuffled cells**, row by row from the top-left.
+3. **Reveal:** once every tile has arrived, the tiles flip to their picture in a fast, coordinated sequence.
+4. **Ready:** every fragment is visible in the same shuffled arrangement and the player can drag and swap immediately.
+
+- Input is disabled until the reveal has finished. The introduction never changes the arrangement and runs again for every new puzzle.
+- It is a reusable presentation shared by all puzzles. Timings are provisional tuning values (about 1.7 s entrance and 1 s reveal).
+- The card back is a code-drawn placeholder design (turquoise with a white border and mark) until branded artwork exists.
 
 ### Drag-and-swap (GP-32, GP-33)
 
@@ -68,8 +80,9 @@ The product owner chose this gameplay from a reference gameplay recording. It re
 ### Completion
 
 - The puzzle completes only when **every tile (all 16) is in its correct cell**, judged on the whole board matching the target arrangement (GP-34). A tile that lands in its correct cell gets brief visual feedback, which does not lock it (Q-023).
-- The completion state shows the finished illustration with a New puzzle (later: Continue) action.
-- Completion triggers, in order:
+- **[Confirmed 2026-11-26; implemented and approved on device] Celebration (GP-39):** a short, satisfying celebration plays (picture shine and a brief sparkle effect; about 1.1 s, provisional), then the finished illustration is shown with a **Next puzzle** action. Board input stays disabled during the celebration. **No coins, rewards, placeholder rewards or empty reward slots are shown** until reward rules are implemented; the celebration is built so that the reveal and coin steps below can be added later.
+- **[Confirmed 2026-11-26; implemented and approved on device] Next puzzle (GP-40):** the board clears with a short exit animation (tiles fall away, about 0.6 s, provisional) and a new puzzle starts with a fresh seed. For now it **reshuffles the same placeholder picture**, and the puzzle introduction runs again. Repeated taps are ignored and sequences never overlap.
+- Target completion flow with rewards (approved requirements; the reveal and coin steps are not yet implemented), in order:
   1. Completion feedback (sound/visual).
   2. **Character/card reveal**: on a *designated* puzzle, the guaranteed card is awarded and its character comes to life (CC-04). A card already collected does not count as new collection progress (CC-06).
   3. **Coin reward animation**.

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puzzle_domain/puzzle_domain.dart';
@@ -21,7 +23,30 @@ final initialSeedProvider = Provider<int>((ref) {
 /// (no final artwork exists). Its source size drives both the domain's tile
 /// slicing and the board's aspect ratio, so they cannot disagree.
 final artworkProvider = Provider<PuzzleArtwork>(
-  (ref) => const PlaceholderStorybookArtwork(),
+  (ref) => const PlaceholderDaytimeArtwork(),
+);
+
+/// Supplies shuffle seeds for new puzzles. The shuffle itself is the
+/// domain's seeded `PicturePuzzle.shuffled`; this only decides which seed
+/// to use next, so tests can inject a deterministic sequence. Seed policy
+/// remains a technical choice (TD-02).
+abstract interface class PuzzleSeedSource {
+  int nextSeed();
+}
+
+/// Default: random seeds.
+class RandomPuzzleSeedSource implements PuzzleSeedSource {
+  RandomPuzzleSeedSource([math.Random? random])
+    : _random = random ?? math.Random();
+
+  final math.Random _random;
+
+  @override
+  int nextSeed() => _random.nextInt(1 << 31);
+}
+
+final puzzleSeedSourceProvider = Provider<PuzzleSeedSource>(
+  (ref) => RandomPuzzleSeedSource(),
 );
 
 @immutable
@@ -29,11 +54,16 @@ class PuzzleState {
   const PuzzleState({
     required this.seed,
     required this.puzzle,
+    this.round = 0,
     this.swaps = 0,
     this.showCompletion = false,
   });
 
   final int seed;
+
+  /// Increments for every new puzzle; identifies the puzzle instance (the
+  /// game is rebuilt when it changes), independently of the seed value.
+  final int round;
   final PicturePuzzle puzzle;
 
   /// Swaps made in this puzzle (shown on completion only).
@@ -52,6 +82,7 @@ class PuzzleState {
     bool? showCompletion,
   }) => PuzzleState(
     seed: seed,
+    round: round,
     puzzle: puzzle ?? this.puzzle,
     swaps: swaps ?? this.swaps,
     showCompletion: showCompletion ?? this.showCompletion,
@@ -67,13 +98,13 @@ class PuzzleController extends Notifier<PuzzleState> {
   @override
   PuzzleState build() => _newState(ref.read(initialSeedProvider));
 
-  PuzzleState _newState(int seed) => PuzzleState(
+  PuzzleState _newState(int seed, {int round = 0}) =>
+      PuzzleState(seed: seed, round: round, puzzle: _shuffle(seed));
+
+  PicturePuzzle _shuffle(int seed) => PicturePuzzle.shuffled(
+    prototypeGrid,
+    _sourceSize(ref.read(artworkProvider)),
     seed: seed,
-    puzzle: PicturePuzzle.shuffled(
-      prototypeGrid,
-      _sourceSize(ref.read(artworkProvider)),
-      seed: seed,
-    ),
   );
 
   /// Exchange the tiles in [from] and [to]. Wrong swaps are accepted.
@@ -93,8 +124,20 @@ class PuzzleController extends Notifier<PuzzleState> {
     }
   }
 
-  /// Starts a new puzzle with the next seed.
-  void newPuzzle() => state = _newState(state.seed + 1);
+  /// Starts a new puzzle (PRD GP-40): the same picture, freshly shuffled
+  /// with a seed from [puzzleSeedSourceProvider]. A seed that would repeat
+  /// the current arrangement is skipped, so the new board always differs.
+  void newPuzzle() {
+    final source = ref.read(puzzleSeedSourceProvider);
+    final current = state.puzzle.arrangement;
+    var seed = source.nextSeed();
+    var puzzle = _shuffle(seed);
+    for (var i = 0; i < 16 && listEquals(puzzle.arrangement, current); i++) {
+      seed = source.nextSeed();
+      puzzle = _shuffle(seed);
+    }
+    state = PuzzleState(seed: seed, round: state.round + 1, puzzle: puzzle);
+  }
 }
 
 final puzzleControllerProvider =

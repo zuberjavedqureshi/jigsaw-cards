@@ -30,4 +30,9 @@ class PuzzleGameIntents {
 /// animates tiles to the cells of the puzzle it is given.
 abstract interface class PuzzleGameView {
   void syncPuzzle(PicturePuzzle puzzle);
+
+  /// Clears the board with the exit animation, then calls [onDone] once.
+  /// Returns false (and does nothing) if an exit is already running or the
+  /// puzzle is not complete, so a transition can never start twice.
+  bool playExit(void Function() onDone);
 }
