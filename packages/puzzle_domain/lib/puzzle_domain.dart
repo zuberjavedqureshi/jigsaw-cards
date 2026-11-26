@@ -9,6 +9,7 @@
 /// not used by the picture-swap prototype (see OPEN_QUESTIONS Q-022).
 library;
 
+export 'src/connection_events.dart';
 export 'src/generator.dart';
 export 'src/grid.dart';
 export 'src/layout.dart';

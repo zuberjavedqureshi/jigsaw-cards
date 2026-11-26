@@ -36,6 +36,7 @@ Time-boxed spikes (on `spike/*` branches) to validate:
 - One 4×4 picture-swap puzzle end to end: puzzle introduction, shuffled grid, drag-and-swap, correct-tile feedback, completion, character/card reveal, coin animation, sound effects, auto-save/restore. Hints follow in v1.
 - M3.1 (done 2026-11-26, approved on device): Sunlit Storybook visuals with a patterned violet gameplay background, board spacing, a short completion celebration and the next-puzzle transition.
 - M3.2 (done 2026-11-26, approved on device): Connected Tile Groups, a core gameplay feature. Neighbouring tiles that line up as in the picture join anywhere on the board, and groups move and merge as one unit within the full-board drag-and-swap model. A free-placement workbench alternative was prototyped and rejected.
+- M3.3 (done 2026-11-26, approved on device): positive connection feedback, with short animated praise for pairs, growth, merges, the first 10-tile group and completion. Presentation only, with no rewards, scoring or sound.
 
 **Exit:** prototype success criteria in the PRD are met.
 

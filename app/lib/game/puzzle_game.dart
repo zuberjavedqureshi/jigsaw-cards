@@ -17,6 +17,8 @@ import 'celebration/celebration_director.dart';
 import 'celebration/celebration_timeline.dart';
 import 'intro/intro_director.dart';
 import 'intro/intro_timeline.dart';
+import 'praise/praise_director.dart';
+import 'praise/praise_rules.dart';
 import 'puzzle_game_bridge.dart';
 import 'transition/exit_sequence.dart';
 
@@ -34,6 +36,8 @@ class PuzzleGame extends FlameGame
     this.cardBack = const PlaceholderCardBack(),
     this.introTiming = const IntroTiming(),
     this.style = BoardStyle.sunlit,
+    this.praiseRules = const PraiseRules(),
+    this.reduceMotion = false,
   }) : _puzzle = puzzle; // ignore: prefer_initializing_formals
 
   static const swapDuration = 0.22;
@@ -46,6 +50,22 @@ class PuzzleGame extends FlameGame
 
   /// Board colours (Sunlit Storybook by default).
   final BoardStyle style;
+
+  /// Which praise to show for connections and completion (M3.3).
+  final PraiseRules praiseRules;
+
+  /// Platform "reduce motion": praise fades without bounce or sparkles.
+  final bool reduceMotion;
+
+  /// Positive feedback for connections (presentation only, M3.3).
+  late final PraiseDirector praise;
+
+  /// Praise earned by the move now animating, shown when it settles.
+  Praise? _pendingPraise;
+
+  /// Milestones celebrated in this puzzle (a new game, so a fresh record,
+  /// for every puzzle).
+  final PraiseMilestones praiseMilestones = PraiseMilestones();
 
   /// Coordinates the entrance and reveal; owns tile poses until finished.
   late final IntroDirector intro;
@@ -146,6 +166,10 @@ class PuzzleGame extends FlameGame
     add(targetMarker);
     liftShadow = GroupLiftShadow(style)..priority = (1 << 18) - 1;
     add(liftShadow);
+    praise = PraiseDirector(rules: praiseRules, reduceMotion: reduceMotion)
+      // Above the tiles and target marker; never receives input.
+      ..priority = (1 << 19) + 1;
+    add(praise);
     add(InputLayer()..priority = 1 << 20);
     intro = IntroDirector(
       timeline: IntroTimeline.forGrid(
@@ -290,6 +314,13 @@ class PuzzleGame extends FlameGame
         if (prev.cellOf(t) != next.cellOf(t)) tiles[t.id]!,
     ];
     if (moved.isEmpty) return;
+    // What this move connected, from the domain (M3.3).
+    _pendingPraise = praiseRules.select(
+      connectionEvents(prev, next),
+      completed: next.isComplete,
+      board: next.grid.cells.toSet(),
+      milestones: praiseMilestones,
+    );
     _moving += moved.length;
     for (final c in moved) {
       // The dragged tile flies from under the finger; the displaced tile
@@ -325,6 +356,25 @@ class PuzzleGame extends FlameGame
     _relayout();
     intents.onSwapSettled();
     if (_puzzle.isComplete) _startCelebration();
+    _showPendingPraise();
+  }
+
+  /// Shows the praise earned by the move that just settled, near the tiles
+  /// it connected (the board centre for completion), kept on screen.
+  void _showPendingPraise() {
+    final p = _pendingPraise;
+    _pendingPraise = null;
+    if (p == null || p.cells.isEmpty) return;
+    var bounds = area.cellRect(p.cells.first);
+    for (final c in p.cells) {
+      bounds = bounds.expandToInclude(area.cellRect(c));
+    }
+    praise.show(
+      p,
+      bounds.center,
+      (Offset.zero & size.toSize()).deflate(6),
+      fontSize: (area.board.width * 0.085).clamp(20.0, 40.0),
+    );
   }
 
   void _startCelebration() {
@@ -344,6 +394,7 @@ class PuzzleGame extends FlameGame
   bool playExit(void Function() onDone) {
     if (exit != null || !_puzzle.isComplete || _celebrating) return false;
     _onExitDone = onDone;
+    praise.clear();
     exit = ExitDirector(
       timeline: ExitTimeline(_puzzle.grid.cellCount),
       stage: this,

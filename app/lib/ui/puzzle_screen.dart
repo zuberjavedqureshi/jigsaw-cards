@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../artwork/puzzle_artwork.dart';
 import '../game/puzzle_game.dart';
 import '../game/puzzle_game_bridge.dart';
+import '../state/praise_settings.dart';
 import '../state/puzzle_controller.dart';
 import 'sunlit_theme.dart';
 
@@ -39,6 +40,8 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
       _game = PuzzleGame(
         puzzle: s.puzzle,
         artwork: _artwork,
+        praiseRules: ref.read(praiseRulesProvider),
+        reduceMotion: MediaQuery.disableAnimationsOf(context),
         intents: PuzzleGameIntents(
           onSwapRequested: (from, to) => _controller.moveTile(from, to),
           onSwapSettled: () {},

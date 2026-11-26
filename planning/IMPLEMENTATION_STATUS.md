@@ -11,7 +11,7 @@
 | Product decisions | ✅ Updated | Q-009 (piece generation), Q-010 (placement), Q-011 (tray) resolved 2026-11-23; Q-001 (target audience: core 16–35, overall 13+) resolved 2026-11-24; Q-010 and Q-011 revised twice on 2026-11-25, first to free placement and memory reveal, then to the **rectangular picture-swap puzzle** (PRD GP-29 to GP-36; hints planned for v1). **Q-022 resolved 2026-11-25** (equal-sized tiles on a uniform 4×4 grid; mixed-size partition superseded for this gameplay; Q-009 revised) and **Q-023 resolved 2026-11-25** (correct tiles remain movable; no locking); see [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
 | Flutter project | 🔄 Created (feature branches) | Pub workspace per ADR-0002: `app/` (Flutter, Android) and `packages/puzzle_domain/` (pure Dart). Current gameplay on `feature/m32-connected-tile-groups` (M3.2, based on the M3.1 branch `feature/gameplay-picture-swap`); earlier builds on `feature/m1-1-core-puzzle-gameplay` and `feature/gameplay-free-placement-reveal` (superseded); none merged. Application ID `com.example.jigsaw_cards` is a temporary placeholder (owner decision) |
 | Puzzle domain | 🔄 In progress | Picture-swap model with connected tile groups (M3.2: groups by relative alignment, group moves keeping the board full; `TileGroups` extension, `PicturePuzzle` unchanged): equal tiles cut from a source size, seeded Fisher–Yates shuffle (never solved, ≥75% misplaced; provisional), swap, occupancy validation, correctness counts, completion, minimum swaps. Matches Q-022 and Q-023. The partition generator, superseded for this gameplay by Q-022, is kept but not used. 35 unit tests. Serialisation/restore not started |
-| Flame rendering | 🔄 Playable | Framed board keeping the artwork aspect; tiles drawn from cached slices; press, lift and target feedback; eased exchange and cancel animations; correct-tile glow, with correct tiles drawn edge to edge; connected groups lifted, dragged and drawn as one seamless piece (M3.2); completion shine; input blocked while settling; manual bridge per ADR-0001 (`syncPuzzle` in, intents out); puzzle introduction (card entrance and reveal, GP-37) via a reusable `IntroTimeline` + `IntroDirector` with a replaceable code-drawn card back |
+| Flame rendering | 🔄 Playable | Framed board keeping the artwork aspect; tiles drawn from cached slices; press, lift and target feedback; eased exchange and cancel animations; correct-tile glow, with correct tiles drawn edge to edge; connected groups lifted, dragged and drawn as one seamless piece (M3.2); animated praise for connections (M3.3); completion shine; input blocked while settling; manual bridge per ADR-0001 (`syncPuzzle` in, intents out); puzzle introduction (card entrance and reveal, GP-37) via a reusable `IntroTimeline` + `IntroDirector` with a replaceable code-drawn card back |
 | Riverpod state | 🔄 Playable | Hand-written `PuzzleController` Notifier (ADR-0003): shuffled puzzle, swaps and group moves (`moveTile`), completion state ready for future rewards; a single `artworkProvider` feeds both domain slicing and rendering |
 | Persistence | ⛔ Not started | Technology not selected |
 | Audio | ⛔ Not started | |
@@ -19,6 +19,40 @@
 | Art assets | ⛔ Not started | Code-drawn **placeholder** storybook scene only; no downloaded or generated artwork |
 | CI | 🔄 Partial | `.github/workflows/android-apk.yml` builds and uploads a **debug** APK for product-owner testing (not a release pipeline). Format, analyze and test checks on PRs (TD-08) are not configured |
 | Architecture decisions | ✅ TD-03, TD-04, TD-05 confirmed 2026-11-24 | [ADR-0001](../docs/decisions/ADR-0001-flame-riverpod-manual-bridge.md), [ADR-0002](../docs/decisions/ADR-0002-pub-workspace-and-domain-boundary.md), [ADR-0003](../docs/decisions/ADR-0003-handwritten-riverpod-providers.md). S-01 Android device validation (§8.1 timings, `paused`/`resumed`) **still outstanding**; S-01 not complete. TD-01, TD-02, TD-06 to TD-08 Pending |
+
+## M3.3 Positive Connection Feedback (implemented and approved on the product owner's Android device 2026-11-26; branch `feature/m33-positive-feedback`, based on the M3.2 commit `06db9cb`, not merged)
+
+Approved scope (PRD GP-45, VI-09): animated praise for actual connections, as a presentation layer on the unchanged M3.2 gameplay.
+
+| Gameplay result | Praise |
+| --- | --- |
+| Two loose tiles join (a pair) | **Nice!** |
+| An existing group grows (or three or more loose tiles join at once) | **Great!** |
+| Two or more existing groups merge | **Amazing!** |
+| A group reaches **10 or more tiles** for the **first time in the puzzle** (by growing or merging) | **Fantastic!** |
+| The puzzle is completed | **Perfect!** (only this, together with the completion celebration) |
+
+**Implemented:**
+- **Domain (facts):** `connectionEvents(before, after)` in `packages/puzzle_domain/lib/src/connection_events.dart` reports each new group a move created: formed, grew or merged, with its cells, the groups joined and the tiles added. Groups that only moved or broke apart report nothing, and a lone tile left over from a broken group counts as loose.
+- **App (policy, pure Dart):**
+  - `PraiseRules`: configurable messages, threshold, pacing and completion praise, exposed through `praiseRulesProvider`.
+  - `PraiseMilestones`: one per puzzle (a new game per puzzle), so Fantastic! is awarded once per puzzle.
+  - `PraiseGate`: pacing, 1.2 s for the same or a lower level.
+  - `PraiseTimeline`: pop, bounce, hold, fade and sparkles.
+- **Flame:** `PraiseDirector` and `PraiseBurst` draw the outlined gradient text with a glow and sparkles. A stronger message replaces the visible one with a short fade. Bursts sit above the tiles and below the input layer.
+- **Wiring:** `PuzzleGame.syncPuzzle` selects the praise from the before and after boards, and it is shown when the move settles. The screen passes the settings and the platform reduce-motion flag.
+- **Unchanged:** group rules, swap, the bridge, the controller, the intro, the celebration, the exit, the theme, the layout and the artwork.
+- **Tuning after device testing:** the large-group threshold went from 6 to 10 tiles, and Fantastic! is limited to the first time per puzzle.
+
+**Validated:**
+- In this environment: 68 domain tests (10 new) and 130 app tests (34 new; all M3.2 tests unchanged); formatting, both analyzers, the boundary guard and its self-tests, and `git diff --check` clean. The new tests cover:
+  - event detection and selection, the milestone and pacing;
+  - the animation lifecycle and reduced motion;
+  - placement at 320×568 and 412×915;
+  - real-drag scenarios for each message, replacement, no praise for plain swaps or moves, dragging during praise, completion and reset on Next puzzle.
+- In a browser preview: every message seen during a real 12-move playthrough at 412×915, plus a check at 320×568.
+- On device: the product owner tested the tuned debug APK (SHA-256 `a6d2858b…3910c8`) and approved it on 2026-11-26.
+- No performance measurements yet.
 
 ## M3.2 Connected Tile Groups (core gameplay feature; implemented and approved on the product owner's Android device 2026-11-26; branch `feature/m32-connected-tile-groups`, based on `2cd20f2`, not merged)
 

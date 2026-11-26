@@ -67,6 +67,26 @@
 - **Target feedback:** a single deep-teal outline with a soft turquoise glow around every cell the group would occupy (no inner lines). Displaced tiles get the existing target highlight.
 - **Single tiles:** unchanged from M3.1 (selection outline, target cell outline, correct-tile glow).
 
+## 2d. Praise Messages (approved on device 2026-11-26)
+
+**[Confirmed]** (PRD VI-09, with GP-45) Short praise words celebrate connections, inspired by the reference gameplay ("Perfect!" with sparkles). Everything is drawn in code; there are no image or font assets.
+
+- **Type:** bold (heavy weight) system font, tilted about 7°, with a dark contrasting outline (about 20% of the font size), a soft drop shadow and a light-to-saturated vertical gradient fill.
+- **Colours by level:**
+
+  | Praise | Fill (top → bottom) | Outline |
+  | --- | --- | --- |
+  | Nice! | `#E4FFC2` → `#5CC27A` (leaf) | `#1E6B3A` |
+  | Great! | `#FFF6B0` → `#FFB31A` (gold) | `#9A4300` |
+  | Amazing! | `#FFD6F4` → `#E052C4` (pink) | `#64188A` |
+  | Fantastic! | `#FFE1B8` → `#FF7A3C` (coral) | `#8A2410` |
+  | Perfect! | `#E6FCFF` → `#19B3D1` (turquoise) | `#0B3C8A` |
+
+- **Glow and sparkles:** a soft warm glow behind the word and eight small four-point sparkles (white and gold) that twinkle around it.
+- **Motion:** pops in from about 35% to 118% size, settles with a subtle bounce to 100%, holds, then fades (about 1.25 s in total). A message replaced by a stronger one fades out in about 0.16 s.
+- **Size and placement:** the font size is 8.5% of the board width (20–40 dp). The message is centred on the connected tiles (the board centre for Perfect!) and kept fully on screen; it is drawn above the tiles but never captures touches.
+- **Reduced motion:** with the system setting on, the message only fades in and out at full size, with no bounce or sparkles.
+
 ## 3. Mascot
 
 - One recurring mascot character guides the player throughout the game (onboarding, world transitions, encouragement).

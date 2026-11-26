@@ -1,7 +1,9 @@
 import 'package:flame/game.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jigsaw_cards/game/praise/praise_rules.dart';
 import 'package:jigsaw_cards/game/puzzle_game.dart';
+import 'package:jigsaw_cards/state/praise_settings.dart';
 import 'package:jigsaw_cards/state/puzzle_controller.dart';
 import 'package:jigsaw_cards/ui/puzzle_screen.dart';
 import 'package:material_ui/material_ui.dart';
@@ -119,6 +121,7 @@ Future<Harness> pumpPuzzle(
   Size size = const Size(412, 915),
   int seed = testSeed,
   bool waitForIntro = true,
+  PraiseRules? praiseRules,
 }) async {
   tester.view
     ..physicalSize = size
@@ -129,6 +132,8 @@ Future<Harness> pumpPuzzle(
     overrides: [
       initialSeedProvider.overrideWithValue(seed),
       puzzleSeedSourceProvider.overrideWithValue(seeds),
+      if (praiseRules != null)
+        praiseRulesProvider.overrideWithValue(praiseRules),
     ],
   );
   addTearDown(container.dispose);

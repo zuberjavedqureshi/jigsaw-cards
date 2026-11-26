@@ -101,6 +101,26 @@ Implemented in M3.2 and approved after testing on the product owner's Android de
 
 - **M3.2 "Direction B", 2026-11-26:** free-moving connected groups on a scattered workbench, with continuous positions and snapping. A prototype was built on `experiment/m32-connected-groups` (uncommitted) and **rejected** by the product owner. It is historical work only and not the gameplay direction. A first correction that grouped only tiles already in their final cells was also replaced, by relative alignment, after comparison with the reference gameplay recording.
 
+### Positive connection feedback (GP-45, VI-09; approved on device 2026-11-26)
+
+Implemented in M3.3 and approved after testing on the product owner's Android device. It is presentation only: it never changes the puzzle and never blocks input.
+
+| Gameplay result | Praise |
+| --- | --- |
+| Two loose tiles join (a pair) | **Nice!** |
+| An existing group grows (or three or more loose tiles join at once) | **Great!** |
+| Two or more existing groups merge | **Amazing!** |
+| A group reaches **10 or more tiles** for the **first time in the puzzle** (by growing or merging) | **Fantastic!** |
+| The puzzle is completed | **Perfect!** (only this, together with the completion celebration) |
+
+- Praise follows **actual results of a move**, computed from the board before and after it. An ordinary swap that connects nothing, a group that only moves, and a group that breaks apart get no praise.
+- **Fantastic! is a milestone:** it is shown once per puzzle, when a group first reaches 10 or more tiles (for example, growing from 9 to 10, or two groups merging into 10 or more). Further growth (10 → 11 → 12) or merges of a large group get the ordinary Great! or Amazing!. Each new puzzle starts with the milestone available again.
+- **Perfect!** is shown only when the puzzle is completed, with the completion celebration. The completing move never shows connection praise.
+- **One message at a time:** if a move makes several connections, the strongest praise is shown. Within 1.2 s of a praise, another one of the same or a lower level is skipped; a higher level replaces the visible message with a short fade.
+- The message appears when the tiles land, near the connected tiles, and disappears on its own after about 1.25 s. Dragging works normally while it is visible.
+- The messages, the 10-tile threshold, the pacing and the completion praise are tuning values in one settings object.
+- No coins, rewards, scoring, combos or sound are part of this feedback.
+
 ### Hints (GP-36)
 
 - **Intentionally excluded from the initial prototype; planned for v1.** The hint design is not specified yet.

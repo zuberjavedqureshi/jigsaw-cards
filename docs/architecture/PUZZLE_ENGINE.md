@@ -114,6 +114,16 @@ Field names match [DATA_MODELS.md](DATA_MODELS.md) and are proposed.
 - **Result:** `GroupMoved(puzzle, from, to, unit, displaced)` or `GroupMoveRejected(reason)`. Group moves return a new puzzle through `fromArrangement`, which validates occupancy.
 - **Solvability:** moving any unit so that the dragged tile lands in its correct cell puts the whole unit in its correct cells. This never disturbs a correctly placed tile, because those cells belong to the unit's own tiles, and it adds at least one correct tile, so every board can be finished.
 
+## 7b. Connection Events
+
+**[Implemented 2026-11-26]** (PRD GP-45.) `connectionEvents(before, after)` (`connection_events.dart`) describes what a move connected. For each group in `after`, the tiles are traced back to their groups in `before`.
+
+- A former group **counts** only if at least two of its tiles are still together; a lone tile left over from a split group counts as loose.
+- The group is **new** if it contains loose tiles or at least two former groups. It is then reported as **formed** (loose tiles only), **grew** (one former group plus loose tiles) or **merged** (two or more former groups), with its cells, the number of groups joined and the number of tiles added.
+- A group that only moved, or became smaller, produces no event.
+
+The function is pure and deterministic. Which praise to show is presentation policy and is not part of the domain (`PraiseRules` in the app).
+
 ## 8. Magnetic Snapping
 
 - **[Superseded 2026-11-25]** Not part of the picture-swap puzzle: tiles always settle exactly into grid cells. The earlier snapping-tolerance rule is kept in history.
