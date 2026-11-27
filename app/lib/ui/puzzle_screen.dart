@@ -20,8 +20,6 @@ class PuzzleScreen extends ConsumerStatefulWidget {
 }
 
 class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
-  late final PuzzleArtwork _artwork = ref.read(artworkProvider);
-
   PuzzleGame? _game;
   int? _gameRound;
 
@@ -32,14 +30,14 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
   PuzzleController get _controller =>
       ref.read(puzzleControllerProvider.notifier);
 
-  PuzzleGame _gameFor(PuzzleState s) {
+  PuzzleGame _gameFor(PuzzleState s, PuzzleArtwork artwork) {
     if (_game == null || _gameRound != s.round) {
       _gameRound = s.round;
       _transitioning = false;
       // Explicit initial sync: the game starts from the current puzzle.
       _game = PuzzleGame(
         puzzle: s.puzzle,
-        artwork: _artwork,
+        artwork: artwork,
         praiseRules: ref.read(praiseRulesProvider),
         reduceMotion: MediaQuery.disableAnimationsOf(context),
         intents: PuzzleGameIntents(
@@ -69,13 +67,15 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
       }
     });
     final s = ref.watch(puzzleControllerProvider);
-    final game = _gameFor(s);
+    // The current puzzle's picture (follows its difficulty; never cached).
+    final artwork = ref.watch(artworkProvider);
+    final game = _gameFor(s, artwork);
 
     return SunlitBackground(
       child: SafeArea(
         child: Column(
           children: [
-            _Header(state: s, artwork: _artwork),
+            _Header(state: s, artwork: artwork),
             Expanded(
               child: Stack(
                 children: [
@@ -88,7 +88,7 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
                   if (s.showCompletion && !_transitioning)
                     Positioned.fill(
                       child: _CompletionOverlay(
-                        artwork: _artwork,
+                        artwork: artwork,
                         swaps: s.swaps,
                         onNextPuzzle: _nextPuzzle,
                       ),

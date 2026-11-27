@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puzzle_domain/puzzle_domain.dart';
 
 import '../artwork/puzzle_artwork.dart';
-
-/// Board size for the prototype (GP-01): 4 × 4 equal tiles.
-final prototypeGrid = GridSize(4, 4);
+import 'puzzle_difficulty.dart';
 
 /// Seed for the first puzzle's shuffle. Seed source is an open technical
 /// question (TD-02); provisionally a fixed `--dart-define=PUZZLE_SEED=<n>`
@@ -19,11 +17,15 @@ final initialSeedProvider = Provider<int>((ref) {
       : DateTime.now().millisecondsSinceEpoch % 1000000;
 });
 
-/// The illustration being played. Defaults to the code-drawn placeholder
-/// (no final artwork exists). Its source size drives both the domain's tile
-/// slicing and the board's aspect ratio, so they cannot disagree.
+/// The illustration of the **current puzzle**, derived from its difficulty
+/// (M3.4). Its source size drives both the domain's tile slicing and the
+/// board's aspect ratio, so they cannot disagree. The controller never
+/// reads this provider (it would be a circular dependency); it uses
+/// [playableArtworkFor] directly.
 final artworkProvider = Provider<PuzzleArtwork>(
-  (ref) => const PlaceholderDaytimeArtwork(),
+  (ref) => playableArtworkFor(
+    ref.watch(puzzleControllerProvider.select((s) => s.difficulty)),
+  ),
 );
 
 /// Supplies shuffle seeds for new puzzles. The shuffle itself is the
@@ -57,6 +59,7 @@ class PuzzleState {
     this.round = 0,
     this.swaps = 0,
     this.showCompletion = false,
+    this.difficulty = PuzzleDifficulty.easy,
   });
 
   final int seed;
@@ -72,6 +75,10 @@ class PuzzleState {
   /// True once the completion animation has finished.
   final bool showCompletion;
 
+  /// Difficulty of this puzzle (board size and picture); kept by
+  /// [PuzzleController.newPuzzle].
+  final PuzzleDifficulty difficulty;
+
   int get correctCount => puzzle.correctCount;
   int get tileCount => puzzle.tileCount;
   bool get isComplete => puzzle.isComplete;
@@ -86,6 +93,7 @@ class PuzzleState {
     puzzle: puzzle ?? this.puzzle,
     swaps: swaps ?? this.swaps,
     showCompletion: showCompletion ?? this.showCompletion,
+    difficulty: difficulty,
   );
 }
 
@@ -96,16 +104,28 @@ SourceSize _sourceSize(PuzzleArtwork a) =>
 /// Notifier, ADR-0003). Every rule decision is made by the domain.
 class PuzzleController extends Notifier<PuzzleState> {
   @override
-  PuzzleState build() => _newState(ref.read(initialSeedProvider));
+  PuzzleState build() {
+    final difficulty = ref.read(initialDifficultyProvider);
+    // Validate before anything else: an unplayable override fails here,
+    // before a seed is read or a puzzle is created.
+    playableArtworkFor(difficulty);
+    final seed = ref.read(initialSeedProvider);
+    return PuzzleState(
+      seed: seed,
+      puzzle: _shuffle(seed, difficulty),
+      difficulty: difficulty,
+    );
+  }
 
-  PuzzleState _newState(int seed, {int round = 0}) =>
-      PuzzleState(seed: seed, round: round, puzzle: _shuffle(seed));
-
-  PicturePuzzle _shuffle(int seed) => PicturePuzzle.shuffled(
-    prototypeGrid,
-    _sourceSize(ref.read(artworkProvider)),
-    seed: seed,
-  );
+  /// The domain's seeded shuffle for [difficulty]'s board and picture.
+  /// Uses [playableArtworkFor], never [artworkProvider] (which depends on
+  /// this controller).
+  PicturePuzzle _shuffle(int seed, PuzzleDifficulty difficulty) =>
+      PicturePuzzle.shuffled(
+        difficulty.grid,
+        _sourceSize(playableArtworkFor(difficulty)),
+        seed: seed,
+      );
 
   /// Exchange the tiles in [from] and [to]. Wrong swaps are accepted.
   SwapOutcome swap(GridCell from, GridCell to) {
@@ -135,19 +155,40 @@ class PuzzleController extends Notifier<PuzzleState> {
     }
   }
 
-  /// Starts a new puzzle (PRD GP-40): the same picture, freshly shuffled
-  /// with a seed from [puzzleSeedSourceProvider]. A seed that would repeat
-  /// the current arrangement is skipped, so the new board always differs.
+  /// Starts a new puzzle (PRD GP-40): the same difficulty and picture,
+  /// freshly shuffled with a seed from [puzzleSeedSourceProvider]. A seed
+  /// that would repeat the current arrangement is skipped, so the new board
+  /// always differs.
   void newPuzzle() {
+    final difficulty = state.difficulty;
     final source = ref.read(puzzleSeedSourceProvider);
     final current = state.puzzle.arrangement;
     var seed = source.nextSeed();
-    var puzzle = _shuffle(seed);
+    var puzzle = _shuffle(seed, difficulty);
     for (var i = 0; i < 16 && listEquals(puzzle.arrangement, current); i++) {
       seed = source.nextSeed();
-      puzzle = _shuffle(seed);
+      puzzle = _shuffle(seed, difficulty);
     }
-    state = PuzzleState(seed: seed, round: state.round + 1, puzzle: puzzle);
+    state = PuzzleState(
+      seed: seed,
+      round: state.round + 1,
+      puzzle: puzzle,
+      difficulty: difficulty,
+    );
+  }
+
+  /// Starts a puzzle at [difficulty] (entry point for the future difficulty
+  /// selection; not called by the UI yet). An unplayable difficulty throws
+  /// [ArgumentError] before any seed is taken or any state changes.
+  void start(PuzzleDifficulty difficulty) {
+    playableArtworkFor(difficulty);
+    final seed = ref.read(puzzleSeedSourceProvider).nextSeed();
+    state = PuzzleState(
+      seed: seed,
+      round: state.round + 1,
+      puzzle: _shuffle(seed, difficulty),
+      difficulty: difficulty,
+    );
   }
 }
 
