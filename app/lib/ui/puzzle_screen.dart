@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../artwork/puzzle_artwork.dart';
+import '../game/intro/intro_timeline.dart';
 import '../game/puzzle_game.dart';
 import '../game/puzzle_game_bridge.dart';
 import '../state/praise_settings.dart';
@@ -38,6 +39,8 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
       _game = PuzzleGame(
         puzzle: s.puzzle,
         artwork: artwork,
+        // About 2.69 s at every board size; 4×4 keeps its exact timing.
+        introTiming: IntroTiming.forCellCount(s.puzzle.grid.cellCount),
         praiseRules: ref.read(praiseRulesProvider),
         reduceMotion: MediaQuery.disableAnimationsOf(context),
         intents: PuzzleGameIntents(

@@ -40,6 +40,31 @@ class IntroTiming {
 
   /// Delay between two consecutive flips.
   final double revealStagger;
+
+  /// Board size the default timing was tuned for (4×4).
+  static const referenceCellCount = 16;
+
+  /// Timing for a board of [cellCount] tiles, keeping the introduction at
+  /// the length of the 4×4 one (about 2.69 s). Boards of up to
+  /// [referenceCellCount] tiles get [base] itself, unchanged. Larger boards
+  /// scale only the two per-tile delays by
+  /// `(referenceCellCount − 1) / (cellCount − 1)`; flight time, the pause
+  /// before the reveal and flip time stay the same, so each tile looks and
+  /// moves exactly as before.
+  static IntroTiming forCellCount(
+    int cellCount, {
+    IntroTiming base = const IntroTiming(),
+  }) {
+    if (cellCount <= referenceCellCount) return base;
+    final k = (referenceCellCount - 1) / (cellCount - 1);
+    return IntroTiming(
+      enterStagger: base.enterStagger * k,
+      enterDuration: base.enterDuration,
+      revealDelay: base.revealDelay,
+      flipDuration: base.flipDuration,
+      revealStagger: base.revealStagger * k,
+    );
+  }
 }
 
 /// Pure timeline of the introduction for a board of [cellCount] cells.
