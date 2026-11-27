@@ -75,7 +75,7 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            _Header(state: s, artwork: artwork),
+            _Header(state: s),
             Expanded(
               child: Stack(
                 children: [
@@ -104,10 +104,9 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.state, required this.artwork});
+  const _Header({required this.state});
 
   final PuzzleState state;
-  final PuzzleArtwork artwork;
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +119,9 @@ class _Header extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  artwork.title,
+                  // The current world (World Journey); the picture keeps
+                  // its own name.
+                  state.level.world.title,
                   key: const Key('title'),
                   style: const TextStyle(
                     color: Sunlit.onBackdrop,

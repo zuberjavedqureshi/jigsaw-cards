@@ -110,7 +110,9 @@ void main() {
       tester.view.physicalSize / tester.view.devicePixelRatio,
     );
     final title = tester.widget<Text>(find.byKey(const Key('title')));
-    expect(title.data, 'Sunny Castle');
+    // World Journey (W1): the header names the world; the picture is
+    // still Sunny Castle.
+    expect(title.data, 'Sunny Meadows');
     expect(title.style!.color, Sunlit.onBackdrop);
     final hint = tester.widget<Text>(find.byKey(const Key('hint')));
     expect(hint.style!.color, Sunlit.onBackdrop);

@@ -4,27 +4,35 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puzzle_domain/puzzle_domain.dart';
 
+import '../artwork/artwork_registry.dart';
 import '../artwork/puzzle_artwork.dart';
+import '../progression/level.dart';
+import '../progression/level_catalogue.dart';
+import '../progression/progression_rules.dart';
 import 'puzzle_difficulty.dart';
 
-/// Seed for the first puzzle's shuffle. Seed source is an open technical
-/// question (TD-02); provisionally a fixed `--dart-define=PUZZLE_SEED=<n>`
-/// or, if unset, the launch time.
+/// Level of the first puzzle: Sunny Meadows level 1 until level selection
+/// exists. Overridable in tests; validated before any puzzle is created.
+final initialLevelProvider = Provider<LevelId>((ref) => LevelId.first);
+
+/// Seed for the first puzzle's shuffle: the deterministic first-play seed
+/// of the initial level ([firstPlaySeed]; 1000 for Sunny Meadows level 1),
+/// unless a fixed `--dart-define=PUZZLE_SEED=<n>` is given.
 final initialSeedProvider = Provider<int>((ref) {
   const fromEnv = int.fromEnvironment('PUZZLE_SEED', defaultValue: -1);
   return fromEnv >= 0
       ? fromEnv
-      : DateTime.now().millisecondsSinceEpoch % 1000000;
+      : firstPlaySeed(ref.watch(initialLevelProvider));
 });
 
-/// The illustration of the **current puzzle**, derived from its difficulty
-/// (M3.4). Its source size drives both the domain's tile slicing and the
-/// board's aspect ratio, so they cannot disagree. The controller never
-/// reads this provider (it would be a circular dependency); it uses
+/// The illustration of the **current puzzle**, derived from its level.
+/// Its source size drives both the domain's tile slicing and the board's
+/// aspect ratio, so they cannot disagree. The controller never reads this
+/// provider (it would be a circular dependency); it uses
 /// [playableArtworkFor] directly.
 final artworkProvider = Provider<PuzzleArtwork>(
   (ref) => playableArtworkFor(
-    ref.watch(puzzleControllerProvider.select((s) => s.difficulty)),
+    ref.watch(puzzleControllerProvider.select((s) => s.level)),
   ),
 );
 
@@ -59,7 +67,7 @@ class PuzzleState {
     this.round = 0,
     this.swaps = 0,
     this.showCompletion = false,
-    this.difficulty = PuzzleDifficulty.easy,
+    this.level = LevelId.first,
   });
 
   final int seed;
@@ -75,9 +83,12 @@ class PuzzleState {
   /// True once the completion animation has finished.
   final bool showCompletion;
 
-  /// Difficulty of this puzzle (board size and picture); kept by
-  /// [PuzzleController.newPuzzle].
-  final PuzzleDifficulty difficulty;
+  /// The level being played; kept by [PuzzleController.newPuzzle].
+  final LevelId level;
+
+  /// Board difficulty of [level], from the level catalogue (the only
+  /// source of the board size).
+  PuzzleDifficulty get difficulty => levelConfigFor(level).difficulty;
 
   int get correctCount => puzzle.correctCount;
   int get tileCount => puzzle.tileCount;
@@ -93,7 +104,7 @@ class PuzzleState {
     puzzle: puzzle ?? this.puzzle,
     swaps: swaps ?? this.swaps,
     showCompletion: showCompletion ?? this.showCompletion,
-    difficulty: difficulty,
+    level: level,
   );
 }
 
@@ -105,27 +116,22 @@ SourceSize _sourceSize(PuzzleArtwork a) =>
 class PuzzleController extends Notifier<PuzzleState> {
   @override
   PuzzleState build() {
-    final difficulty = ref.read(initialDifficultyProvider);
+    final level = ref.read(initialLevelProvider);
     // Validate before anything else: an unplayable override fails here,
     // before a seed is read or a puzzle is created.
-    playableArtworkFor(difficulty);
+    playableArtworkFor(level);
     final seed = ref.read(initialSeedProvider);
-    return PuzzleState(
-      seed: seed,
-      puzzle: _shuffle(seed, difficulty),
-      difficulty: difficulty,
-    );
+    return PuzzleState(seed: seed, puzzle: _shuffle(seed, level), level: level);
   }
 
-  /// The domain's seeded shuffle for [difficulty]'s board and picture.
-  /// Uses [playableArtworkFor], never [artworkProvider] (which depends on
-  /// this controller).
-  PicturePuzzle _shuffle(int seed, PuzzleDifficulty difficulty) =>
-      PicturePuzzle.shuffled(
-        difficulty.grid,
-        _sourceSize(playableArtworkFor(difficulty)),
-        seed: seed,
-      );
+  /// The domain's seeded shuffle for [level]'s board and picture. Uses
+  /// [playableArtworkFor], never [artworkProvider] (which depends on this
+  /// controller).
+  PicturePuzzle _shuffle(int seed, LevelId level) => PicturePuzzle.shuffled(
+    levelConfigFor(level).difficulty.grid,
+    _sourceSize(playableArtworkFor(level)),
+    seed: seed,
+  );
 
   /// Exchange the tiles in [from] and [to]. Wrong swaps are accepted.
   SwapOutcome swap(GridCell from, GridCell to) {
@@ -155,39 +161,43 @@ class PuzzleController extends Notifier<PuzzleState> {
     }
   }
 
-  /// Starts a new puzzle (PRD GP-40): the same difficulty and picture,
-  /// freshly shuffled with a seed from [puzzleSeedSourceProvider]. A seed
-  /// that would repeat the current arrangement is skipped, so the new board
-  /// always differs.
+  /// Replays the current level (PRD GP-40 "Next puzzle"): the same level
+  /// and picture, freshly shuffled with a random seed from
+  /// [puzzleSeedSourceProvider]. A seed that would repeat the current
+  /// arrangement is skipped, so the new board always differs.
   void newPuzzle() {
-    final difficulty = state.difficulty;
+    final level = state.level;
     final source = ref.read(puzzleSeedSourceProvider);
     final current = state.puzzle.arrangement;
     var seed = source.nextSeed();
-    var puzzle = _shuffle(seed, difficulty);
+    var puzzle = _shuffle(seed, level);
     for (var i = 0; i < 16 && listEquals(puzzle.arrangement, current); i++) {
       seed = source.nextSeed();
-      puzzle = _shuffle(seed, difficulty);
+      puzzle = _shuffle(seed, level);
     }
     state = PuzzleState(
       seed: seed,
       round: state.round + 1,
       puzzle: puzzle,
-      difficulty: difficulty,
+      level: level,
     );
   }
 
-  /// Starts a puzzle at [difficulty] (entry point for the future difficulty
-  /// selection; not called by the UI yet). An unplayable difficulty throws
-  /// [ArgumentError] before any seed is taken or any state changes.
-  void start(PuzzleDifficulty difficulty) {
-    playableArtworkFor(difficulty);
-    final seed = ref.read(puzzleSeedSourceProvider).nextSeed();
+  /// Starts [level] (entry point for future level selection; not called by
+  /// the UI yet). A first play uses the level's deterministic
+  /// [firstPlaySeed]; a [replay] uses a fresh random seed. A level that is
+  /// not playable throws [ArgumentError] before any seed is taken or any
+  /// state changes.
+  void start(LevelId level, {bool replay = false}) {
+    playableArtworkFor(level);
+    final seed = replay
+        ? ref.read(puzzleSeedSourceProvider).nextSeed()
+        : firstPlaySeed(level);
     state = PuzzleState(
       seed: seed,
       round: state.round + 1,
-      puzzle: _shuffle(seed, difficulty),
-      difficulty: difficulty,
+      puzzle: _shuffle(seed, level),
+      level: level,
     );
   }
 }
