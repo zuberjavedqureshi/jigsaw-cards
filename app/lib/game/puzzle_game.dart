@@ -778,47 +778,44 @@ class TargetMarker extends Component {
   }
 }
 
-/// Light honey-wood frame and pale bed behind the tiles (visible under a
-/// lifted tile). Positioned at the frame's outer rect; [thickness] is the
-/// frame width, so the bed exactly matches the board.
+/// The visible board (W3 "open board"): a soft shadow, a thin light outline
+/// with gently rounded corners hugging the tiles, and a pale bed under them.
+/// Positioned at the layout's frame rect; [thickness] is the layout's frame
+/// width, so the bed matches the logical board exactly. Only what is drawn
+/// changed: the logical board, its cells and the touch area still come from
+/// `BoardLayout`. The rest of the layout's frame band is left transparent.
 class BoardFrame extends PositionComponent {
   BoardFrame(this.style);
 
   final BoardStyle style;
   double thickness = 8;
 
+  /// The logical board in local coordinates (where the tiles sit).
+  Rect get boardRect => (Offset.zero & size.toSize()).deflate(thickness);
+
+  /// The visible outline: the board plus [BoardStyle.outlineWidth].
+  RRect get outlineRRect => RRect.fromRectAndRadius(
+    boardRect.inflate(style.outlineWidth),
+    Radius.circular(style.cornerRadius),
+  );
+
+  /// The bed: exactly the board, with the inner corner radius.
+  RRect get bedRRect => RRect.fromRectAndRadius(
+    boardRect,
+    Radius.circular(math.max(0, style.cornerRadius - style.outlineWidth)),
+  );
+
   @override
   void render(Canvas canvas) {
-    final outer = Offset.zero & size.toSize();
-    final radius = Radius.circular(thickness * 1.4);
+    final outline = outlineRRect;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(outer.shift(const Offset(0, 4)), radius),
+      outline.shift(const Offset(0, 3)),
       Paint()
         ..color = style.shadow
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(outer, radius),
-      Paint()..color = style.frame,
-    );
-    // Soft highlight on the upper half of the frame.
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(outer.deflate(thickness * 0.2), radius),
-      Paint()
-        ..color = style.frameHighlight
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = thickness * 0.25,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(outer.deflate(0.75), radius),
-      Paint()
-        ..color = style.frameEdge
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-    final bed = outer.deflate(thickness);
-    canvas.drawRect(bed.inflate(1), Paint()..color = style.frameEdge);
-    canvas.drawRect(bed, Paint()..color = style.bed);
+    canvas.drawRRect(outline, Paint()..color = style.outline);
+    canvas.drawRRect(bedRRect, Paint()..color = style.bed);
   }
 }
 

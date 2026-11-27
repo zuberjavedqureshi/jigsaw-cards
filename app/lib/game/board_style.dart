@@ -7,10 +7,10 @@ import '../ui/sunlit_theme.dart';
 /// tokens (PRD VI-06).
 class BoardStyle {
   const BoardStyle({
-    this.frame = Sunlit.frame,
-    this.frameEdge = Sunlit.frameEdge,
-    this.frameHighlight = const Color(0x99FFF4D6),
-    this.bed = Sunlit.boardBed,
+    this.outline = const Color(0xE6FFFBF2),
+    this.outlineWidth = 2,
+    this.cornerRadius = 5,
+    this.bed = const Color(0xF2EAF4FA),
     this.shadow = Sunlit.shadow,
     this.tileEdge = const Color(0xCCFFFFFF),
     this.selected = Sunlit.sunflower,
@@ -23,9 +23,19 @@ class BoardStyle {
   /// The approved Sunlit Storybook board.
   static const sunlit = BoardStyle();
 
-  final Color frame;
-  final Color frameEdge;
-  final Color frameHighlight;
+  /// Thin, light outline around the board (Sunlit surface, 90%): an open
+  /// board instead of a thick wooden frame (W3).
+  final Color outline;
+
+  /// Visible outline width (dp). Visual only: the board's logical rectangle
+  /// and touch area are set by `BoardLayout`, not by this value.
+  final double outlineWidth;
+
+  /// Corner radius of the outline (dp).
+  final double cornerRadius;
+
+  /// Board bed under the tiles (pale blue, 95%): visible only under a lifted
+  /// tile, so an empty cell never shows the background.
   final Color bed;
   final Color shadow;
   final Color tileEdge;
