@@ -1,20 +1,24 @@
 # Visual Identity
 
-> Status: direction confirmed at a high level; **Sunlit Storybook palette approved 2026-11-26**, with the gameplay background refined and approved on device the same day (§2a, §2b); detailed style guide (typography, iconography, components) not yet produced. Style guide work belongs in [`design/style-guide/`](../../design/style-guide/).
+> Status: **puzzle-picture direction revised and approved 2026-11-28 (W4-R1): hybrid photography and semi-realistic illustration** (§2, [ARTWORK_GUIDELINES.md](ARTWORK_GUIDELINES.md)); UI direction confirmed at a high level; **Sunlit Storybook palette approved 2026-11-26**, with the gameplay background refined and approved on device the same day (§2a, §2b); detailed style guide (typography, iconography, components) not yet produced. Style guide work belongs in [`design/style-guide/`](../../design/style-guide/).
 
 ## 1. Identity
 
 - **Name:** Jigsaw Cards
 - **Tagline:** Solve. Discover. Collect.
-- **Theme:** Magical storybook puzzle adventure.
-- **Visual identity [Confirmed]:** Magical Storybook.
+- **Theme:** Premium casual puzzle adventure through a journey of locations *(revised 2026-11-28; was "Magical storybook puzzle adventure")*.
+- **Puzzle pictures [Confirmed 2026-11-28, W4-R1]:** realistic photography and semi-realistic illustration (PRD VI-01). *(Was: "Visual identity: Magical Storybook".)*
+- **UI [Confirmed]:** the bright, cheerful Sunlit palette and patterned violet background (§2a, §2b) are **kept temporarily** and will be revisited after the W4-R2 visual prototype (Q-027).
+- **Mascot and cards [Confirmed 2026-11-28, VI-13]:** a polished 3D or semi-realistic mascot; collectible cards with a premium illustrated presentation.
 
-## 2. Art Direction (confirmed principles)
+## 2. Art Direction (revised 2026-11-28, W4-R1)
 
-- Beautifully illustrated puzzle images — the art is the reward.
-- Storybook feel: the game reads like an enchanted book.
+- **Pictures are the reward:** high-quality realistic photographs and semi-realistic illustrations, mixed within each location (PRD VI-01, VI-02).
+- **Every level is a surprise:** a location's ten pictures vary in subject, colour and composition. The location's identity comes from its name, tagline and presentation, not from a picture theme (PRD VI-04).
+- **Sourcing, provenance and quality:** licensed or commissioned photography; AI-assisted or commissioned illustration; a provenance record and quality review for every picture (PRD VI-07, VI-10 to VI-12; [ARTWORK_GUIDELINES.md](ARTWORK_GUIDELINES.md)).
 - Characters are revealed and **animated** when a designated puzzle is completed and its guaranteed card is awarded (PRD CC-03).
-- Each world has a distinct palette and atmosphere.
+- **Styles by surface (PRD VI-13):** puzzle pictures are photographic or semi-realistic; the mascot is a polished 3D or semi-realistic character; cards have a premium illustrated presentation. Consistency comes from shared presentation and quality, without forcing all puzzle pictures into one style.
+- *History:* the earlier principles were "beautifully illustrated puzzle images", "storybook feel: the game reads like an enchanted book" and "each world has a distinct palette and atmosphere".
 
 ## 2a. Sunlit Storybook Palette (approved 2026-11-26)
 
@@ -42,9 +46,9 @@
 
 - **Text contrast:** all text meets at least WCAG AA contrast (4.5:1 for body text) against its background.
 - **Text pairings that meet this rule** (measured contrast): cream text on the violet backdrop 5.36:1 (6.67:1 where it crosses a lattice line); ink on surface 11.1:1, on cream 10.4:1, on sky 8.8:1, on sunflower 7.4:1, on leaf 5.1:1, on primary turquoise 4.6:1; white on deep teal 4.9:1; deep teal on surface 4.7:1. **White text on primary turquoise (2.5:1) or on coral (2.6:1) fails**: those colours carry text only in ink, and are otherwise used for accents, borders and effects. Filled primary buttons therefore use deep teal with white text, or turquoise with ink text.
-- **Per-world variation (direction):** each world adds its own accent and background tint on top of the shared cream surfaces (VI-04). Even darker themes, such as a cosmic world, keep bright, readable UI surfaces. The per-world colours are not yet designed.
+- **Per-location presentation (direction):** each location adds its own accent and background tint on top of the shared cream surfaces, as part of its identity (VI-04). Even darker themes, such as a cosmic world, keep bright, readable UI surfaces. The per-world colours are not yet designed.
 - **Typography:** open. The system font is used until a typeface is approved; bundling a font is a new asset and needs approval.
-- **Placeholder art (PRD VI-07):** the placeholder puzzle picture is a bright, code-drawn daytime storybook scene. No AI-generated or downloaded artwork.
+- **Placeholder art (PRD VI-07, revised 2026-11-28):** the code-drawn pictures (Sunny Castle; the W4 Sunny Meadows experiment) are prototype or placeholder art only and are labelled as such. Sunny Castle stays the temporary level-1 placeholder until replacement artwork is approved (Q-027). Production pictures follow the hybrid sourcing policy ([ARTWORK_GUIDELINES.md](ARTWORK_GUIDELINES.md)). *(Was: "No AI-generated or downloaded artwork.")*
 
 ## 2b. Gameplay Background (approved on device 2026-11-26)
 
@@ -92,18 +96,11 @@
 - One recurring mascot character guides the player throughout the game (onboarding, world transitions, encouragement).
 - Mascot design, name and personality: **TBC** (OPEN_QUESTIONS Q-006).
 
-## 4. Worlds — Visual Themes
+## 4. Locations — Identity
 
-World names are working names (proposed, PRD WP-02, Q-021).
+*(Revised 2026-11-28, W4-R1.)* A location's identity is its original **name**, **tagline** and **presentation** (accent and background tint, transitions). It does not set a picture theme: its ten pictures mix subjects freely (PRD VI-04). Candidate names, none approved yet, are listed in [GAME_PROGRESSION.md §2](GAME_PROGRESSION.md#2-locations) (Q-021).
 
-| World | Direction (initial, non-binding) |
-| --- | --- |
-| Enchanted Forest | Woodland, soft light, magical creatures |
-| Ocean Kingdom | Underwater, flowing, aquatic characters |
-| Fantasy Kingdom | Castles, royalty, classic fairy tale |
-| Cosmic Adventures | Space, stars, cosmic characters |
-
-These descriptions are working directions, to be refined by the art team.
+*History:* the earlier non-binding directions tied each world to a picture theme: Enchanted Forest (woodland), Ocean Kingdom (underwater), Fantasy Kingdom (castles) and Cosmic Adventures (space).
 
 ## 5. UI Principles
 

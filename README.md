@@ -2,7 +2,7 @@
 
 > **Solve. Discover. Collect.**
 
-Jigsaw Cards is a magical storybook puzzle adventure for Android. Players solve beautifully illustrated image puzzles to discover animated characters, collect cards, complete themed collections and unlock new fantasy worlds.
+Jigsaw Cards is a premium casual puzzle adventure for Android. Players travel through a journey of locations, solving puzzles made from realistic photographs and semi-realistic illustrations, where every new level reveals a surprising picture. Along the way they discover animated characters, collect cards and complete themed collections.
 
 > **Project status: Early prototype — technical validation.**
 > The current playable build (`feature/gameplay-picture-swap`) is a rectangular picture-swap puzzle: a shuffled 4×4 grid of picture tiles, where the player drags one tile onto another to swap them until the picture is whole. It uses code-drawn placeholder artwork and has not been validated on a physical Android device. Cards, coins, rewards, hints (planned for v1), audio, persistence and the reference preview are not implemented. Earlier tray and memory/free-placement builds are superseded. See [Implementation Status](planning/IMPLEMENTATION_STATUS.md).
@@ -11,14 +11,9 @@ Jigsaw Cards is a magical storybook puzzle adventure for Android. Players solve 
 
 ## Game Vision
 
-Every puzzle is a page in a storybook. Completing puzzles rewards coins, and completing a designated puzzle guarantees a collectible card, revealed through an animated character. Cards have rarity and belong to themed collections. Completing collections is proposed as the way to unlock new fantasy worlds (mechanism still open). One recurring mascot character guides the player throughout the journey.
+Five locations of ten levels each are unlocked one level at a time: completing a level unlocks the next, level 10 of locations 1–4 opens the next location, level 10 of location 5 completes the main World Journey, and completed levels can be replayed. Completing puzzles rewards coins, and completing a designated puzzle guarantees a collectible card, revealed through an animated character. Cards have rarity and belong to themed collections. One recurring mascot character guides the player throughout the journey. See the [PRD](docs/product/PRD.md) (VI-01 to VI-13, WP-04 to WP-10).
 
-**Worlds** (proposed working names; world-based progression is confirmed)
-
-1. Enchanted Forest
-2. Ocean Kingdom
-3. Fantasy Kingdom
-4. Cosmic Adventures
+**Locations:** five, each with an original name and tagline. No names are approved yet; candidates are listed in [Game Progression](docs/product/GAME_PROGRESSION.md#2-locations). The code uses working titles until names are approved.
 
 **Hybrid puzzle system:** two separate puzzle styles. Rectangular tile puzzles (a picture-swap grid of equal-sized tiles) come first; traditional irregular jigsaw puzzles are planned as future functionality. Both share session, configuration, progress and reward systems.
 

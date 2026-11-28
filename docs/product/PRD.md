@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 1.0 (canonical repository edition, reconciliation 9: M3.3 positive connection feedback approved on device) |
+| Version | 1.0 (canonical repository edition, reconciliation 10: W4-R1 hybrid visual direction and artwork sourcing, approved 2026-11-28) |
 | Status | Approved product decisions; pre-development technical validation |
 | Platform | Android first, portrait |
 | Tagline | **Solve. Discover. Collect.** |
@@ -32,20 +32,23 @@ Requirement IDs (e.g. `GP-03`) are stable and may be referenced from issues, ADR
 | 7 | 2026-11-26 | M3.1 implemented and approved on the product owner's Android device. **VI-06** refined: the gameplay background is a patterned violet storybook background (flat `#7543EE`, darker `#6531DE` diamond lattice, subtle four-petal motifs, cream header text), replacing the sky-to-cream gradient with clouds. GP-37 to GP-40 behaviour approved on device |
 | 8 | 2026-11-26 | M3.2 **Connected Tile Groups** implemented and approved on the product owner's Android device as an approved **core gameplay feature** (**GP-41 to GP-44**, **VI-08**). Groups form through correct **relative** picture alignment anywhere on the board, not only at final cells; the full-board drag-and-swap model (GP-29 to GP-34) remains. A free-placement prototype with a scattered workbench and continuous positions (M3.2 "Direction B") was built for evaluation and **rejected**; it is historical work only. GP-32 and FP-03 annotated |
 | 9 | 2026-11-26 | M3.3 **positive connection feedback** implemented and approved on the product owner's Android device: short animated praise (**Nice!**, **Great!**, **Amazing!**, **Fantastic!**, **Perfect!**) for actual connections and completion (**GP-45**, **VI-09**). After device testing, **Fantastic!** was limited to the first group reaching 10 or more tiles in each puzzle. No rewards, scoring, combos or sound |
+| 10 | 2026-11-28 | **W4-R1 (approved by the product owner 2026-11-28).** After the code-drawn Sunny Meadows experiment (W4) was rejected as repetitive, the product owner approved a **hybrid visual direction**, combining realistic photography and semi-realistic illustration, and a **hybrid sourcing strategy**: licensed or commissioned photography; AI-assisted or commissioned illustration; a provenance record for every asset. Product vision (§1), **TA-07**, **VI-01**, **VI-02**, **VI-04** and **VI-07** revised, with the earlier wording kept as history. New: **VI-10** (provenance), **VI-11** (image technical requirements, limits proposed), **VI-12** (artwork quality review), **WP-04** and **WP-05** (original location names and taglines; candidates only, not approved). The already-approved World Journey structure (five locations, ten levels each, Normal 4×4 and Hard 5×5, the Hard-level distribution, sequential unlocking, replay, no 6×6) is recorded unchanged as **WP-06 to WP-10**. Product-owner decisions recorded the same day: the 40 MB artwork ceiling for all 50 puzzle images combined (VI-11, Q-025 resolved; Play Asset Delivery timing tracked separately as Q-028); the end of the main World Journey after location 5 level 10 (WP-08); production images in `app/assets/`, provenance outside the bundle; art styles for puzzles, mascot and cards (**VI-13**, Q-026 resolved); Sunny Castle stays as the temporary level-1 placeholder and the Sunlit Storybook UI palette is kept for now (Q-027 resolved); image sources stay open (Q-024). **WP-03** and **RW-03** (collections unlock worlds) are **superseded** by sequential level unlocking (WP-08), and the §8 loop is updated. Location names remain unapproved. No code, world IDs or gameplay changed |
 
 ---
 
 ## 1. Product Vision
 
-**[Confirmed]** Jigsaw Cards is a magical storybook puzzle adventure. Players solve beautifully illustrated image puzzles to discover animated characters, collect cards, complete themed collections and unlock new fantasy worlds.
+**[Confirmed]** *(revised 2026-11-28, W4-R1)* Jigsaw Cards is a **premium casual puzzle adventure**. Players travel through a journey of **locations**, each with its own name, tagline and presentation, and solve puzzles made from striking **realistic photographs** and **semi-realistic illustrations**. Every new level reveals a different, surprising picture, so players are curious about what comes next. Completing each level unlocks the next, and level 10 of a location opens the next location (WP-08). Along the way they discover animated characters, collect cards and complete themed collections.
+
+*History (until 2026-11-28):* "Jigsaw Cards is a magical storybook puzzle adventure. Players solve beautifully illustrated image puzzles to discover animated characters, collect cards, complete themed collections and unlock new fantasy worlds."
 
 The product identity is **Solve. Discover. Collect.**
 
 | Pillar | Meaning |
 | --- | --- |
 | Solve | Satisfying, tactile jigsaw gameplay designed for mobile |
-| Discover | Puzzles reveal animated characters within a storybook world |
-| Collect | Collectible cards, themed collections and new worlds to unlock |
+| Discover | Every level reveals a surprising new picture; designated puzzles also reveal animated characters *(revised 2026-11-28; was: "Puzzles reveal animated characters within a storybook world")* |
+| Collect | Collectible cards, themed collections and new locations to unlock |
 
 ## 2. Unique Selling Proposition
 
@@ -53,7 +56,7 @@ The product identity is **Solve. Discover. Collect.**
 
 1. **Satisfying jigsaw gameplay** with drag-and-snap pieces.
 2. **Character discovery**: puzzles reveal animated characters, not just a finished picture.
-3. **Card collection**: collectible cards, with rarity, in themed collections that drive progression into new worlds.
+3. **Card collection**: collectible cards, with rarity, in themed collections. *(Revised 2026-11-28: collections no longer drive progression into new worlds; locations unlock by sequential level completion, WP-08.)*
 
 A recurring mascot guide gives the game a recognisable identity.
 
@@ -73,34 +76,58 @@ Jigsaw Cards is a broad casual puzzle game primarily designed for teenagers and 
 | TA-04 | Under-13 audience | Not an intended target audience. Children under 13 are not specifically targeted; this does not describe them as prohibited from playing |
 | TA-05 | Player interests | Puzzles, collecting, exploration and relaxing games |
 | TA-06 | Difficulty | Easy to learn, progressively challenging |
-| TA-07 | Art direction | Magical, colourful storybook aesthetic; not exclusively child-oriented |
+| TA-07 | Art direction | *(revised 2026-11-28, W4-R1)* Premium, colourful and visually varied: realistic photography and semi-realistic illustration (VI-01, VI-02); not childish or exclusively child-oriented. *(Was: "Magical, colourful storybook aesthetic; not exclusively child-oriented")* |
 | TA-08 | Experience | Relaxing, satisfying, rewarding and engaging |
 
 **Product design implications [Confirmed]**
 
 - Gameplay should be easy to learn, with progressively increasing puzzle complexity.
 - Visual identity should appeal to teens and adults rather than looking exclusively designed for young children.
-- Progression should provide meaningful collection and world-unlocking rewards.
+- Progression should provide meaningful collection rewards and a clear level-by-level journey through the locations (WP-08).
 - The mascot should be charming and memorable without making the game feel exclusively child-oriented. The mascot's design remains open (Q-006).
 - UI should remain readable, intuitive and comfortable to use.
 
 **Compliance distinction.** This is a product-positioning decision. It is **not** a Google Play age rating, content rating or target-audience declaration, and it does not by itself establish how the game is classified for regulatory or store-policy purposes. Google Play target-audience and content requirements, the Families Policy, advertising, privacy and data-collection requirements must be assessed separately before release. Monetization (Q-004) and those compliance matters are not decided here.
 
-## 4. Visual Identity — Magical Storybook
+## 4. Visual Identity — Premium Photographic and Illustrated Puzzles
 
 **[Confirmed]**
 
-- **VI-01** Magical Storybook visual identity: the game should feel like an enchanted, illustrated storybook.
-- **VI-02** Puzzle images are beautifully illustrated, and the artwork is part of the reward.
+- **VI-01** *(revised and approved 2026-11-28, W4-R1)* **Hybrid visual direction.** Puzzle pictures combine two approved styles, which may coexist within one location:
+  - **Realistic photography:** natural textures, realistic lighting and shadows, rich colours, detailed compositions, high-resolution sources.
+  - **Semi-realistic illustration:** detailed, polished artwork with realistic textures, lighting, depth and dimensionality, and artistic personality without childish cartoon styling.
+
+  Avoided: flat cartoon drawings, repeated scenery and backgrounds, repetitive colour palettes, similar compositions on consecutive levels, and childish or simplistic shapes. The UI (VI-06) frames the pictures and stays bright and cheerful.
+  *History:* "Magical Storybook visual identity: the game should feel like an enchanted, illustrated storybook." Superseded by the W4-R1 direction; the code-drawn Sunny Meadows experiment (W4) showed that a single storybook style became repetitive.
+- **VI-02** *(revised and approved 2026-11-28, W4-R1)* **Pictures are the reward.** Every puzzle picture is a high-quality, visually distinct photograph or semi-realistic illustration that stays attractive when cut into 16 (4×4) or 25 (5×5) tiles and when whole. Each picture must pass the artwork quality review (VI-12) and be sourced under VI-07 with a provenance record (VI-10).
+  *History:* "Puzzle images are beautifully illustrated, and the artwork is part of the reward."
 - **VI-03** Characters are revealed with animation (Rive, subject to technical validation, TD).
-- **VI-04** Each world has its own visual theme.
+- **VI-04** *(revised and approved 2026-11-28, W4-R1)* **Location identity, diverse pictures.** A location provides the chapter identity through its name, tagline and presentation. Its ten puzzle levels may contain a diverse mixture of subjects, visual environments, colours and compositions. The location theme **does not restrict** the subjects of its pictures: one location may contain, for example, construction machinery, roses, fruit, animals, birds, vehicles, buildings, landscapes and interesting objects. Consecutive levels avoid similar subjects, dominant colours and compositions, and no main subject is repeated across locations without a deliberate reason.
+  *History:* "Each world has its own visual theme."
 - **VI-05** Portrait UI that frames the artwork rather than competing with it.
-- **VI-06** *(approved 2026-11-26; background refined and approved on device the same day)* The whole game UI follows the rich, cheerful **Sunlit Storybook** direction. The gameplay background is a **patterned violet storybook background**: a flat violet base (`#7543EE`) with a subtle, darker diamond lattice (`#6531DE`) and small four-petal motifs, drawn in code, with cream header text (`#FFFBF2`). It also uses cream paper surfaces, slate-blue text on light surfaces and harmonious accents, all defined as shared design tokens and used consistently across gameplay, menus and progression screens. The puzzle board is the focal point; the background stays atmospheric and never competes with it. Details: [VISUAL_IDENTITY.md §2a–2b](VISUAL_IDENTITY.md#2a-sunlit-storybook-palette-approved-2026-11-26). *(History: the first implementation used a sky-to-cream gradient background with clouds, replaced after device review.)*
-- **VI-07** *(approved 2026-11-26)* Until real artwork exists, the placeholder puzzle picture is a **bright, code-drawn daytime** storybook scene, replacing the night scene. No AI-generated or downloaded artwork.
+- **VI-06** *(approved 2026-11-26; background refined and approved on device the same day)* The whole game UI follows the rich, cheerful **Sunlit Storybook** direction. The gameplay background is a **patterned violet storybook background**: a flat violet base (`#7543EE`) with a subtle, darker diamond lattice (`#6531DE`) and small four-petal motifs, drawn in code, with cream header text (`#FFFBF2`). It also uses cream paper surfaces, slate-blue text on light surfaces and harmonious accents, all defined as shared design tokens and used consistently across gameplay, menus and progression screens. The puzzle board is the focal point; the background stays atmospheric and never competes with it. Details: [VISUAL_IDENTITY.md §2a–2b](VISUAL_IDENTITY.md#2a-sunlit-storybook-palette-approved-2026-11-26). *(History: the first implementation used a sky-to-cream gradient background with clouds, replaced after device review.)* *(Note 2026-11-28, Q-027: the Sunlit Storybook UI palette and patterned violet background are **kept temporarily** and will be revisited after the W4-R2 visual prototype.)*
+- **VI-07** *(approved 2026-11-26; **revised and approved 2026-11-28, W4-R1**: placeholder-only rule replaced by the hybrid sourcing policy)* **Artwork sourcing.** Production puzzle pictures come only from these approved sources:
+  1. **Photography:** properly licensed stock photography, or commissioned photography.
+  2. **Illustration:** AI-assisted illustration, only where the provider's current terms permit the intended commercial use (distribution inside a commercial mobile game), or commissioned illustration.
+
+  Every production asset has a **provenance record** (VI-10) and passes the **visual quality review** (VI-12) **before** it is integrated. No unauthorised copyrighted content, recognisable brands, trademarks or logos, copyrighted characters, or imitation of a named living artist's style. An image is never assumed usable because it can be downloaded or generated: if its rights are unclear, it is **not used**. Material legal uncertainty is flagged to the product owner. Details: [ARTWORK_GUIDELINES.md](ARTWORK_GUIDELINES.md).
+  **Temporary code-drawn artwork** (Sunny Castle, and the W4 Sunny Meadows experiment) is allowed only as clearly labelled **prototype or placeholder** artwork; it is not production art and is not a substitute for missing production pictures. **Sunny Castle remains the temporary level-1 placeholder** until replacement artwork is approved (Q-027). The W4 Sunny Meadows pictures stay an unregistered experiment kept for comparison.
+  **Approved sources are not yet selected:** no stock agency, AI provider, subscription or budget is chosen. That decision follows the evaluation of the four-image prototype (W4-R2) and a comparison of commercial licences (Q-024).
+  *History (2026-11-26 to 2026-11-28):* "Until real artwork exists, the placeholder puzzle picture is a **bright, code-drawn daytime** storybook scene, replacing the night scene. No AI-generated or downloaded artwork."
 - **VI-08** *(approved 2026-11-26 on device, with GP-41 to GP-44)* Connected tile groups read as one piece of the picture: no edge lines between members, only the group's outer outline (a correctly placed group stays edge to edge, as before). A lifted group is drawn slightly enlarged and seamless, with one shared shadow and one outline, and its destination is shown as one outline around all of its cells.
 - **VI-09** *(approved 2026-11-26 on device, with GP-45)* Praise is drawn in code with no assets: bold, slightly tilted text with a light-to-saturated fill, a dark contrasting outline, a soft glow and a few white and gold four-point sparkles, in a colour for each level from the Sunlit accents. It pops in, overshoots slightly, settles with a subtle bounce and fades out (about 1.25 s). It appears near the connected tiles (the board centre for **Perfect!**), always fully on screen and small enough not to hide the puzzle. With the system reduce-motion setting it only fades, with no bounce or sparkles.
 
-Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md).
+- **VI-10** *(new and approved 2026-11-28, W4-R1)* **Provenance record for every production asset**, kept outside the app bundle and reviewed before integration. It records: asset ID and filename; main subject; production method (licensed stock, commissioned photo, AI-assisted illustration, commissioned illustration); original source or provider; creator or author where applicable; licence or applicable provider terms (with the version or date checked); commercial-use permission; attribution requirements; purchase or licence evidence reference; model and property release status where applicable; usage restrictions; for AI-assisted work, the provider, model, date, prompts and source records; any editing applied; reviewer and review date. Template: [ARTWORK_GUIDELINES.md §3](ARTWORK_GUIDELINES.md#3-provenance-record).
+- **VI-11** *(new 2026-11-28, W4-R1)* **Image technical requirements.** Square 1:1 pictures (the board keeps the picture's aspect ratio, GP-35). **[Confirmed]** Production images are stored in the app package under **`app/assets/`** (`app/assets/artwork/<location-key>/<asset-id>.webp`). Provenance records are kept **outside the app bundle** (VI-10). The **40 MB ceiling** covers **all 50 bundled puzzle images combined** (five locations × ten levels), subject to actual asset-size measurements (the release arm64 APK measured 15.5 MB without image artwork on 2026-11-28). **[Proposed — to be confirmed with the W4-R2 measurements]** WebP, 2048 × 2048 px, normally 300–600 KB each, with a **per-image limit of 800 KB** that stays proposed until measured; master files of at least 3000 px kept outside the app. Pictures are decoded once, off the gesture path, before a puzzle's introduction starts, at a size suited to the device, and released when the puzzle is left. The composition carries meaningful detail up to every edge (tiles are cut exactly on the grid; nothing is cropped at runtime). Raster pictures and the existing code-drawn pictures are both to be supported. The engineering proposal is in [RASTER_ARTWORK_PROPOSAL.md](../architecture/RASTER_ARTWORK_PROPOSAL.md); implementation is a separate, reviewed milestone. Rationale: [ARTWORK_GUIDELINES.md §4](ARTWORK_GUIDELINES.md#4-image-technical-requirements).
+- **VI-12** *(new and approved 2026-11-28, W4-R1)* **Artwork quality review.** Every puzzle picture is reviewed against the checklist in [ARTWORK_GUIDELINES.md §5](ARTWORK_GUIDELINES.md#5-artwork-quality-checklist): a clear, recognisable main subject; distinct visual regions; an attractive colour composition; sufficient texture and detail; no large empty or monotonous areas; interesting content near the edges; no excessive background blur; no composition repeated from another level; suitable difficulty for 4×4 and 5×5; high quality on a mobile screen. The picture must stay attractive when divided into 16 or 25 tiles. Automated tile-distinctness tests support the review but **do not replace** human visual review and gameplay testing on a device.
+- **VI-13** *(new 2026-11-28, W4-R1; Q-026 resolved)* **Art styles by surface.**
+  - **Puzzle pictures:** realistic photography and semi-realistic illustration (VI-01).
+  - **Mascot:** a polished 3D or semi-realistic character (MC-01; design, name and personality remain open, Q-006).
+  - **Collectible cards:** a premium illustrated presentation (CC-01).
+
+  Visual consistency comes from shared UI presentation, quality standards and colour care, **without** forcing all puzzle pictures into one style.
+
+Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md) · [ARTWORK_GUIDELINES.md](ARTWORK_GUIDELINES.md).
 **[Source text needed]** Any palette, typography or style-guide direction in the original approved PRD text. Typography remains open; the M3.1 palette (VI-06) was approved separately on 2026-11-26.
 
 ## 5. Mascot and Character Discovery
@@ -115,7 +142,7 @@ Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md).
 ## 6. Worlds and World-Based Progression
 
 - **WP-01 [Confirmed]** Progression is world-based: content is organised into worlds.
-- **WP-02 [Proposed]** Working world names (exact names not confirmed, Q-021):
+- **WP-02** ~~[Proposed] Working world names (exact names not confirmed, Q-021):~~ **Superseded 2026-11-28** by WP-04 and WP-05 (original location names; candidates unapproved). The list below is history:
 
   | # | World |
   | --- | --- |
@@ -124,9 +151,19 @@ Details: [VISUAL_IDENTITY.md](VISUAL_IDENTITY.md).
   | 3 | Fantasy Kingdom |
   | 4 | Cosmic Adventures |
 
-- **WP-03 [Proposed]** Completing themed collections unlocks new fantasy worlds.
+- **WP-03** ~~[Proposed] Completing themed collections unlocks new fantasy worlds.~~ **Superseded 2026-11-28** by WP-08: locations are unlocked only by sequential level completion. Collections do not unlock locations.
+- **WP-04 [Confirmed]** *(2026-11-28, W4-R1)* **Original location names.** In player-facing text a world is called a **location**: an adventure chapter with an original, memorable name and a short, attractive tagline. Names and taglines must be original, easy to pronounce and suitable for a worldwide audience. Names, taglines and branding from the reference game are **never copied**. Before a name is approved it is checked for conflicts (app stores, trademarks). Names need not describe the pictures' subjects (VI-04).
+- **WP-05 [Proposed — candidates only, not approved; naming review pending]** *(2026-11-28)* Candidate location names (Q-021): **Brightwater Landing**, **Copperbell Lane**, **Honeyglade**, **Starling Cove**, **Wonderglow Realm**. Further candidates and draft taglines: [GAME_PROGRESSION.md §2](GAME_PROGRESSION.md#2-locations). The implementation keeps its existing world IDs and working titles (Sunny Meadows, Enchanted Forest, Fantasy Kingdom, Ocean Kingdom, Sky Kingdom) until names are approved; renaming is a separate change.
 
-**[Open]** The exact world unlocking mechanism, unlock order and rules, and the number of puzzles and collections per world (Q-002).
+**World Journey structure** *(approved and implemented in the World Journey milestones W0 and W1; recorded here unchanged on 2026-11-28)*:
+
+- **WP-06 [Confirmed]** **Five locations**, each with **ten levels**.
+- **WP-07 [Confirmed]** Two difficulties: **Normal 4×4** and **Hard 5×5**. Each level has one fixed difficulty. **No 6×6** difficulty at this stage.
+- **WP-08 [Confirmed]** **Sequential unlocking (authoritative unlock rule):** the first level of the first location is always available; every other level unlocks when the level before it is completed. Completing **level 10 of locations 1–4** unlocks **level 1 of the next location**. Completing **level 10 of location 5** completes the **main World Journey** and shows a **final completion experience** (its design is not yet specified and it is not yet implemented). Further locations may be added later only through separate, approved content updates. Level completion is the only unlock mechanism; collections, cards and coins do not unlock levels or locations.
+- **WP-09 [Confirmed]** **Replay:** completed levels remain playable at any time. A first play uses a deterministic layout; replays use a fresh shuffle.
+- **WP-10 [Confirmed]** **Hard-level distribution** (level numbers per location, in play order; level 10 is always Hard): location 1 — 4, 7, 10; location 2 — 3, 5, 8, 10; location 3 — 2, 4, 6, 8, 10; location 4 — 2, 4, 5, 7, 9, 10; location 5 — 2, 3, 5, 6, 8, 9, 10.
+
+**[Open]** Collection design: the number and size of collections per location and which puzzles are designated card puzzles (Q-002). Collections have no effect on unlocking (WP-08).
 
 Details: [GAME_PROGRESSION.md](GAME_PROGRESSION.md).
 
@@ -248,24 +285,26 @@ Details: [GAMEPLAY.md](GAMEPLAY.md). Technical specification: [PUZZLE_ENGINE.md]
 
 ## 8. Core Gameplay Loop
 
-**[Confirmed — structure]**, except the world-unlock step, which is **[Proposed]** (WP-03, Q-002).
+**[Confirmed — structure]** *(unlock step revised 2026-11-28: sequential level unlocking, WP-08; the earlier proposed step "complete collections → unlock next world" is superseded)*.
 
 ```
-Select puzzle (within a world)
+Select an unlocked level (within a location; completed levels can be replayed)
       │
       ▼
-Solve puzzle (drag, snap, complete)
+Solve puzzle (drag and swap, connect groups, complete)
       │
       ▼
 Reward: coins
         + designated puzzle → guaranteed card (character reveal), if not already collected
         + non-designated puzzle → progression rewards
       │
-      ▼
-Grow themed collections
+      ├──► Grow themed collections (no effect on unlocking)
       │
       ▼
-Complete collections → unlock next world [Proposed] ──► back to Select puzzle
+First completion unlocks the next level
+(level 10 of locations 1–4 → level 1 of the next location;
+ level 10 of location 5 → main World Journey complete,
+ final completion experience) ──► back to Select
 ```
 
 The mascot guides the player through the loop (MC-01).
@@ -306,7 +345,7 @@ The mascot guides the player through the loop (MC-01).
 - **RW-04** Non-designated puzzles award coins and progression rewards (CC-05). The content of progression rewards is open (Q-020).
 - **RW-05** Reward integration is shared by both puzzle styles (PS-17).
 
-**[Proposed]** **RW-03** World progression is driven by completing collections (WP-03).
+**RW-03** ~~[Proposed] World progression is driven by completing collections (WP-03).~~ **Superseded 2026-11-28** by WP-08: progression is driven by sequential level completion.
 
 **[Open]** What coins are spent on (Q-003) and the monetization model (Q-004).
 
@@ -459,8 +498,8 @@ These must remain unchanged without explicit approval:
 | 14 | Guaranteed card after designated puzzle completion | CC-03, CC-04 |
 | 15 | One recurring mascot serving as a guide | MC-01 |
 | 16 | Automatic saving of unfinished puzzles | GP-13, PR-02 |
-| 17 | World-based progression | WP-01 |
-| 18 | Magical Storybook visual identity | VI-01 |
+| 17 | World-based progression (locations unlocked by sequential level completion, WP-08) | WP-01 |
+| 18 | ~~Magical Storybook visual identity~~ Superseded 2026-11-28 by #44 (W4-R1) | VI-01 |
 | 19 | Collectible cards with rarity | CC-01, CC-02 |
 | 20 | Data-driven level system | DL-01 |
 | 21 | Local-first persistence; Firebase only when justified | PR-01, §13 |
@@ -481,11 +520,18 @@ These must remain unchanged without explicit approval:
 | 36 | Equal-sized rectangular tiles: uniform 4×4 grid, 16 tiles of identical dimensions, one per cell, cut as equal fragments of the illustration; mixed-size pieces superseded for the picture-swap gameplay (Q-022, resolved 2026-11-25) | PS-01, PS-06, PS-08, PS-19 to PS-24, GP-02, GP-29, GP-30 |
 | 37 | Correctly positioned tiles remain movable: no locking; any two tiles can be swapped at any time; correct-position feedback is visual only; completion only when every tile is in its correct cell (Q-023, resolved 2026-11-25) | GP-15, GP-32, GP-34 |
 | 38 | Puzzle introduction: card backs enter from below into the shuffled cells, then flip to the picture in sequence; input disabled until finished; runs for every new puzzle (2026-11-26) | GP-37 |
-| 39 | Sunlit Storybook palette for the entire UI; bright code-drawn daytime placeholder picture; no AI-generated or downloaded art (2026-11-26) | VI-06, VI-07 |
+| 39 | Sunlit Storybook palette for the entire UI; bright code-drawn daytime placeholder picture; ~~no AI-generated or downloaded art~~ (2026-11-26; the sourcing restriction is superseded 2026-11-28 by #45; code-drawn art remains allowed as labelled placeholder) | VI-06, VI-07 |
 | 40 | Board spacing: 20–32 dp horizontal margin to the frame's outer edge, safe areas respected, responsive; no reserved bottom action bar yet (2026-11-26) | GP-38 |
 | 41 | Short completion celebration with no rewards shown yet (extensible for future rewards); Next puzzle reshuffles the same picture, reruns the introduction, and cannot be triggered twice (2026-11-26) | GP-39, GP-40 |
 | 42 | Connected Tile Groups (core gameplay feature): neighbouring tiles join by correct relative picture alignment anywhere on the board, groups move and merge as one unit with their shape kept, single tiles keep drag-and-swap, the board stays full; free placement with a scattered workbench rejected (2026-11-26, approved on device) | GP-41 to GP-44, VI-08 |
 | 43 | Positive connection feedback: Nice! (pair), Great! (growth), Amazing! (merge), Fantastic! (first group reaching 10+ tiles per puzzle), Perfect! (completion only); praise for actual connections only, paced, never blocks input; no rewards, scoring, combos or sound (2026-11-26, approved on device) | GP-45, VI-09 |
+| 44 | Hybrid visual direction: realistic photography and semi-realistic illustration, mixed within locations; no flat cartoon, repetitive or childish art (2026-11-28, W4-R1) | §1, TA-07, VI-01, VI-02 |
+| 45 | Hybrid artwork sourcing: licensed or commissioned photography; AI-assisted (commercial-use terms permitting) or commissioned illustration; provenance record for every asset; quality review before integration; unclear rights are never used; code-drawn art only as labelled placeholder (2026-11-28, W4-R1) | VI-07, VI-10, VI-12 |
+| 46 | A location gives the chapter identity (original name, tagline, presentation); its ten pictures are diverse in subject, environment, colour and composition (2026-11-28, W4-R1) | VI-04, WP-04 |
+| 47 | World Journey: five locations of ten levels; Normal 4×4 and Hard 5×5 with the approved Hard distribution; sequential level unlocking, with level 10 of locations 1–4 unlocking the next location and level 10 of location 5 completing the main World Journey with a final completion experience (the only unlock rule; collections-based unlocking superseded; future locations only through separate content updates); completed levels replayable; no 6×6 (approved in W0/W1; recorded 2026-11-28) | WP-03, WP-06 to WP-10, RW-03 |
+| 48 | Artwork ceiling of 40 MB for all 50 bundled puzzle images combined, subject to measurement (the 800 KB per-image limit remains proposed); production images in `app/assets/`; provenance outside the app bundle (2026-11-28) | VI-10, VI-11 |
+| 49 | Art styles: puzzle pictures photographic or semi-realistic; mascot polished 3D or semi-realistic; cards premium illustrated; consistency without one forced picture style (2026-11-28) | VI-13 |
+| 50 | Sunny Castle is the temporary level-1 placeholder until replacement art is approved; Sunlit Storybook UI palette kept temporarily, revisited after W4-R2 (2026-11-28) | VI-06, VI-07 |
 
 ## 21. Source Gaps Summary
 
